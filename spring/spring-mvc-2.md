@@ -8,7 +8,7 @@
         - [LocaleResolver](#localeresolver)
 - [**검증**](#%EA%B2%80%EC%A6%9D)
     - [Version 1. 직접 검증을 구현](#version-1-%EC%A7%81%EC%A0%91-%EA%B2%80%EC%A6%9D%EC%9D%84-%EA%B5%AC%ED%98%84)
-    - [Version 2. **BindingResult**]https://github.com/jdalma/spring-validation/pull/1/commits/6fe09180d3f3c0ec9b450abddc2f74c450659b60 , [사용자 입력 값 유지](#version-2-bindingresulthttpsgithubcomjdalmaspring-validationpull1commits6fe09180d3f3c0ec9b450abddc2f74c450659b60--%EC%82%AC%EC%9A%A9%EC%9E%90-%EC%9E%85%EB%A0%A5-%EA%B0%92-%EC%9C%A0%EC%A7%80)
+    - [Version 2. **BindingResult**](#version-2-bindingresult)
     - [Version 3. FieldError , ObjectError](#version-3-fielderror--objecterror)
     - [Version 4. rejectValue , reject](#version-4-rejectvalue--reject)
     - [Version 4-1. rejectValue , reject , error.properties → **MessageCodesResolver**](#version-4-1-rejectvalue--reject--errorproperties-%E2%86%92-messagecodesresolver)
@@ -256,7 +256,7 @@ if(!errors.isEmpty()){
 <form action="item.html" th:action th:object="${item}" method="post">
   <div th:if="${errors?.containsKey('globalError')}">
       <p class="field-error" th:text="${errors['globalError']}">전체 오류 메세지</p>
-  
+  </div>
 
   <div>
       <label for="itemName" th:text="#{label.item.itemName}">상품명</label>
@@ -268,8 +268,8 @@ if(!errors.isEmpty()){
               placeholder="이름을 입력하세요">
       <div class="field-error" th:if="${errors?.containsKey('itemName')}" th:text="${errors['itemName']}">
           아이템 검증
-      
-  
+      </div>
+  </div>
   ...
 ```
 
@@ -281,7 +281,9 @@ if(!errors.isEmpty()){
     - *400 예외가 발생하면서 오류 페이지를 띄워준다*
   - 결국 문자는 바인딩이 불가능하므로 고객이 입력한 문자가 사라지게 되고, 고객은 본인이 어떤 내용을 입력해서 오류가 발생했는지 이해하기 어렵다
 
-## [Version 2. **BindingResult**](https://github.com/jdalma/spring-validation/pull/1/commits/6fe09180d3f3c0ec9b450abddc2f74c450659b60) , [사용자 입력 값 유지](https://github.com/jdalma/spring-validation/pull/1/commits/1362e6094d9672de4531be2c22c1a7d776d19d53)
+## [Version 2. **BindingResult**](https://github.com/jdalma/spring-validation/pull/1/commits/6fe09180d3f3c0ec9b450abddc2f74c450659b60)
+
+- [사용자 입력 값 유지](https://github.com/jdalma/spring-validation/pull/1/commits/1362e6094d9672de4531be2c22c1a7d776d19d53)
 
 ```java
   public interface BindingResult extends Errors
@@ -358,7 +360,7 @@ if(!errors.isEmpty()){
 ```html
 <div th:if="${#fields.hasGlobalErrors()}">
   <p class="field-error" th:each="err : ${#fields.globalErrors()}" th:text="${err}">글로벌 오류 메세지</p>
-
+</div>
 <input type="text"
       id="itemName"
       th:field="*{itemName}" 
@@ -367,7 +369,7 @@ if(!errors.isEmpty()){
       placeholder="이름을 입력하세요">
 <div class="field-error" th:errors="*{itemName}"> <!-- new FieldError로 추가한 필드 이름 -->
   아이템 검증
-
+</div>
 ```
 
 - `th:field`에 **필드 이름이 이미 지정되어 있다** 
@@ -497,9 +499,9 @@ required: 필수 값 입니다.
 
 <br>
 
-
+<div class="code-example" markdown="1">
 **errors.properties**
-
+</div>
 
 ```
 #==ObjectError==
@@ -841,10 +843,10 @@ public String edit(@PathVariable Long itemId, @Validated @ModelAttribute("item")
   2. 실패 요청: JSON을 객체로 생성하는 것 자체가 실패함 `컨트롤러 호출 조차 되지 않는다`
   3. 검증 오류 요청: JSON을 객체로 생성하는 것은 성공했고, 검증에서 실패함
 
-
+<div class="code-example" markdown="1">
 **JSON을 객체로 생성하는 것은 성공했고, 검증에서 실패함**<br>
 `return bindingResult.getAllErrors();`
-
+</div>
 
 ```json
 [
@@ -2032,9 +2034,9 @@ public String responseStatusEx2(){
 }
 ```
 
-
+<div class="code-example" markdown="1">
 **Response**
-
+</div>
 
 ```
 {
@@ -2061,16 +2063,16 @@ public String responseStatusEx2(){
   - 필요할 때 `DefaultHandlerExceptionResolver.class`를 직접 확인해보자
 
 
-
+<div class="code-example" markdown="1">
 **URI**
-
+</div>
 ```
 http://localhost:8080/api/default-handler-ex?data=qqq
 ```
 
-
+<div class="code-example" markdown="1">
 **Controller**
-
+</div>
 
 ```java
 @GetMapping("/api/default-handler-ex")
@@ -2080,9 +2082,9 @@ public String defaultException(@RequestParam Integer data){
 ```
 
 
-
+<div class="code-example" markdown="1">
 **Response**
-
+</div>
 ```
 {
     "timestamp": "2022-07-17T12:17:14.463+00:00",
@@ -2128,9 +2130,9 @@ public String defaultException(@RequestParam Integer data){
 - **이것은 스프링이 중간에서 `타입을 변환`해주었기 때문이다.**
   - *이러한 예는 `@ModelAttribute` , `@PathVariable` 에서도 확인할 수 있다.*
 
-
+<div class="code-example" markdown="1">
 **@ModelAttribute**
-
+</div>
 
 ```java
 @ModelAttribute UserData data
@@ -2140,9 +2142,9 @@ class UserData {
 }
 ```
 
-
+<div class="code-example" markdown="1">
 **@PathVariable**
-
+</div>
 
 ```java
 /users/{userId} → URL 경로는 문자다
@@ -2208,9 +2210,9 @@ public interface Converter<S, T> {
 - 그래서 스프링은 **개별 컨버터를 모아두고 그것들을 묶어서 편리하게 사용할 수 있는 기능**을 제공하는데, 
 - 이것이 바로 **컨버전 서비스( `ConversionService` )이다.**
 
-
+<div class="code-example" markdown="1">
 **WebConfig**
-
+</div>
 
 
 ```java
@@ -2226,9 +2228,9 @@ public class WebConfig implements WebMvcConfigurer {
 }
 ```
 
-
+<div class="code-example" markdown="1">
 **ConversionServiceTest**
-
+</div>
 
 ```java
 public class ConversionServiceTest {
@@ -2251,8 +2253,9 @@ public class ConversionServiceTest {
 }
 ```
 
+<div class="code-example" markdown="1">
 **HelloController**
-
+</div>
 
 ```java
   @GetMapping("/hello-v2")
@@ -2265,9 +2268,9 @@ public class ConversionServiceTest {
 - `http://localhost:8080/hello-v2?data=123` 이렇게 호출한다면,
 - 위에서 내가 만들고 등록한 **StringToIntegerConverter**가 호출된다 !!!
 
-
+<div class="code-example" markdown="1">
 **HelloController**
-
+</div>
 
 ```java
   @GetMapping("/hello-v3")
@@ -2332,9 +2335,9 @@ public class ConversionServiceTest {
 - **변수 표현식** : `${...}`
 - **컨버전 서비스 적용** : `${{...}}`
 
-
+<div class="code-example" markdown="1">
 **converter-form.html**
-
+</div>
 
 ```html
 <form th:object="${form}" th:method="post">
@@ -2450,9 +2453,9 @@ public class MyNumberFormatter implements Formatter<Number> {
 - 별도의 **enctype**옵션이 없으면 `Content-Type: application/x-www-form-urlencoded` 헤더에 자동 추가한다
 - 파일은 문자가 아니라 **바이너리 데이터를 전송해야 한다**
 
-
+<div class="code-example" markdown="1">
 **application.properties**
-
+</div>
 
 ```
 # HTTP 요청 메세지를 확인할 수 있다
@@ -2472,9 +2475,9 @@ spring.servlet.multipart.enabled=false   # 서블릿 컨테이너는 멀티파�
 - **바디에 문자 데이터와 바이너리 데이터를 같이** 보내기 위해 `multipart/form-data`라는 전송 방식을 제공한다
   - 다른 종류의 여러 파일과 폼의 내용을 함께 전송할 수 있다
 
-
+<div class="code-example" markdown="1">
 **public class StandardServletMultipartResolver implements MultipartResolver**
-
+</div>
 
 
 ```java
@@ -2496,9 +2499,9 @@ parts = [org.apache.catalina.core.ApplicationPart@5a5f77a0, org.apache.catalina.
 > - 그런데 이후 강의에서 설명할 MultipartFile 이라는 것을 사용하는 것이 더 편하기 때문에 MultipartHttpServletRequest 를 잘 사용하지는 않는다. 
 > - 더 자세한 내용은 **MultipartResolver** 를 검색해보자.
 
-
+<div class="code-example" markdown="1">
 **public class StandardServletMultipartResolver implements MultipartResolver**
-
+</div>
 
 ```java
   // 1. DispatcherServlet에서 Multipart를 체크하고
@@ -2514,9 +2517,9 @@ parts = [org.apache.catalina.core.ApplicationPart@5a5f77a0, org.apache.catalina.
 ## [`Part`를 직접 조작하여 실제 파일을 서버에 업로드 해보자](https://github.com/jdalma/spring-upload/commit/e215615ff956bf4ddbb27ac8f639cc9ba3c35a95)
 
 
-
+<div class="code-example" markdown="1">
 **application.properties**
-
+</div>
 
 ```
 file.dir=/Users/jeonghyeonjun/Desktop/uploadPractice/
