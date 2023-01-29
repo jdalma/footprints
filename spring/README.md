@@ -6,4 +6,5 @@
 6. [Spring Exception](https://github.com/jdalma/spring-exception/tree/master/src/main/java/hello/exception)
 7. [Spring Convert,Formatter](https://github.com/jdalma/spring-typeconverter)
 8. [Spring upload](https://github.com/jdalma/spring-upload)
-9. [Spring Advanced](https://github.com/jdalma/advanced)
+9. [Spring Template](https://github.com/jdalma/advanced)
+10. [Spring Proxy](https://github.com/jdalma/spring-proxy)

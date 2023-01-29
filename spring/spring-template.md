@@ -1,7 +1,19 @@
 
+<!-- TOC -->
+
+- [로그 추적기 개발](#%EB%A1%9C%EA%B7%B8-%EC%B6%94%EC%A0%81%EA%B8%B0-%EA%B0%9C%EB%B0%9C)
+    - [**요구사항**](#%EC%9A%94%EA%B5%AC%EC%82%AC%ED%95%AD)
+    - [구현](#%EA%B5%AC%ED%98%84)
+- [**ThreadLocal**](#threadlocal)
+- [**디자인 패턴을 통한 핵심기능과 부가기능 분리하기**](#%EB%94%94%EC%9E%90%EC%9D%B8-%ED%8C%A8%ED%84%B4%EC%9D%84-%ED%86%B5%ED%95%9C-%ED%95%B5%EC%8B%AC%EA%B8%B0%EB%8A%A5%EA%B3%BC-%EB%B6%80%EA%B0%80%EA%B8%B0%EB%8A%A5-%EB%B6%84%EB%A6%AC%ED%95%98%EA%B8%B0)
+    - [템플릿 메소드 패턴 적용](#%ED%85%9C%ED%94%8C%EB%A6%BF-%EB%A9%94%EC%86%8C%EB%93%9C-%ED%8C%A8%ED%84%B4-%EC%A0%81%EC%9A%A9)
+    - [전략 패턴 예제](#%EC%A0%84%EB%9E%B5-%ED%8C%A8%ED%84%B4-%EC%98%88%EC%A0%9C)
+    - [템플릿 콜백 패턴 적용](#%ED%85%9C%ED%94%8C%EB%A6%BF-%EC%BD%9C%EB%B0%B1-%ED%8C%A8%ED%84%B4-%EC%A0%81%EC%9A%A9)
+
+<!-- /TOC -->
+
 
 # 로그 추적기 개발
-
 
 ```mermaid
 sequenceDiagram
