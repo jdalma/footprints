@@ -17,6 +17,8 @@
 - [**Pointcut, Advice, Advisor** 예제](#pointcut-advice-advisor-%EC%98%88%EC%A0%9C)
     - [**한 개의프록시에 여러 어드바이저를 적용하고 싶을 때??** 예제](#%ED%95%9C-%EA%B0%9C%EC%9D%98%ED%94%84%EB%A1%9D%EC%8B%9C%EC%97%90-%EC%97%AC%EB%9F%AC-%EC%96%B4%EB%93%9C%EB%B0%94%EC%9D%B4%EC%A0%80%EB%A5%BC-%EC%A0%81%EC%9A%A9%ED%95%98%EA%B3%A0-%EC%8B%B6%EC%9D%84-%EB%95%8C-%EC%98%88%EC%A0%9C)
     - [**LogTrace ProxyFactory 적용** 예제](#logtrace-proxyfactory-%EC%A0%81%EC%9A%A9-%EC%98%88%EC%A0%9C)
+- [**빈 후처리기**](#%EB%B9%88-%ED%9B%84%EC%B2%98%EB%A6%AC%EA%B8%B0)
+    - [**스프링이 제공하는 빈 후처리기** spring-boot-starter-aop 추가 예제](#%EC%8A%A4%ED%94%84%EB%A7%81%EC%9D%B4-%EC%A0%9C%EA%B3%B5%ED%95%98%EB%8A%94-%EB%B9%88-%ED%9B%84%EC%B2%98%EB%A6%AC%EA%B8%B0-spring-boot-starter-aop-%EC%B6%94%EA%B0%80-%EC%98%88%EC%A0%9C)
 
 <!-- /TOC -->
 
@@ -510,3 +512,39 @@ stateDiagram-v2
 그리고 **컴포넌트 스캔을 통해 자동으로 등록되는 빈들은 이전 방법으로는 프록시 적용이 불가능하다**  
 
 
+# **빈 후처리기**
+
+- [`tobyspringin5` 빈 후처리기를 이용한 자동 프록시 생성기](https://github.com/jdalma/tobyspringin5/wiki/6%EC%9E%A5.-AOP#%EB%B9%88-%ED%9B%84%EC%B2%98%EB%A6%AC%EA%B8%B0%EB%A5%BC-%EC%9D%B4%EC%9A%A9%ED%95%9C-%EC%9E%90%EB%8F%99-%ED%94%84%EB%A1%9D%EC%8B%9C-%EC%83%9D%EC%84%B1%EA%B8%B0)
+- [빈 후처리기 예제](https://github.com/jdalma/spring-proxy/commit/6015409f63da86ba39da16b58e9448c9823078fe)
+    
+이전에 작성하던 **그 많던 프록시 설정 코드는 모두 PostProcessor가 처리한다.**  
+컴포넌트 스캔의 대상이 되는 빈들을 **빈 저장소에 등록하기 직전에** 객체를 조작하여 완전히 다른 객체로 바꿔치기를 할 수 있다.  
+`BeanPostProcessor`를 구현하고 스프링 빈으로 등록하면 된다.  
+- 스프링은 `CommonAnnotationPostProcessor`라는 **빈 후처리기를 자동으로 등록**하여 `@PostConstruct`가 작성된 메소드를 찾아 호출한다.
+  
+여기서는 **프록시의 적용 대상 여부를 `bean.getClass().getPackageName()` 패키지 기준으로 작성했다.**  
+하지만 `Pointcut`을 사용하여 적용 대상 여부를 체크하여 프록시를 생성하고, 어드바이스를 적용하는 책임을 적절하게 분리할 수 있을 것이다.  
+
+## **스프링이 제공하는 빈 후처리기** `spring-boot-starter-aop 추가` [예제]()
+
+스프링 부트가 `@EnableAspectJAutoProxy`를 자동으러 처리해주며, AOP 관련 클래스를 자동으로 스프링 빈에 등록한다.  
+- `AopAutoConfiguration`
+- `AutoProxyCreator` : **AnnotationAwareAspectJAutoProxyCreator** (`@AspectJ`와 관련된 기능도 처리해준다)
+  
+1. **생성** : 스프링이 스프링 빈 대상이 되는 객체를 생성 (`@Bean`, 컴포넌트 스캔 모두 포함)
+2. **전달** : 생성된 객체를 빈 저장소에 등록하기 전에 빈 후처리기에 전달한다.
+3. **모든 Advisor 빈 조회** : `AutoProxyCreator`(빈 후처리기)가 스프링 컨테이너에서 모든 `Advisor`를 조회한다.
+4. **프록시 적용 대상 체크** : 조회한 `Advisor`의 `Pointcut`을 사용하여 해당 객체가 프록시를 적용할 대상인지 판단한다. 
+5. **프록시 생성**
+6. **빈 등록**
+  
+**`프록시 적용 여부 판단 Pointcut`과 `어드바이스 적용 여부 판단 Pointcut`을 구분할 수 있어야한다.**  
+- **프록시 적용 여부 판단**
+  - `AutoProxyCreator`는 `Pointcut`을 사용해서 해당 빈의 프록시를 생성할 필요가 있는지 없는지 체크한다.
+  - `클래스 + 메서드`조건을 모두 비교한다.
+  - 클래스의 정보와 해당 클래스의 모든 메서드 정보를 포인트컷에 모두 비교한다.
+  - 10개의 메서드 중에 하나만 포인트 컷 조건에 만족해도 프록시 적용 대상이 된다.
+  - `orderControllerV1`은 `request`, `no-log`가 있다. `request` 조건에 만족하므로 프록시를 생성한다.
+- **어드바이스 적용 여부 판단**
+  - 프록시가 호출되었을 때 부가 기능인 `Advice`를 적용할지 판단한다.
+  - `orderControllerV1`은 프록시가 이미 적용되었지만, `request`는 부가 기능을 실행하고 `no-log`는 부가 기능을 실행 하지 않고 Target을 바로 호출한다.
