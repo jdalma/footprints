@@ -19,6 +19,7 @@
     - [**LogTrace ProxyFactory 적용** 예제](#logtrace-proxyfactory-%EC%A0%81%EC%9A%A9-%EC%98%88%EC%A0%9C)
 - [**빈 후처리기**](#%EB%B9%88-%ED%9B%84%EC%B2%98%EB%A6%AC%EA%B8%B0)
     - [**스프링이 제공하는 빈 후처리기** spring-boot-starter-aop 추가 예제](#%EC%8A%A4%ED%94%84%EB%A7%81%EC%9D%B4-%EC%A0%9C%EA%B3%B5%ED%95%98%EB%8A%94-%EB%B9%88-%ED%9B%84%EC%B2%98%EB%A6%AC%EA%B8%B0-spring-boot-starter-aop-%EC%B6%94%EA%B0%80-%EC%98%88%EC%A0%9C)
+- [@Aspect AOP](#aspect-aop)
 
 <!-- /TOC -->
 
@@ -525,12 +526,13 @@ stateDiagram-v2
 여기서는 **프록시의 적용 대상 여부를 `bean.getClass().getPackageName()` 패키지 기준으로 작성했다.**  
 하지만 `Pointcut`을 사용하여 적용 대상 여부를 체크하여 프록시를 생성하고, 어드바이스를 적용하는 책임을 적절하게 분리할 수 있을 것이다.  
 
-## **스프링이 제공하는 빈 후처리기** `spring-boot-starter-aop 추가` [예제]()
+## **스프링이 제공하는 빈 후처리기** `spring-boot-starter-aop 추가` [예제](https://github.com/jdalma/spring-proxy/commit/7a4dd897d300d9125fd85614c309b974b1814a16)
 
-스프링 부트가 `@EnableAspectJAutoProxy`를 자동으러 처리해주며, AOP 관련 클래스를 자동으로 스프링 빈에 등록한다.  
+스프링 부트가 `@EnableAspectJAutoProxy`를 자동으러 처리해주며, AOP 관련 클래스를 자동으로 스프링 빈에 등록한다. `Advisor`를 빈으로 등록해주기만 하면 된다.  
 - `AopAutoConfiguration`
 - `AutoProxyCreator` : **AnnotationAwareAspectJAutoProxyCreator** (`@AspectJ`와 관련된 기능도 처리해준다)
-  
+  - 내부에 여러 `Advisor`를 포함할 수 있기 때문에 프록시 자동 생성기는 프록시를 하나만 생성한다.
+  - 여러 `Advisor`의 `Pointcut`에 빈들이 해당하지 않으면 프록시 자체가 생성되지 않는다.
 1. **생성** : 스프링이 스프링 빈 대상이 되는 객체를 생성 (`@Bean`, 컴포넌트 스캔 모두 포함)
 2. **전달** : 생성된 객체를 빈 저장소에 등록하기 전에 빈 후처리기에 전달한다.
 3. **모든 Advisor 빈 조회** : `AutoProxyCreator`(빈 후처리기)가 스프링 컨테이너에서 모든 `Advisor`를 조회한다.
@@ -548,3 +550,23 @@ stateDiagram-v2
 - **어드바이스 적용 여부 판단**
   - 프록시가 호출되었을 때 부가 기능인 `Advice`를 적용할지 판단한다.
   - `orderControllerV1`은 프록시가 이미 적용되었지만, `request`는 부가 기능을 실행하고 `no-log`는 부가 기능을 실행 하지 않고 Target을 바로 호출한다.
+  
+`AspectJExpressionPointcut`  
+- AspectJ라는 AOP에 특화된 포인트컷 표현식 적용 가능
+
+
+# @Aspect AOP [예제](https://github.com/jdalma/spring-proxy/commit/d40cf1cc520b6c36411e9a2830991c54d0fb0396)
+
+포인트컷과 어드바이스로 구성되어있는 `Advisor`를 만들어서 스프링 빈으로 등록하면 **자동 프록시 생성기**가 모두 자동으로 처리해주는 기능도 있고, `@Aspect` 어노테이션이 작성된 클래스를 포인트컷과 어드바이스로 구성되어 있는 `Advisor` 생성 기능이 있다.  
+  
+`ProceedingJoinPoint`는 Advice에서 살펴본 `MethodInvocation`과 유사하다.  
+  
+**실행 순서**  
+1. **실행** : 로딩 시점에 자동 프록시 생성기 호출
+2. **모든 @Aspect 빈 조회** : 스프링 컨테이너에서 `@Aspect`이 붙은 스프링 빈을 모두 조회한다.
+3. **어드바이저 생성** : `@Aspect` Advisor Builder를 통해 어노테이션 정보를 기반으로 어드바이저를 생성
+4. **@Aspect 기반 어드바이저 저장** : `@Aspect` Advisor Builder 내부에 저장
+  
+**@Aspect Advisor Builder**  
+`BeanFactoryAspectAdvisorBuilder`클래스는 `@Aspect`의 정보를 기반으로 포인트컷,어드바이스,어드바이저를 생성하고 보관하는 것을 담당한다.  
+또한 어드바이저를 캐싱한다.
