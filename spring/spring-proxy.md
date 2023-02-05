@@ -19,7 +19,9 @@
     - [**LogTrace ProxyFactory 적용** 예제](#logtrace-proxyfactory-%EC%A0%81%EC%9A%A9-%EC%98%88%EC%A0%9C)
 - [**빈 후처리기**](#%EB%B9%88-%ED%9B%84%EC%B2%98%EB%A6%AC%EA%B8%B0)
     - [**스프링이 제공하는 빈 후처리기** spring-boot-starter-aop 추가 예제](#%EC%8A%A4%ED%94%84%EB%A7%81%EC%9D%B4-%EC%A0%9C%EA%B3%B5%ED%95%98%EB%8A%94-%EB%B9%88-%ED%9B%84%EC%B2%98%EB%A6%AC%EA%B8%B0-spring-boot-starter-aop-%EC%B6%94%EA%B0%80-%EC%98%88%EC%A0%9C)
-- [@Aspect AOP](#aspect-aop)
+- [**@Aspect AOP** 예제](#aspect-aop-%EC%98%88%EC%A0%9C)
+- [**스프링 AOP**](#%EC%8A%A4%ED%94%84%EB%A7%81-aop)
+    - [AOP를 사용하면 부가 기능 로직은 어떻게 적용될까?](#aop%EB%A5%BC-%EC%82%AC%EC%9A%A9%ED%95%98%EB%A9%B4-%EB%B6%80%EA%B0%80-%EA%B8%B0%EB%8A%A5-%EB%A1%9C%EC%A7%81%EC%9D%80-%EC%96%B4%EB%96%BB%EA%B2%8C-%EC%A0%81%EC%9A%A9%EB%90%A0%EA%B9%8C)
 
 <!-- /TOC -->
 
@@ -533,6 +535,8 @@ stateDiagram-v2
 - `AutoProxyCreator` : **AnnotationAwareAspectJAutoProxyCreator** (`@AspectJ`와 관련된 기능도 처리해준다)
   - 내부에 여러 `Advisor`를 포함할 수 있기 때문에 프록시 자동 생성기는 프록시를 하나만 생성한다.
   - 여러 `Advisor`의 `Pointcut`에 빈들이 해당하지 않으면 프록시 자체가 생성되지 않는다.
+  
+**자동 프록시 생성기의 작동 과정**  
 1. **생성** : 스프링이 스프링 빈 대상이 되는 객체를 생성 (`@Bean`, 컴포넌트 스캔 모두 포함)
 2. **전달** : 생성된 객체를 빈 저장소에 등록하기 전에 빈 후처리기에 전달한다.
 3. **모든 Advisor 빈 조회** : `AutoProxyCreator`(빈 후처리기)가 스프링 컨테이너에서 모든 `Advisor`를 조회한다.
@@ -555,7 +559,7 @@ stateDiagram-v2
 - AspectJ라는 AOP에 특화된 포인트컷 표현식 적용 가능
 
 
-# @Aspect AOP [예제](https://github.com/jdalma/spring-proxy/commit/d40cf1cc520b6c36411e9a2830991c54d0fb0396)
+# **@Aspect AOP** [예제](https://github.com/jdalma/spring-proxy/commit/d40cf1cc520b6c36411e9a2830991c54d0fb0396)
 
 포인트컷과 어드바이스로 구성되어있는 `Advisor`를 만들어서 스프링 빈으로 등록하면 **자동 프록시 생성기**가 모두 자동으로 처리해주는 기능도 있고, `@Aspect` 어노테이션이 작성된 클래스를 포인트컷과 어드바이스로 구성되어 있는 `Advisor` 생성 기능이 있다.  
   
@@ -570,3 +574,51 @@ stateDiagram-v2
 **@Aspect Advisor Builder**  
 `BeanFactoryAspectAdvisorBuilder`클래스는 `@Aspect`의 정보를 기반으로 포인트컷,어드바이스,어드바이저를 생성하고 보관하는 것을 담당한다.  
 또한 어드바이저를 캐싱한다.
+
+***
+
+# **스프링 AOP**
+  
+**핵심 기능**과 **부가 기능**을 어디에 적용할지 선택하는 기능을 합해서 하나의 모듈로 만들었는게 이것이 바로 **애스펙트 `Aspect`**이다.  
+- 개념상 `Advisor`도 `Aspect`이다.
+    
+이름 그대로 애플리케이션을 바라보는 관점을 하나하나의 기능에서 횡단 관심사 `crosscutting concerns` 관점으로 달리 보는 것이다.  
+  
+`AspectJ`는 스스로를 이렇게 정의한다.
+- 자바 프로그래밍 언어에 대한 완벽한 관점 지향 확장
+- 횡단 관심사의 깔끔한 모듈화
+  - 오류 검사 및 처리
+  - 동기화
+  - 성능 최적화(캐싱)
+  - 모니터링 및 로깅
+  
+## AOP를 사용하면 부가 기능 로직은 어떻게 적용될까?
+
+1. **컴파일 시점 - 위빙**
+   - `.java` 소스 코드를 `.class`로 변경되는 시점에 **AspectJ 컴파일러**를 통해 원복 로직에 부가 기능 로직이 추가된다.
+   - **AspectJ 컴파일러**는 `Aspect`를 확인해서 해당 클래스가 적용 대상인지 먼저 확인하고, 대상인 경우에는 부가 기능 로직을 추가한다.
+   - 특별한 컴파일러도 필요하고 복잡하다..
+2. **클래스 로딩 시점 - 로드 타임 위빙 (바이트 코드 조작)**
+   - `.class` 파일이 클래스 로더에 올라갈 때 중간에서 `.class` 파일을 조작한다.
+   - [java instrumentation](https://www.baeldung.com/java-instrumentation)
+   - 수 많은 모니터링 툴들이 이 방식을 사용한다.
+   - 자바를 실행할 때 특별한 옵션 `java -javaagent`를 통해 클래스 로더 조작기를 지정해야 하는데 이 부분이 번거롭고 운영하기 어렵다.
+3. **런타임 시점**에 프록시를 도입
+   - 스프링과 같은 컨테이너의 도움을 받고 프록시와 DI, 빈 후처리기 같은 개념들을 모두 사용
+  
+![](imgs/spring-proxy/runtimeWeaving.png)
+  
+**컴파일, 클래스 로딩 시점은 어디든 적용 가능 지점 (조인 포인트)을 설정할 수 있다.**  
+- 생성자
+- 필드 값 접근
+- static 메서드 접근
+- 메서드 실행
+  
+**하지만, 프록시는 메서드 오버라이딩 개념으로 동작하기 때문에 위에서 말한 조인 포인트는 적용할 수 없다.**  
+- 스프링의 AOP 조인 포인트는 `메서드 실행으로 제한`된다.
+- `스프링 빈에만 AOP를 적용`할 수 있다.
+  
+> 스프링이 제공하는 AOP는 프록시를 사용한다.  
+> 따라서 프록시를 통해 메서드를 실행하는 시점에만 AOP가 적용된다.  
+> AspectJ를 직접 사용하기에는 공부할 내용도 많고,  
+> 자바 관련 설정(특별한 컴파일러, ApsectJ 전용 문법, 자바 실행 옵션)도 복잡하다.  
