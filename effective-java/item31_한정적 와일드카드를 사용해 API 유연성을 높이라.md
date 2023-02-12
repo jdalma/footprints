@@ -65,23 +65,6 @@ stack.popAll(objects);
 ```
 
 ![](imgs/item28/typeError.png)
-
-```java
-class CustomStack<E> extends Stack<E> {
-    public void popAll(Collection<? super E> objects) {
-        while (!isEmpty()) {
-            objects.add(pop());
-        }
-    }
-}
-
-@org.junit.jupiter.api.Test
-void name() {
-    CustomStack<Number> stack = new CustomStack<>();
-    Collection<Object> objects = new ArrayList<>();
-    stack.popAll(objects);
-}
-```
   
 이번에는 `popAll()`의 입력 매개변수의 타입이 `E의 상위 타입의 Collection`이어야 한다.  
 `Collection<? super E>`가 정확히 이런 의미이다.  
@@ -95,8 +78,7 @@ void name() {
 ## **PECS : producer-extends, consumer-super**  
 
 이 공식을 외워두면 어떤 와일드카드 타입을 써야하는지 기억하는데 도움이 된다.  
-즉, 매개변수화 타입 `T`가 생산이라면 `<? extends T>`를 사용하고,  
-소비자라면 `<? super T>`를 사용하라.  
+즉, 매개변수화 타입 `T`가 생산이라면 `<? extends T>`를 사용하고, 소비자라면 `<? super T>`를 사용하라.  
 - 반환 타입에는 한정적 와일드카드 타입을 사용하면 안된다.
 - 유연성을 높혀주기는 커녕 클라이언트 코드에서도 와일드카드 타입을 써야하기 때문이다.
   
@@ -107,18 +89,13 @@ void name() {
 ```java
 Set<Number> numbers = Union.<Number>union(integers, doubles);
 ```
-
 Union.`<Number>`union(integers, doubles); 이렇게 명시적 타입 인수를 사용할 수 있다.  
   
-
-```java
-public static <E extends Comparable<E>> E max(List<E> list)
-```
-
 와일드카드 타입을 사용한다면 아래와 같이 다듬을 수 있다.
 
 ```java
-public static <E extends Comparable<? super E>> E max(List<? extends E> list)
+public static <E extends Comparable<E>> E max(List<E> list) // 전
+public static <E extends Comparable<? super E>> E max(List<? extends E> list) // 후
 ```
 
 1. `max(List<E> list)` → `max(List<? extends E> list)`
