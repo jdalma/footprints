@@ -22,6 +22,9 @@
 - [**@Aspect AOP** 예제](#aspect-aop-%EC%98%88%EC%A0%9C)
 - [**스프링 AOP**](#%EC%8A%A4%ED%94%84%EB%A7%81-aop)
     - [AOP를 사용하면 부가 기능 로직은 어떻게 적용될까?](#aop%EB%A5%BC-%EC%82%AC%EC%9A%A9%ED%95%98%EB%A9%B4-%EB%B6%80%EA%B0%80-%EA%B8%B0%EB%8A%A5-%EB%A1%9C%EC%A7%81%EC%9D%80-%EC%96%B4%EB%96%BB%EA%B2%8C-%EC%A0%81%EC%9A%A9%EB%90%A0%EA%B9%8C)
+    - [어드바이스 종류](#%EC%96%B4%EB%93%9C%EB%B0%94%EC%9D%B4%EC%8A%A4-%EC%A2%85%EB%A5%98)
+    - [포인트컷 지시자 종류 예제](#%ED%8F%AC%EC%9D%B8%ED%8A%B8%EC%BB%B7-%EC%A7%80%EC%8B%9C%EC%9E%90-%EC%A2%85%EB%A5%98-%EC%98%88%EC%A0%9C)
+        - [execution](#execution)
 
 <!-- /TOC -->
 
@@ -592,6 +595,17 @@ stateDiagram-v2
   - 성능 최적화(캐싱)
   - 모니터링 및 로깅
   
+**예제**  
+1. [AspectV1 시작](https://github.com/jdalma/spring-aop/commit/01e024261d02e7617925e035bba7bbe8088cb068)
+2. [AspectV2 포인트컷 분리](https://github.com/jdalma/spring-aop/commit/fc83c1114179d91d79b0f806ffbaff50ed8bc25d)
+   - 포인트컷 재사용 가능
+3. [AspectV3 포인트컷 조합](https://github.com/jdalma/spring-aop/commit/302082b067bdac9a07f52b673da8c9570eb07650)
+   - `&&`, `||`, `!` 3가지 조합이 가능
+4. [AspectV4 포인트컷 참조](https://github.com/jdalma/spring-aop/commit/ec0d68eea71d0ac042f97888fe7abc06e6b1426a)
+5. [AspectV5 어드바이스 적용 순서 수정](https://github.com/jdalma/spring-aop/commit/4b7dd11879c288478cf53334c27576b7dcc1693f) 
+   - 메소드 레벨에 `@Order`를 작성해도 적용되지 않는다.
+6. [AspectV6 기능별 어노테이션](https://github.com/jdalma/spring-aop/commit/a0a8aad20e072fcfeb22870149750781a103b840)
+
 ## AOP를 사용하면 부가 기능 로직은 어떻게 적용될까?
 
 1. **컴파일 시점 - 위빙**
@@ -622,3 +636,81 @@ stateDiagram-v2
 > 따라서 프록시를 통해 메서드를 실행하는 시점에만 AOP가 적용된다.  
 > AspectJ를 직접 사용하기에는 공부할 내용도 많고,  
 > 자바 관련 설정(특별한 컴파일러, ApsectJ 전용 문법, 자바 실행 옵션)도 복잡하다.  
+
+## 어드바이스 종류
+
+1. `@Around` : 메소드 호출 전후에 수행
+   - `@Around`와 그 외 기능들의 차이는 전달받는 매개변수가 다르다.
+   - `ProceedingJoinPoint`는 타겟을 호출할 수 있다.
+2. `@Before` : 조인 포인트 실행 이전에 실행
+3. `@AfterReturning` : 조인 포인트가 정상 완료 후 실행
+4. `@AfterThrowing` : 메서드가 예외를 던지는 경우 실행
+5. `@After` : 조인 포인트가 정상 또는 예외에 관계없이 실행
+
+각 어노테이션들의 전달받는 매개변수들의 타입들을 매칭이 잘 되지 않으면 실행조차되지 않을 수 있다.  
+**`@Around`는 항상 타겟을 호출해야 한다!!!**  
+`@Around` 이외의 어노테이션은 부가 기능을 작성하고 타겟을 꼭 호출해야하는 부담이 없다.  
+  
+```java
+@Around("hello.aop.order.aop.Pointcuts.orderAndService()")
+public Object doTransaction(ProceedingJoinPoint joinPoint) throws Throwable {
+    try {
+        // @Before
+        log.info("[트랜잭션 시작] {}", joinPoint.getSignature());
+        
+        Object proceed = joinPoint.proceed();
+        
+        // @AfterReturning
+        log.info("[트랜잭션 커밋] {}", joinPoint.getSignature());
+        return proceed;
+    } catch (Exception e) {
+        // @AfterThrowing
+        log.info("[트랜잭션 롤백] {}", joinPoint.getSignature());
+        throw e;
+    } finally {
+        // @After
+        log.info("[리소스 릴리즈] {}", joinPoint.getSignature());
+    }
+}
+```
+  
+## 포인트컷 지시자 종류 [예제](https://github.com/jdalma/spring-aop/commit/c5ce3551f4cf54430683f9dad3be8020a2391242)
+
+### `execution`
+메소드 실행 조인 포인트를 매칭한다. 스프링 AOP에서 가장 많이 사용하고, 기능도 복잡하다.  
+
+```
+execution(접근제어자? 반환타입 선언타입? 메서드이름(파라미터) 예외?)
+```
+  
+**`.`과 `..` 차이**  
+`execution(* hello.aop.*.*(..))` : hello.aop 패키지에 정학화게 맞아야한다.  
+`execution(* hello.aop..*.*(..))` : hello.aop 포함 하위까지 포함한다.  
+  
+**타입 매칭** : 다형성을 활용하여 포인트컷을 적용하는 것  
+`execution(* hello.aop.member.MemberService.*(..))`  
+- 부모 타입에 있는 메서드만 허용된다.
+  
+**파라미터 매칭**  
+1. `(String)` : 정확하게 String 타입 파라미터
+2. `()` : 파라미터가 없어야 한다.
+3. `(*)` : 정확히 하나의 파라미터, 단 모든 타입을 허용한다.
+4. `(*, *)` : 정확히 두 개의 파라미터, 단 모든 타입을 허용한다.
+5. `(..`) : 숫자와 무관하게 모든 파라미터, 모든 타입을 허용한다. 참고로 파라미터가 없어도 된다. `0..*` 로
+이해하면 된다.
+6. `(String, ..)` : String 타입으로 시작해야 한다. 숫자와 무관하게 모든 파라미터, 모든 타입을 허용한다.
+   - 예) (String) , (String, Xxx) , (String, Xxx, Xxx) 허용
+
+***
+
+1. `within`
+   - 특정 타입 내의 조인 포인트를 매칭한다.
+2. `args` : 인자가 주어진 타입의 인스턴스인 조인 포인트
+3. `this` : 스0프링 빈 객체(스프링 AOP 프록시)를 대상으로 하는 조인 포인트
+4. `target` : Target 객체(스프링 AOP 프록시가 가르키는 실제 대상)를 대상으로 하는 조인 포인트
+5. `@target` : 실행 객체의 클래스에 주어진 타입의 애노테이션이 있는 조인 포인트
+6. `@within` : 주어진 애노테이션이 있는 타입 내 조인 포인트
+7. `@annotation` : 메서드가 주어진 애노테이션을 가지고 있는 조인 포인트를 매칭
+8.  `@args` : 전달된 실제 인수의 런타임 타입이 주어진 타입의 애노테이션을 갖는 조인 포인트
+9.  `bean` : 스프링 전용 포인트컷 지시자, 빈의 이름으로 포인트컷을 지정한다.
+
