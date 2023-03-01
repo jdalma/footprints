@@ -120,7 +120,7 @@ addFilterBefore(authenticationErrorFilter , JwtAuthenticationFilter.class)
 - [`Spring Reference` 세션 관리](https://docs.spring.io/spring-security/reference/6.0/servlet/authentication/session-management.html) 
 - 세션 시간 초과 감지 , 쿠키 삭제 , 다중 로그인 방지 , 세션 고정 공격 방지 🚩 등등..
 - **반환** [`Spring Docs` SessionManagementConfigurer](https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/config/annotation/web/configurers/SessionManagementConfigurer.html)
-
+  
 `sessionCreationPolicy(SessionCreationPolicy.STATELESS)`<br>
 - 세션 생성 정책을 설정한다.
 
@@ -193,10 +193,7 @@ public Product create(
 }
 ```
 
-<div class="code-example" markdown="1">
 **UserAuthentication**
-</div>
-
 ```java
 public class UserAuthentication extends AbstractAuthenticationToken {
 
