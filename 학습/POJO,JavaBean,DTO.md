@@ -1,4 +1,13 @@
 
+<!-- TOC -->
+
+- [**DTO**](#dto)
+  - [DTO `vs` Domain](#dto-vs-domain)
+- [**POJO**](#pojo)
+- [**JavaBean**](#javabean)
+
+<!-- /TOC -->
+
 - [리뷰](https://github.com/CodeSoom/spring-week2-assignment-1/pull/94#discussion_r940216284)에서 DTO에 대한 얘기가 나와 정리해본다
 - 출처
   - [`javatpoint` DTO in java](https://www.javatpoint.com/dto-java)
