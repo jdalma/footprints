@@ -7,3 +7,5 @@
    - Docker의 차이
 3. `@ConfigurationPropertiesScan`, `@EnableConfigurationProperties`, `@EnableAutoConfiguration`
 4. `@Transactional` 샅샅이 파헤쳐보기
+5. 코틀린의 `this`와 `it` 키워드 차이 (+ Scope Function)
+   - 자바에서 코틀린으로 스터디에서 맹대표님이 `it`키워드를 쓰기 위해 `also`와 `let`만 사용한다고 하셨는데 [스코프 함수 정리](https://haero.tistory.com/21) 참고
