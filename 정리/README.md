@@ -41,6 +41,10 @@
 - [`Spring Docs` @EnableTransactionManagement](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/transaction/annotation/EnableTransactionManagement.html)
 - [스프링캠프 2019 [Track 2 Session 1] : GraalVM과 스프링, 이상과 현실](https://www.youtube.com/watch?v=C7toO3WV1NQ&ab_channel=springcamp.io)
 
+## JPA
+
+- [Distributed Cache로 Hibernate Second Level Cache를 적용하여 성능 튜닝하기 - 이론편](https://pkgonan.github.io/2020/05/distributed-hibernate-second-level-cache-1)
+
 ## 알고리즘
 
 - [TOTP: 시간 기반 일회성 암호 알고리즘](https://www.rfc-editor.org/rfc/rfc6238)
