@@ -29,7 +29,10 @@
         - [args 예제](#args-%EC%98%88%EC%A0%9C)
         - [@target, @within 예제](#target-within-%EC%98%88%EC%A0%9C)
         - [@annotation 예제](#annotation-%EC%98%88%EC%A0%9C)
-        - [bean](#bean)
+        - [bean 예제](#bean-%EC%98%88%EC%A0%9C)
+        - [매개변수 전달 예제](#%EB%A7%A4%EA%B0%9C%EB%B3%80%EC%88%98-%EC%A0%84%EB%8B%AC-%EC%98%88%EC%A0%9C)
+        - [this, target 예제](#this-target-%EC%98%88%EC%A0%9C)
+- [스프링 AOP를 활용하여 실제 예제를 만들어보기 예제](#%EC%8A%A4%ED%94%84%EB%A7%81-aop%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%98%EC%97%AC-%EC%8B%A4%EC%A0%9C-%EC%98%88%EC%A0%9C%EB%A5%BC-%EB%A7%8C%EB%93%A4%EC%96%B4%EB%B3%B4%EA%B8%B0-%EC%98%88%EC%A0%9C)
 
 <!-- /TOC -->
 
@@ -734,16 +737,55 @@ execution(접근제어자? 반환타입 선언타입? 메서드이름(파라미�
 
 ### `@annotation` [예제](https://github.com/jdalma/spring-aop/blob/main/src/test/java/hello/aop/pointcut/AtAnnotationTest.java)
 
-- `@annotation`
-  - 메서드가 주어진 애노테이션을 가지고 있는 조인 포인트를 매칭
+- 메서드가 주어진 애노테이션을 가지고 있는 조인 포인트를 매칭
 
-### `bean`
+### `bean` [예제](https://github.com/jdalma/spring-aop/blob/main/src/test/java/hello/aop/pointcut/BeanTest.java)
 
-- `bean` : 스프링 전용 포인트컷 지시자, 빈의 이름으로 포인트컷을 지정한다.
+- 스프링 전용 포인트컷 지시자, 빈의 이름으로 포인트컷을 지정한다.
+
+### 매개변수 전달 [예제](https://github.com/jdalma/spring-aop/blob/main/src/test/java/hello/aop/pointcut/ParameterTest.java)
+
+포인트컷 표현식을 사용해서 어드바이스에 매개변수를 전달할 수 있다.  
+포인트컷의 이름과 매개변수의 이름을 맞추어야 한다.  
+추가로 타입이 메서드에 지정한 타입으로 제한된다.  
+
+### `this`, `target` [예제](https://github.com/jdalma/spring-aop/blob/main/src/test/java/hello/aop/pointcut/ThisTargetTest.java)
+
+스프링에서 AOP가 적용되면 실제 `target` 객체 대신에 `proxy` 객체가 스프링 빈으로 등록된다.  
+  
+- `this` : **스프링 빈 객체(스프링 AOP 프록시)를 대상**으로 하는 조인 포인트  
+  - `proxy`객체를 보고 판단한다.
+- `target` : **Target 객체(스프링 AOP 프록시가 가르키는 실제 대상)를 대상**으로 하는 조인 포인트  
+  - `target`객체 를 보고 판단한다.
+  
+**프록시 생성 방식에 따른 차이**  
+스프링은 JDK 동적 프록시와 CGLIB을 선택하여 프록시를 생성한다.  
+- JDK 동적 프록시 : 인터페이스가 필수이고, 인터페이스를 구현한 프록시 객체를 만든다.
+- CGLIB : 인터페이스가 있어도 구현체 클래스를 상속받아 생성한다.
+  - **스프링 부트는 기본적으로 CGLIB으로 프록시를 생성한다.**
+  
+```
+CGLIB을 사용했을 때
+memberService Proxy=class hello.aop.member.MemberServiceImpl$$EnhancerBySpringCGLIB$$b5b53f3b
+[target-impl] String hello.aop.member.MemberServiceImpl.hello(String)
+[target-interface] String hello.aop.member.MemberServiceImpl.hello(String)
+[this-impl] String hello.aop.member.MemberServiceImpl.hello(String)
+[this-interface] String hello.aop.member.MemberServiceImpl.hello(String)
+```
+
+`spring.aop.proxy-target-class=false`로 설정하여 테스트하면
+```
+JDK 동적 프록시를 사용했을 때
+memberService Proxy=class jdk.proxy3.$Proxy53
+[target-impl] String hello.aop.member.MemberService.hello(String)
+[target-interface] String hello.aop.member.MemberService.hello(String)
+[this-interface] String hello.aop.member.MemberService.hello(String)
+```
 
 ***
 
-1. `@args` : 전달된 실제 인수의 런타임 타입이 주어진 타입의 애노테이션을 갖는 조인 포인트
-1. `this` : 스프링 빈 객체(스프링 AOP 프록시)를 대상으로 하는 조인 포인트
-2.  `target` : Target 객체(스프링 AOP 프록시가 가르키는 실제 대상)를 대상으로 하는 조인 포인트
+# 스프링 AOP를 활용하여 실제 예제를 만들어보기 [예제](https://github.com/jdalma/spring-aop/commit/6d908751d78fb8d92e9c309eabfdd8990f1ce233)
+
+1. `@Trace` 어노테이션으로 로그 출력하기
+2. `@Retry` 어노테이션으로 예외 발생 시 재시도 하기
 
