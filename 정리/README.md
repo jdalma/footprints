@@ -10,6 +10,7 @@
 
 - [Docker 시작하기](https://medium.com/dtevangelist/docker-%EC%8B%9C%EC%9E%91%ED%95%98%EA%B8%B0-f930c5484f71)
 - [Docker 기본](https://medium.com/dtevangelist/docker-%EA%B8%B0%EB%B3%B8-1-8-hello-docker-5165abd00a3d)
+- [`udemy` Docker & Kubernetes : 실전 가이드](https://www.udemy.com/course/docker-kubernetes-2022/)
 
 ## JVM
 
@@ -59,3 +60,4 @@
 - [자동화 테스트와 테스트 자동화의 차이](https://blog.naver.com/wisestone2007/221848534889)
 - [MSA School](http://www.msaschool.io/operation/introduction/example-domain/)
 - [Tomcat과 Nginx – 차이점은 무엇입니까?](https://cloudinfrastructureservices.co.uk/tomcat-vs-nginx-whats-the-difference/)
+- [`토스ㅣSLASH 22` 애플 한 주가 고객에게 전달 되기까지](https://www.youtube.com/watch?v=UOWy6zdsD-c&ab_channel=%ED%86%A0%EC%8A%A4)
