@@ -11,6 +11,7 @@
 - [Docker 시작하기](https://medium.com/dtevangelist/docker-%EC%8B%9C%EC%9E%91%ED%95%98%EA%B8%B0-f930c5484f71)
 - [Docker 기본](https://medium.com/dtevangelist/docker-%EA%B8%B0%EB%B3%B8-1-8-hello-docker-5165abd00a3d)
 - [`udemy` Docker & Kubernetes : 실전 가이드](https://www.udemy.com/course/docker-kubernetes-2022/)
+- [Docker Swarm을 이용한 쉽고 빠른 분산 서버 관리](https://subicura.com/2017/02/25/container-orchestration-with-docker-swarm.html)
 
 ## JVM
 
@@ -50,6 +51,7 @@
 
 - [TOTP: 시간 기반 일회성 암호 알고리즘](https://www.rfc-editor.org/rfc/rfc6238)
 - [HOTP: HMAC 기반 일회용 암호 알고리즘](https://www.rfc-editor.org/rfc/rfc4226)
+- [P nP 문제](https://gazelle-and-cs.tistory.com/64)
 
 ## Etc
 
