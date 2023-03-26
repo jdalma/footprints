@@ -1,3 +1,22 @@
+<!-- TOC -->
+
+- [**컴퓨터가 정보를 어떻게 처리하나**](#컴퓨터가-정보를-어떻게-처리하나)
+- [**운영체재의 핵심은 커널(Kernel)**](#운영체재의-핵심은-커널kernel)
+- [**인터럽트 (Interrupts)**](#인터럽트-interrupts)
+  - [**인터럽트 벡터(Interrupt Vector)**](#인터럽트-벡터interrupt-vector)
+- [📌 **System Calls(시스템 호출)**](#-system-calls시스템-호출)
+- [**폰 노이만 구조 (Von Neumann architecture)**](#폰-노이만-구조-von-neumann-architecture)
+- [**Storage Systems**](#storage-systems)
+- [**대칭형 멀티 프로세싱 - Symmetric Multiprocessing (SMP)**](#대칭형-멀티-프로세싱---symmetric-multiprocessing-smp)
+- [**Multi-Core Design**](#multi-core-design)
+- [📌 **Multiprogramming**](#-multiprogramming)
+- [**Virtualization(가상화)**](#virtualization가상화)
+- [**`Synchronous I/O` 동기식 입출력**](#synchronous-io-동기식-입출력)
+- [**`Asynchronous I/O` 비동기식 입출력**](#asynchronous-io-비동기식-입출력)
+- [**`DMA (Direct Memory Access)`**](#dma-direct-memory-access)
+
+<!-- /TOC -->
+
 ![](imgs/OS-Structure/structure.png)
 
 ![](imgs/OS-Structure/7.png)
