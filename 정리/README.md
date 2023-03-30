@@ -5,6 +5,7 @@
 - [Spring WebFlux와 Armeria를 이용하여 Microservice에 필요한 Reactive + RPC 동시에 잡기](https://d2.naver.com/helloworld/6080222)
 - [`Armeria Java Doc` Server Core](https://javadoc.io/doc/com.linecorp.armeria/armeria-javadoc/latest/com/linecorp/armeria/server/package-summary.html)
 - [gRPC over HTTP2](https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md)
+- [`RFC7540` HTTP/2.0](https://httpwg.org/specs/rfc7540.html#FrameHeader)
 
 ## Docker
 
