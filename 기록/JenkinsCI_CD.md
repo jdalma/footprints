@@ -27,3 +27,12 @@ MSA를 쓰면
 
 - [`AWS` 클라우드 네이티브란 무엇입니까?](https://aws.amazon.com/ko/what-is/cloud-native/)
   - Microservices + Containers + DevOps + CI/CD
+
+# 임시
+
+1. Java17
+2. Docker
+3. node
+4. newman, newman-reporter
+5. /var/jenkins_home/workspace/webhook-test/src/test
+6. docker cp jenkins:/var/jenkins_home/workspace/webhook-test/newman /Desktop 
