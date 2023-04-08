@@ -36,3 +36,11 @@ MSA를 쓰면
 4. newman, newman-reporter
 5. /var/jenkins_home/workspace/webhook-test/src/test
 6. docker cp jenkins:/var/jenkins_home/workspace/webhook-test/newman /Desktop 
+
+
+for collection in ~/Desktop/newman/test/*/*.json
+do
+  newman run $collection -e ~/Desktop/newman/environment/dev1.json 
+                         -r htmlextra 
+                         --reporter-htmlextra-export ~/Desktop/newman/report/"$(date '+%Y-%m-%d_%H-%M-%S')"_$(basename "$collection" .json)'_report'.html
+done
