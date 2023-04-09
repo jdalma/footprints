@@ -32,7 +32,15 @@
         - [bean 예제](#bean-%EC%98%88%EC%A0%9C)
         - [매개변수 전달 예제](#%EB%A7%A4%EA%B0%9C%EB%B3%80%EC%88%98-%EC%A0%84%EB%8B%AC-%EC%98%88%EC%A0%9C)
         - [this, target 예제](#this-target-%EC%98%88%EC%A0%9C)
-- [스프링 AOP를 활용하여 실제 예제를 만들어보기 예제](#%EC%8A%A4%ED%94%84%EB%A7%81-aop%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%98%EC%97%AC-%EC%8B%A4%EC%A0%9C-%EC%98%88%EC%A0%9C%EB%A5%BC-%EB%A7%8C%EB%93%A4%EC%96%B4%EB%B3%B4%EA%B8%B0-%EC%98%88%EC%A0%9C)
+- [**스프링 AOP를 활용하여 실제 예제를 만들어보기** 예제](#%EC%8A%A4%ED%94%84%EB%A7%81-aop%EB%A5%BC-%ED%99%9C%EC%9A%A9%ED%95%98%EC%97%AC-%EC%8B%A4%EC%A0%9C-%EC%98%88%EC%A0%9C%EB%A5%BC-%EB%A7%8C%EB%93%A4%EC%96%B4%EB%B3%B4%EA%B8%B0-%EC%98%88%EC%A0%9C)
+- [**프록시와 내부 호출 시 생기는 문제** 예제](#%ED%94%84%EB%A1%9D%EC%8B%9C%EC%99%80-%EB%82%B4%EB%B6%80-%ED%98%B8%EC%B6%9C-%EC%8B%9C-%EC%83%9D%EA%B8%B0%EB%8A%94-%EB%AC%B8%EC%A0%9C-%EC%98%88%EC%A0%9C)
+    - [첫 번째 해결. **자기 자신 주입**](#%EC%B2%AB-%EB%B2%88%EC%A7%B8-%ED%95%B4%EA%B2%B0-%EC%9E%90%EA%B8%B0-%EC%9E%90%EC%8B%A0-%EC%A3%BC%EC%9E%85)
+    - [두 번째 해결. **지연 조회**](#%EB%91%90-%EB%B2%88%EC%A7%B8-%ED%95%B4%EA%B2%B0-%EC%A7%80%EC%97%B0-%EC%A1%B0%ED%9A%8C)
+    - [세 번째 해결. **구조 변경**](#%EC%84%B8-%EB%B2%88%EC%A7%B8-%ED%95%B4%EA%B2%B0-%EA%B5%AC%EC%A1%B0-%EB%B3%80%EA%B2%BD)
+- [프록시 기술과 한계 JDK 동적 프록시 vs CGLIB](#%ED%94%84%EB%A1%9D%EC%8B%9C-%EA%B8%B0%EC%88%A0%EA%B3%BC-%ED%95%9C%EA%B3%84-jdk-%EB%8F%99%EC%A0%81-%ED%94%84%EB%A1%9D%EC%8B%9C-vs-cglib)
+    - [타입 캐스팅 예제](#%ED%83%80%EC%9E%85-%EC%BA%90%EC%8A%A4%ED%8C%85-%EC%98%88%EC%A0%9C)
+    - [의존관계 주입 예제](#%EC%9D%98%EC%A1%B4%EA%B4%80%EA%B3%84-%EC%A3%BC%EC%9E%85-%EC%98%88%EC%A0%9C)
+    - [CGLIB의 한계](#cglib%EC%9D%98-%ED%95%9C%EA%B3%84)
 
 <!-- /TOC -->
 
@@ -784,8 +792,111 @@ memberService Proxy=class jdk.proxy3.$Proxy53
 
 ***
 
-# 스프링 AOP를 활용하여 실제 예제를 만들어보기 [예제](https://github.com/jdalma/spring-aop/commit/6d908751d78fb8d92e9c309eabfdd8990f1ce233)
+# **스프링 AOP를 활용하여 실제 예제를 만들어보기** [예제](https://github.com/jdalma/spring-aop/commit/6d908751d78fb8d92e9c309eabfdd8990f1ce233)
 
 1. `@Trace` 어노테이션으로 로그 출력하기
 2. `@Retry` 어노테이션으로 예외 발생 시 재시도 하기
 
+***
+
+# **프록시와 내부 호출 시 생기는 문제** [예제](https://github.com/jdalma/spring-aop/commit/cb6570999150778ad3b885f192fcf14e81678aa3)
+
+AOP를 적용하면 스프링은 대상 객체 대신에 프록시를 스프링 빈으로 등록하기 때문에 타겟 객체를 직접 호출하는 문제는 일반적으로 발생하지 않는다.  
+**하지만 대상 객체의 내부에서 메서드 호출이 발생하면 프록시를 거치지 않고 대상 객체를 직접 호출하는 문제가 발생한다.**  
+
+![](imgs/spring-proxy/aopInternalCall.png)
+
+```
+target = class hello.aop.internalcall.CallServiceV0$$EnhancerBySpringCGLIB$$35688877
+aop=void hello.aop.internalcall.CallServiceV0.external()
+CallServiceV0 - external
+CallServiceV0 - internal
+```
+
+`external()` 메소드 내부에서, `internal()`을 호출하게 되면 `external` 호출 전에는 AOP가 적용되었지만, `internal` 호출 시에는 적용되지 않았다.  
+(`프록시 방식의 AOP 한계` →) **타겟 클래스 내부에서 내부 메소드를 호출하였기 때문에 프록시를 거치지 않는 것이다.**  
+- AspectJ를 사용하면 해당 코드에 직접 AOP 적용 코드가 삽입되기 때문에 이런 문제가 발생하진 않는다.
+- 설정이 복잡하고 JVM 옵션을 건드려야 하기 때문에 부담이 있다.
+
+## 첫 번째 해결. **자기 자신 주입**
+
+![](imgs/spring-proxy/aopInternalCallV1.png)
+
+`spring.main.allow-circular-references=true`를 설정파일에 추가하거나, `@Lazy`를 사용해서 순환참조를 해결할 수 있다.
+
+## 두 번째 해결. **지연 조회**
+
+`ObjectProvider<ClassType>` 또는 `ApplicationContext`를 주입받아 사용할 수 있다.  
+`ObjectProvider<ClassType>`는 **객체를 스프링 컨테이너에서 조회하는 것을 스프링 빈 생성 시점이 아니라 실제 객체를 사용하는 시점으로 지연할 수 있다.**  
+
+## 세 번째 해결. **구조 변경**
+
+![](imgs/spring-proxy/aopInternalCallV3.png)
+
+이 문제와 같이 `external()`에서 내부 메소드를 호출해야 할 상황이라면, 해당 메소드를 다른 클래스로 분리하여 빈으로 등록해서 사용하는 것이다.  
+
+> AOP는 주로 트랜잭션 적용이나 로그 출력 기능에 사용된다.  
+> **인터페이스에 메서드로 사용할 정도의 규모에 AOP를 적용하는 것이 적당하다.**  
+> AOP는 `public`에만 적용하며, `private`메서드에는 적용되지 않는다.  
+> 이런 문제를 만났다면, **외부 클래스의 메소드로 분리하여 AOP가 적용될 기회를 주는 것이 좋다.**
+
+***
+
+# 프록시 기술과 한계 (JDK 동적 프록시 vs CGLIB)
+
+인터페이스가 있는 경우에도 `JDK 동적 프록시`와 `CGLIB`을 선택해서 적용할 수 있다.  
+
+```java
+proxyTargetClass=false  // JDK 동적 프록시 사용
+proxyTargetClass=true   // CGLIB 사용
+```
+
+## 타입 캐스팅 [예제](https://github.com/jdalma/spring-aop/commit/a6bb4c4e7c980f02da3f1f1e42100d251685dd4b)
+
+`JDK 동적 프록시`는 인터페이스 기준으로 만들어지기 때문에 구체 클래스에 대한 정보를 알 수 없기 때문에 **구체 클래스로 타입 캐스팅이 불가능하다는 단점**이 있다.  
+하지만 `CGLIB`는 구현체를 상속받아 만들기 때문에 **인터페이스던 구체 클래스던 둘 다 캐스팅이 가능하다.**  
+
+## 의존관계 주입 [예제](https://github.com/jdalma/spring-aop/commit/f30def2fb80e03c60c8ce408095b8b02fad8b35c)
+
+`JDK 동적 프록시`를 사용하면 구체 클래스로 의존관계 주입 시 문제가 발생한다.  
+
+
+**@SpringBootTest(properties = {"spring.aop.proxy-target-class=false"})**로 JDK 동적 프록시 적용하여 구체 클래스를 주입받으려 하면 아래와 같은 예외가 발생한다.  
+- `구체 클래스 != JDK Proxy`
+
+```
+Error creating bean with name 'hello.aop.proxyvs.ProxyDITest': Unsatisfied dependency expressed through field 'memberServiceImpl';
+nested exception is org.springframework.beans.factory.BeanNotOfRequiredTypeException:
+Bean named 'memberServiceImpl' is expected to be of type 'hello.aop.member.MemberServiceImpl' but was actually of type 'jdk.proxy3.$Proxy55'
+```
+  
+**@SpringBootTest(properties = {"spring.aop.proxy-target-class=true"})**로 CGLIB을 적용하여 구체 클래스를 주입받으면 정상적으로 주입받을 수 있다.
+```
+memberService class=class hello.aop.member.MemberServiceImpl$$EnhancerBySpringCGLIB$$850d7c1f
+memberServiceImpl class=class hello.aop.member.MemberServiceImpl$$EnhancerBySpringCGLIB$$850d7c1f
+```
+
+## CGLIB의 한계
+
+위의 예제를 보면 CGLIB이 좋아보이지만
+
+1. **대상 클래스에 기본 생성자 필수**
+   1. CGLIB 프록시의 생성자는 우리가 호출하는 것이 아니라, 대상 클래스를 상속받고 대상 클래스의 기본 생성자를 자동으로 호출하기 떄문에 자바에서 상속을 받으면 자식 클래스의 생성자를 호출할 때 부모 클래스의 생성자도 호출해야 하기 때문에 필수이다.
+2. **생성자 두 번 호출 문제**
+   1. 실제 `target`의 객체를 생성할 때
+   2. 프록시 객체를 생성할 때 부모 클래스의 생성자 호출한다.
+3. **`final` 키워드 클래스, 메소드 사용 불가**
+  
+하지만 위의 문제를 스프링이 개선했다.  
+
+1. **스프링 3.2 `CGLIB`를 스프링 내부에 함께 패키징**
+   1. spring-core안에 포함되어 있다.
+2. **CGLIB 기본 생성자 필수 문제 해결**
+   1. 스프링 4.0부터 CGLIB의 기본 생성자가 필수인 문제가 해결되었다.
+   2. `objenesis`라는 라이브러리를 사용해서 기본 생성자 없이 객체 생성이 가능하다.
+   3. 이 라이브러리가 생성자 호출 없이 객체를 생성할 수 있게 해준다.
+3. **생성자 2번 호출 문제**
+   1. 스프링 4.0부터 CGLIB의 생성자를 두 번 호출하는 문제가 해결되었다.
+   2. `objenesis`라는 라이브러리 덕분에 해결 가능하다.
+4. **스프링 부트 2.0부터 `CGLIB`을 기본으로 사용**
+   1. 인터페이스가 있어도 항상 CGLIB을 사용해서 구체 클래스 기반으로 프록시를 만들어낸다.
