@@ -37,6 +37,10 @@
 - [REST API는 어떻게 만들어야 하는가?](https://codesoom.github.io/wiki/api-design/03/)
 - [`aws` RESTful API란 무엇입니까?](https://aws.amazon.com/ko/what-is/restful-api/)
 
+## Java
+
+- [DTO를 다시 생각해보자](https://blog.scottlogic.com/2020/01/03/rethinking-the-java-dto.html)
+
 ## Spring
 
 - [`baeldung` Transaction vs JTA](https://www.baeldung.com/spring-vs-jta-transactional)
