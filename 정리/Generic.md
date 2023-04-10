@@ -3,7 +3,7 @@
 일단 **타입 매개변수**와 **타입 인수**를 알고가자  
 매개변수는 메서드 선언에 정의한 변수이고, 인수는 메서드 호출시 넘기는 실젯값이다.
 
-```java
+```kotlin
 class Set<T> {...}
 Set<Integer> = ...;
 ```
@@ -19,7 +19,7 @@ Set<Integer> = ...;
 > `Foo<? super Bar>` becomes `Foo<in Bar!>!` 이렇게 사용한다.  
 > `!` 는 `Bar`와 `Bar?` 둘 다 의미한다.  
 
-```java
+```kotlin
 interface Step<T>
 open class Shelter
 open class Cage : Shelter()
@@ -59,9 +59,10 @@ fun main() {
 즉, `Collection<T>`에 대해 **쓰기 작업은 `extends`** , **읽기 작업은 `super`** 를 사용하라고 하는 공식이다.  
 넣을 때는 제네릭 타입 파라미터 기준 하위 타입들까지 허용하도록 하고, 꺼낼 때는 상위 타입들로 꺼낼 수 있도록 하는 것이다. [리스코프 치환 원칙](https://ko.wikipedia.org/wiki/%EB%A6%AC%EC%8A%A4%EC%BD%94%ED%94%84_%EC%B9%98%ED%99%98_%EC%9B%90%EC%B9%99)  
   
-![](wildcards.png)
+![](imgs/wildcards.png)
 
-타입 인수에 대해 자바의 `?` 같은 방식으로 모든 타입을 수용하고 안전한 방식으로 사용하기 위해 [`kotlinlang` Start-Projections](https://kotlinlang.org/docs/generics.html#star-projections)이 제공된다. **Start-Projections**을 이해하는데 한정적 와일드카드가 도움이 된다.  
+타입 인수에 대해 자바의 `?` 같은 방식으로 모든 타입을 수용하고 안전한 방식으로 사용하기 위해 [`kotlinlang` Start-Projections](https://kotlinlang.org/docs/generics.html#star-projections)이 제공된다.  
+**Start-Projections**을 이해하는데 한정적 와일드카드가 도움이 된다.  
   
 `interface Function<in T, out U>`  
 `Function<*, String>` → `Function<in Nothing, String>`  
