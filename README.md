@@ -6,7 +6,7 @@
 - [ ] 모던 자바 인 액션
 - [ ] 네티 인 액션
 - [ ] 코틀린 인 액션
-- [ ] 한 권으로 읽는 컴퓨터 구조와 프로그래밍
+- [ ] 한 권으로 읽는 컴퓨터 구조와 프로그래밍 `2023.04.13 ~`
 - [ ] 데브옵스 핸드북
 - [ ] [HTTP 완벽가이드](https://github.com/SeolYoungKim/http-definitive-guide-study/issues) `2023.03.20 ~`
 - [ ] Real MySQL 1권 `2023.?.? ~`
