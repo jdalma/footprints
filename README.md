@@ -8,7 +8,7 @@
 - [ ] 코틀린 인 액션
 - [ ] 한 권으로 읽는 컴퓨터 구조와 프로그래밍
 - [ ] 데브옵스 핸드북
-- [ ] HTTP 완벽가이드 `2023.03.20 ~`
+- [ ] [HTTP 완벽가이드](https://github.com/SeolYoungKim/http-definitive-guide-study/issues) `2023.03.20 ~`
 - [ ] Real MySQL 1권 `2023.?.? ~`
 - [x] [자바에서 코틀린으로](https://github.com/jdalma/java-to-kotlin) `2022.11.30 ~ 2023.02.22`  
 - [x] [토비의 스프링 1권](https://github.com/jdalma/tobyspringin5)  
