@@ -9,7 +9,7 @@
 - [ ] 데브옵스 핸드북
 - [ ] [HTTP 완벽가이드](https://github.com/SeolYoungKim/http-definitive-guide-study/issues) `2023.03.20 ~ 2023.05.01`
   - 코틀린 스터디로 인해 13장까지 읽고 도중 하차
-  - 14,15,17,18,20장만 추후에 읽자
+  - 14,15,18,20장만 추후에 읽자
 - [ ] Real MySQL 1권 `2023.?.? ~`
 - [x] [자바에서 코틀린으로](https://github.com/jdalma/java-to-kotlin) `2022.11.30 ~ 2023.02.22`  
 - [x] [토비의 스프링 1권](https://github.com/jdalma/tobyspringin5)  
