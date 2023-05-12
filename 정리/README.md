@@ -26,11 +26,13 @@
 
 - [Java HotSpot VM G1GC](https://johngrib.github.io/wiki/java-g1gc/)
 - [일반적인 GC 내용과 G1GC (Garbage-First Garbage Collector) 내용](https://thinkground.studio/%EC%9D%BC%EB%B0%98%EC%A0%81%EC%9D%B8-gc-%EB%82%B4%EC%9A%A9%EA%B3%BC-g1gc-garbage-first-garbage-collector-%EB%82%B4%EC%9A%A9/)
+- [JVM과 Garbage Collection - G1GC vs ZGC](https://huisam.tistory.com/entry/jvmgc)
 - [Java G1 GC](https://kwonnam.pe.kr/wiki/java/g1gc)
 - [`joosing` Java,Heap Memory 증가 현상 분석](https://velog.io/@joosing/Java-heap-memory-growth-analysis)
 - [`johngrib` Java 버전별 변경점](https://johngrib.github.io/wiki/java/enhancements/)
 - [`compareTo`를 재정의하면 왜 `equals`도 재정의 해야할까?](https://ohtaeg.tistory.com/3)
-- [JVM과 Garbage Collection - G1GC vs ZGC](https://huisam.tistory.com/entry/jvmgc)
+- [Java 클래스 파일 내부의 상수 풀 이해](https://blogs.oracle.com/javamagazine/post/java-class-file-constant-pool)
+- [javap](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javap.html)
 
 ## REST
 
@@ -76,3 +78,4 @@
 - [MSA School](http://www.msaschool.io/operation/introduction/example-domain/)
 - [Tomcat과 Nginx – 차이점은 무엇입니까?](https://cloudinfrastructureservices.co.uk/tomcat-vs-nginx-whats-the-difference/)
 - [`토스ㅣSLASH 22` 애플 한 주가 고객에게 전달 되기까지](https://www.youtube.com/watch?v=UOWy6zdsD-c&ab_channel=%ED%86%A0%EC%8A%A4)
+- [Git 사용 가이드](https://tech.10000lab.xyz/archive.html?tag=Git+%EC%82%AC%EC%9A%A9+%EA%B0%80%EC%9D%B4%EB%93%9C)
