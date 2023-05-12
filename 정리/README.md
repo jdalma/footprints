@@ -1,5 +1,7 @@
 # 링크 모아놓기
 
+- [highscalability - 영어이지만,유용한 기술 글들이 많음](http://highscalability.com/all-time-favorites/)
+
 ## 패턴에 대한 이야기
 
 - [Facade](https://springframework.guru/gang-of-four-design-patterns/facade-pattern/)
@@ -57,6 +59,7 @@
 - [`Spring Docs` @EnableCaching](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/cache/annotation/EnableCaching.html)
 - [`Spring Docs` @EnableTransactionManagement](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/transaction/annotation/EnableTransactionManagement.html)
 - [스프링캠프 2019 [Track 2 Session 1] : GraalVM과 스프링, 이상과 현실](https://www.youtube.com/watch?v=C7toO3WV1NQ&ab_channel=springcamp.io)
+- [IoC와 DI를 이용한 Spring 멀티 모듈 아키텍처](https://kciter.so/posts/spring-multi-module-architecture)
 
 ## JPA
 
@@ -79,3 +82,4 @@
 - [Tomcat과 Nginx – 차이점은 무엇입니까?](https://cloudinfrastructureservices.co.uk/tomcat-vs-nginx-whats-the-difference/)
 - [`토스ㅣSLASH 22` 애플 한 주가 고객에게 전달 되기까지](https://www.youtube.com/watch?v=UOWy6zdsD-c&ab_channel=%ED%86%A0%EC%8A%A4)
 - [Git 사용 가이드](https://tech.10000lab.xyz/archive.html?tag=Git+%EC%82%AC%EC%9A%A9+%EA%B0%80%EC%9D%B4%EB%93%9C)
+- [결제 요청, 인증, 승인… 이게 다 뭔가요?](https://velog.io/@tosspayments/%EA%B2%B0%EC%A0%9C-%EC%9A%94%EC%B2%AD-%EC%9D%B8%EC%A6%9D-%EC%8A%B9%EC%9D%B8-%EC%9D%B4%EA%B2%8C-%EB%8B%A4-%EB%AD%94%EA%B0%80%EC%9A%94)

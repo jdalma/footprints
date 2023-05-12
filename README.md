@@ -20,14 +20,14 @@
 
 ***
 
-- [ ] [Docker & Kubernetes : 실전 가이드](https://www.udemy.com/course/docker-kubernetes-2022/) `2023.05.01 ~`
+- [ ] [Docker & Kubernetes : 실전 가이드](https://www.udemy.com/course/docker-kubernetes-2022/)
 - [ ] 스프링 부트 - 핵심 원리와 활용
 - [ ] Spring Cloud로 개발하는 마이크로서비스 애플리케이션(MSA)
 - [ ] Jenkins를 이용한 CI/CD Pipeline 구축
 - [x] 외워서 끝내는 SSL과 최소한의 암호기술 `2023.04.10 ~ 2023.04.17`
 - [ ] 이펙티브 자바 완벽 공략 2부
 - [ ] 이펙티브 자바 완벽 공략 1부
-- [ ] 토비의 스프링 부트 - 이해와 원리
+- [ ] 토비의 스프링 부트 - 이해와 원리 `2023.05.12 ~`
 - [ ] 스프링 DB 2편 - 데이터 접근 활용 기술
 - [ ] 스프링 DB 1편 - 데이터 접근 핵심 원리
 - [x] 스프링 핵심 원리 - 고급 `2023.01.24 ~ 2023.04.09`

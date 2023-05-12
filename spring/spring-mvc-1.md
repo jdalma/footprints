@@ -115,7 +115,7 @@
 - HTTP요청을 받아서 파라미터를 검증하고 , 비즈니스 로직을 실행
 - `VIew`에 전달할 결과 데이터를 조회해서 `Model`에 담는다
 
-![MVC](https://raw.githubusercontent.com/jdalma/jdalma.github.io/master/assets/images/spring-mvc/mvc.png)
+![MVC](imgs/spring-mvc/mvc.png)
 
 ### Model
 - `View`에 출력할 데이터를 담아둔다
