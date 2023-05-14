@@ -1,11 +1,3 @@
----
-title: 코틀린 * 사용하기
-date: "2023-02-17"
-tags:
-   - Kotlin
-   - Spring
----
-
 
 스프링과 코틀린을 사용하면서 만난 문제를 정리하려고 한다. 실제 업무와 비슷하게 다이어그램을 작성해 보았다.  
 
@@ -156,4 +148,4 @@ fun validate(values: List<Data>) : List<ValidationResponse> {
 `strategies.filterIsInstance<ValidationStrategy<Any>>()`를 통해 `*`을 `Any`로 확정지어주면서 해결했다.  
 - [`kotlinlang` Iterable<*>.filterIsInstance()](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/filter-is-instance.html) 확장함수가 `Iterable<*>`이므로 Star-Projections를 사용했을 때 타입을 확정지어줄 수 있게 제공하는 것 같다.  
   
-추가적으로 [제네릭을 정리해 보았다.](https://github.com/jdalma/footprints/blob/main/%EC%A0%95%EB%A6%AC/Generic.md)  
+추가적으로 [제네릭을 정리해 보았다.](https://github.com/jdalma/footprints/blob/main/%EC%BD%94%ED%8B%80%EB%A6%B0/Generic.md)  

@@ -1,3 +1,113 @@
+<!-- TOC -->
+
+- [](#)
+- [](#)
+- [](#)
+- [](#)
+
+<!-- /TOC -->
+
+# **제네릭의 필요성**
+
+> 우리는 컴파일 시점에 정확한 타입을 알 수 있는 컨테이너를 원한다.  
+
+`Box`에 `Int`와 `Double`을 각각 넣어서 사용하고 싶다면 어떻게 해야할까?  
+- 아래의 예제는 실제로 가능한 것은 아니다.
+
+```kotlin
+fun makeBoxType(T: type) = class(x: T) {
+    var _x: T = x
+    fun get(): T = _x
+    fun set(v: T) { _x = v }
+}
+```
+
+`type`을 파라미터화 해서 새 타입을 만들 수 있게 한 함수는 **실햄 시점에 실행되지 않고 컴파일 시점에 컴파일러에 의해 처리되므로 함수라고 부르기 보다는 `파라미터화한 타입` 또는 `제네릭스`라고 부른다.**  
+제네릭 타입에 대한 장점은
+
+1. 다양한 타입에 공통적으로 적용될 수 있는 구현을 코드 하나로 작성할 수 있다.
+2. 컴파일 시점에 파라미터화한 타입에 대한 타입 검사가 엄격하게 이뤄지므로 **`Any`등의 타입을 사용해 구현할 때 생기는 업 캐스트, 다운 캐스트 문제가 사라진다.**
+
+# **제네릭 클래스, 제네릭 인터페이스, 제네릭 함수**
+
+**제네릭 클래스**와 **제네릭 인터페이스** 정의 방법은 거의 비슷하다.  
+
+```kotlin
+class Box<T>(var value: T)
+interface Box<T>
+```
+
+일반적인 함수의 **인자 타입이나 반환 타입을 일반화할 수도 있다.**  
+
+```kotlin
+fun <T> firstOfArray(arr: Array<T>): T 
+    = if(arr.size == 0) throw IllegalArgumentException() else arr[0]
+```
+
+# **제네릭 클래스를 설계해보라**
+
+원소를 3개 담는 불변 객체인 `Triple` 제네릭 클래스를 설계하라.  
+
+1. 생성자는 세 가지 원소를 인자로 받는다. 널은 포함하지 않는다.
+2. `val`로 선언하여 `first`,`second`,`third`로 명명한다.
+3. `fun reverse`는 세 원소 순서를 뒤집은 새로운 `Triple`을 반환한다.
+4. `fun toString` 원소 순서대로 값을 반환한다.
+
+```kotlin
+class Triple<F, S, T>(
+    val first: F,
+    val second: S,
+    val third: T
+) {
+
+    fun reverse() : Triple<T, S, F> {
+        return Triple(third, second, first)
+    }
+
+    override fun toString(): String {
+        return "($first, $second, $third)"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        // ...
+    }
+
+    override fun hashCode(): Int {
+        // ...
+    }
+}
+
+describe("Triple 클래스") {
+
+    val triple1 = Triple(1,2,3)
+    val triple2 = Triple("first",2,3.5)
+
+    context("3개의 필드를 보유한다.") {
+        triple1.first shouldBe 1
+        triple1.second shouldBe 2
+        triple1.third shouldBe 3
+
+        triple2.first shouldBe "first"
+        triple2.second shouldBe 2
+        triple2.third shouldBe 3.5
+    }
+
+    context("reverse 함수는") {
+        it("세 원소 순서를 뒤집은 새로운 Triple 객체를 반환한다.") {
+            triple1.reverse() shouldBe Triple(3,2,1)
+            triple2.reverse() shouldBe Triple(3.5,2,"first")
+        }
+    }
+
+    context("toString 함수는") {
+        it("'(첫 번째, 두 번째, 세 번째)'의 형식으로된 문자열을 반환한다.") {
+            triple1.toString() shouldBe "(1, 2, 3)"
+            triple2.toString() shouldBe "(first, 2, 3.5)"
+        }
+    }
+}
+```
+
 # **코틀린의 제네릭과 한정적 와일드카드**
   
 일단 **타입 매개변수**와 **타입 인수**를 알고가자  
