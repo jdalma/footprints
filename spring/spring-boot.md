@@ -270,3 +270,55 @@ public class MySpringApplication {
     }
 }
 ```
+
+# **메타 어노테이션**
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.ANNOTATION_TYPE)
+@Test
+@interface UnitTest {
+}
+```
+  
+메타 어노테이션은 아무 어노테이션이나 될 수 있는 것은 아니다.
+  
+```java
+@Target({ ElementType.ANNOTATION_TYPE, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@API(status = STABLE, since = "5.0")
+@Testable
+public @interface Test {
+}
+```
+  
+`@Target(ElementType.ANNOTATION_TYPE)` 이 존재해야한다.  
+
+# **애플리케이션 빈 vs 컨테이너 인프라스트럭처 빈**
+
+**애플리케이션 로직 빈**  
+- 개발자가 직접 등록한 빈들
+  
+**애플리케이션 인프라스트럭처 빈**  
+- 빈 구성정보를 명시해줘서 사용하는 것
+- DataSource
+- JpaEntityManagerFactory
+- JdbcTransactionManager
+  
+**컨테이너 인프라스트럭처 빈**  
+- 스프링 컨테이너 자신이거나 스프링 컨테이너가 기능을 확장하면서 추가해온 새로운 빈들
+- 빈으로 등록해달라고 명시하지 않고 스스로 빈으로 등록해서 실행하는 빈
+- ApplicationContext
+- BeanFactory
+- Environment
+- BeanPostProcessor
+- BeanFactoryPostProcessor
+- DefaultAdvisorAutoProxyCreator
+
+  
+위에서 직접 정의해줘야만 했던 이 두개의 빈 (`TomcatServerWebServerFactory`와 `DispatcherServlet`)은 **애플리케이션 인프라스트럭처 빈**에 포함되어야 할 것이다.  
+**애플리케이션 빈**을 로직과 인프라스트럭처 빈을 구분할 때 `사용자 구성정보 (@ComponentScan)`와 `자동 구성정보 (@AutoConfiguration)`으로 구분할 수 있다.  
+  
+# **자동 구성 기반 애플리케이션** `@AutoConfiguration`
+
