@@ -100,7 +100,7 @@ describe("Triple 클래스") {
 }
 ```
 
-# **코틀린의 제네릭과 한정적 와일드카드**
+# **한정적 와일드카드 : `in`, `out`**
   
 일단 **타입 매개변수**와 **타입 인수**를 알고가자  
 매개변수는 메서드 선언에 정의한 변수이고, 인수는 메서드 호출시 넘기는 실젯값이다.
@@ -112,7 +112,7 @@ Set<Integer> = ...;
 
 `T`는 **타입 매개변수**가 되고, `Integer`는 **타입 인수**가 된다.  
     
-이제 **공변 `covariance`, 반공변 `contravariant`, 무공변 `invariance`** 에 대해, **코틀린의 `in`, `out`, `where`** 은 어떤 개념인지 알아보자  
+이제 **공변 `covariance`, 반공변 `contravariant`, 무공변 `invariance`** 에 대해, **코틀린의 `in`, `out`** 은 어떤 개념인지 알아보자  
   
 **변성**에 대한 이야기는 `타입 T1이 T2의 하위 타입일 때, List<T1>가 List<T2>의 타입 관계가 어떠한가?`로 시작된다.  
   
@@ -171,7 +171,8 @@ fun main() {
 `Function<Int, *>` → `Function<Int, out Any?>`  
 `Function<*, *>` → `Function<in Nothing, out Any?>`  
   
-그렇다면 코틀린의 `where`은 무엇일까?  
+## 그렇다면 코틀린의 `where`은 무엇일까?  
+
 [`kotlinlang` Upper Bounds](https://kotlinlang.org/docs/generics.html#upper-bounds)를 보면 기본적으로 `<>`에 하나의 상한만 지정이 가능하지만 둘 이상의 상한이 필요한 경우 사용할 수 있다고 한다.  
 **전달된 유형은 절의 모든 조건을 동시에 만족해야한다.** 아래의 예제를 확인해보자
   
@@ -195,3 +196,71 @@ fun main() {
 ```
 
 `WhereStep` 인터페이스는 `Cage`와 `Person` 둘 다 만족해야 하기 때문에 `Trainer`만 구현 가능한 것을 확인할 수 있다.  
+   
+두 번째 예제로는 **`CharSequence`와 `Comparable`을 구현하는 타입만 받을 수 있는 함수**이다.  
+
+```kotlin
+fun <T> copyWhenGenerator(list: List<T>, threshold: T): List<String>
+    where T: CharSequence,
+          T: Comparable<T> {
+              return list.filter {
+                  it > threshold
+              }.map { it.toString() }
+          }
+
+describe("copyWhenGenerator 함수는") {
+    val param1 = listOf("a", "b", "c", "d") to "b"
+    val param2 = listOf(
+            StringBuilder("A"),
+            StringBuilder("B"),
+            StringBuilder("C")
+    ) to StringBuilder("B")
+
+    context("threshold 보다 큰 값만 반환한다.") {
+
+        copyWhenGenerator(param1.first, param1.second) shouldBe listOf("c" , "d")
+        copyWhenGenerator(param2.first, param2.second) shouldBe listOf("C")
+    }
+}
+```
+
+# **재귀적 타입 바운드**
+
+```kotlin
+class Account<T>(initialBalance: T): Comparable<T> {
+
+    val balance = initialBalance
+    override fun compareTo(other: T): Int = this.compareTo(other)
+
+}
+```
+
+위의 예제에서 문제점은 뭘까?  
+`compareTo` 함수에서 `this.compareTo(other)`를 호출하면서, 자기 자신을 무한히 호출하게 되어, Stack Overflow 오류가 발생한다.  
+
+```kotlin
+class Account<T: Comparable<T>>(initialBalance: T): Comparable<Account<T>> {
+
+    private val balance = initialBalance
+    override fun compareTo(other: Account<T>): Int =
+            balance.compareTo(other.balance)
+}
+
+describe("Account 클래스") {
+    val account = Account(10000.5)
+    val compare1 = Account(10001.5)
+    val compare2 = Account(10000.0)
+    context("compareTo 메서드는") {
+
+        it("비교 대상 객체의 잔액이 더 크다면 음수를 반환한다.") {
+            account.compareTo(compare1) shouldBeLessThan 0
+        }
+
+        it("비교 대상 객체의 잔액이 더 작다면 양수를 반환한다.") {
+            account.compareTo(compare2) shouldBeGreaterThan 0
+        }
+    }
+}
+```
+
+위와 같이 `Account` 클래스의 제네릭을 수정해주어야 한다.  
