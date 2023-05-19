@@ -100,7 +100,7 @@ describe("Triple 클래스") {
 }
 ```
 
-# **한정적 와일드카드 : `in`, `out`**
+# **공변, 반공변, 무공변**
   
 일단 **타입 매개변수**와 **타입 인수**를 알고가자  
 매개변수는 메서드 선언에 정의한 변수이고, 인수는 메서드 호출시 넘기는 실젯값이다.
@@ -111,15 +111,11 @@ Set<Integer> = ...;
 ```
 
 `T`는 **타입 매개변수**가 되고, `Integer`는 **타입 인수**가 된다.  
-    
-이제 **공변 `covariance`, 반공변 `contravariant`, 무공변 `invariance`** 에 대해, **코틀린의 `in`, `out`** 은 어떤 개념인지 알아보자  
-  
-**변성**에 대한 이야기는 `타입 T1이 T2의 하위 타입일 때, List<T1>가 List<T2>의 타입 관계가 어떠한가?`로 시작된다.  
-  
-> [`kotlinlang` Java Generics in Kotlin](https://kotlinlang.org/docs/java-interop.html#java-generics-in-kotlin)를 확인하면  
+      
 > `Foo<? extends Bar>` becomes `Foo<out Bar!>!`  
 > `Foo<? super Bar>` becomes `Foo<in Bar!>!` 이렇게 사용한다.  
 > `!` 는 `Bar`와 `Bar?` 둘 다 의미한다.  
+> [`kotlinlang` Java Generics in Kotlin](https://kotlinlang.org/docs/java-interop.html#java-generics-in-kotlin)
 
 ```kotlin
 interface Step<T>
@@ -152,16 +148,36 @@ fun main() {
 - [예제 참고](https://sungjk.github.io/2021/02/20/variance.html)
 - [invariance/non-variance 참고 `Effective Java Item 28. 배열보다는 리스트를 사용하라`](https://github.com/jdalma/footprints/blob/main/effective-java/item28_%EB%B0%B0%EC%97%B4%EB%B3%B4%EB%8B%A4%EB%8A%94%20%EB%A6%AC%EC%8A%A4%ED%8A%B8%EB%A5%BC%20%EC%82%AC%EC%9A%A9%ED%95%98%EB%9D%BC.md)
 - [PESC 공식 참고 `Effective Java Item 31. 한정적 와일드카드`](https://github.com/jdalma/footprints/blob/main/effective-java/item31_%ED%95%9C%EC%A0%95%EC%A0%81%20%EC%99%80%EC%9D%BC%EB%93%9C%EC%B9%B4%EB%93%9C%EB%A5%BC%20%EC%82%AC%EC%9A%A9%ED%95%B4%20API%20%EC%9C%A0%EC%97%B0%EC%84%B1%EC%9D%84%20%EB%86%92%EC%9D%B4%EB%9D%BC.md#pecs--producer-extends-consumer-super)
+
+> 클래스 계층 구조를 만드는 한 가지 이유는 **하위 타입 객체를 항상 상위 타입 객체인 것처럼 쓸 수 있다는 특징**을 활용해  
+> **일반적인 연산**과 **구체적인 연산**을 분리해 활용하는데 있다.  
+> [리스코프 치환 원칙](https://ko.wikipedia.org/wiki/%EB%A6%AC%EC%8A%A4%EC%BD%94%ED%94%84_%EC%B9%98%ED%99%98_%EC%9B%90%EC%B9%99)  
   
-**무공변**은 제네릭 타입 파라미터가 고정되어 있는 상황으로 **타입관계가 성립되지 않는 것**  
-**공변**은 하위 타입이 상위 타입과 관계를 성립 하는 것 **`Step<Animal>` is a `Step<Cage>`**  
-**반공변**은 공변과 반대로 **`Step<Shelter> is a Step<Cage>`**  
+**변성**에 대한 이야기는 `A가 B의 상위 타입이고 Gen<T>가 제네릭 타입일 때, Gen<A>와 Gen<B>의 관계는 어떠한가?`로 시작된다.  
+  
+**무공변 `invariance`**은 제네릭 타입 파라미터가 고정되어 있는 상황으로 **타입관계가 성립되지 않는 것**  
+**공변 `covariance`**은 하위 타입이 상위 타입과 관계를 성립 하는 것 **`Step<Animal>` is a `Step<Cage>`**  
+- 타입 파라미터의 상하위 타입 관계와 제네릭 타입의 상하위 타입 관계가 같은 방향으로 변한다는 뜻
+- `out` 타입 파라미터는 다음 위치에 쓰여야 제네릭 타입의 상하위 타입 공변성이 유지된다.
+  1. **멤버 함수의 반환 타입**
+  2. **읽기 전용 멤버 프로퍼티 게터의 반환 타입**
+  
+**반공변 `contravariant`**은 공변과 반대로 **`Step<Shelter>` is a `Step<Cage>`**  
+- `in` 타입 파라미터는 기본적으로 다음 위치에 쓰여야 제네릭 타입의 상하위 타입 반공변성이 유지된다.  
+  1. **멤버 함수의 파라미터 타입**
+  2. **멤버 프로퍼티 세터의 파라미터 타입**
+  3. 하지만 현재 코틀린에서는 프로퍼티에서 게터만 정의할 수는 있어도 세터만 정의할 수는 없으므로 `in` 타입 파라미터가 쓰일 수 있는 위치는 **멤버 함수의 파라미터 타입**뿐이다.
+  
+> T 타입의 프로퍼티 게터와 세터는 각각 **() -> T** 타입의 함수, **(T) -> Unit**타입의 함수로 생각할 수 있다.  
+> **함수 타입의 공변성은 파라미터 타입에 대해 반공변이고 반환 타입에 대해 공변이다.**라는 규칙(PECS)으로 정리될 수 있다.
   
 여기서 추가로 **PECS 공식**이 등장하는데 `producer-extends, consumer-super`를 의미한다.  
 즉, `Collection<T>`에 대해 **쓰기 작업은 `extends`** , **읽기 작업은 `super`** 를 사용하라고 하는 공식이다.  
-넣을 때는 제네릭 타입 파라미터 기준 하위 타입들까지 허용하도록 하고, 꺼낼 때는 상위 타입들로 꺼낼 수 있도록 하는 것이다. [리스코프 치환 원칙](https://ko.wikipedia.org/wiki/%EB%A6%AC%EC%8A%A4%EC%BD%94%ED%94%84_%EC%B9%98%ED%99%98_%EC%9B%90%EC%B9%99)  
+넣을 때는 제네릭 타입 파라미터 기준 하위 타입들까지 허용하도록 하고, 꺼낼 때는 상위 타입들로 꺼낼 수 있도록 하는 것이다.  
   
 ![](imgs/wildcards.png)
+
+## 코틀린의 Start-Projections
 
 타입 인수에 대해 자바의 `?` 같은 방식으로 모든 타입을 수용하고 안전한 방식으로 사용하기 위해 [`kotlinlang` Start-Projections](https://kotlinlang.org/docs/generics.html#star-projections)이 제공된다.  
 **Start-Projections**을 이해하는데 한정적 와일드카드가 도움이 된다.  
