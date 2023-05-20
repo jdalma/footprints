@@ -169,7 +169,7 @@ fun main() {
   3. 하지만 현재 코틀린에서는 프로퍼티에서 게터만 정의할 수는 있어도 세터만 정의할 수는 없으므로 `in` 타입 파라미터가 쓰일 수 있는 위치는 **멤버 함수의 파라미터 타입**뿐이다.
   
 > T 타입의 프로퍼티 게터와 세터는 각각 **() -> T** 타입의 함수, **(T) -> Unit**타입의 함수로 생각할 수 있다.  
-> **함수 타입의 공변성은 파라미터 타입에 대해 반공변이고 반환 타입에 대해 공변이다.**라는 규칙(PECS)으로 정리될 수 있다.
+> **함수 타입의 공변성은 파라미터 타입에 대해 반공변이고 반환 타입에 대해 공변이다.** 라는 규칙(PECS)으로 정리될 수 있다.
   
 여기서 추가로 **PECS 공식**이 등장하는데 `producer-extends, consumer-super`를 의미한다.  
 즉, `Collection<T>`에 대해 **쓰기 작업은 `extends`** , **읽기 작업은 `super`** 를 사용하라고 하는 공식이다.  
@@ -177,7 +177,46 @@ fun main() {
   
 ![](imgs/wildcards.png)
 
-## 코틀린의 Start-Projections
+## Type Projection
+
+아래의 예제와 같이 `OutBox<>`는 무공변 제네릭 타입이지만, `get()` 함수를 공변적인 타입으로만 취급하겠다고 명시하는 이를 **타입 프로젝션** 이라고 한다.
+
+```kotlin
+class OutBox<T: Number>(private val v: T) {
+    fun get(): T = v
+}
+
+describe("무공변인 TestBox") {
+        val numberBox = TestBox<Number>(10.0)
+        val intBox = TestBox<Int>(10)
+
+        it("get 함수에 공변을 적용") {
+            fun get(box: TestBox<out Number>) : String{
+                return box.v.toString()
+            }
+
+            get(numberBox) shouldBe "10.0"
+            get(intBox) shouldBe "10"
+        }
+
+        it("set 함수에 반공변을 적용") {
+            fun set(box: TestBox<in Int>, value: Int) {
+                box.v = value
+            }
+
+            set(numberBox, 11)
+            set(intBox, 11)
+
+            numberBox.v shouldBe 11
+            intBox.v shouldBe 11
+        }
+    }
+```
+
+`in` 프로젝션이 걸린 타입은 `out` 위치에 있는 타입 파라미터를 모두 **Any?**로 취급한다.  
+`out` 프로젝션이 걸린 타입은 `in` 위치에 있는 타입 파라미터를 모두 **Nothing**으로 취급한다.  
+
+## Star Projection
 
 타입 인수에 대해 자바의 `?` 같은 방식으로 모든 타입을 수용하고 안전한 방식으로 사용하기 위해 [`kotlinlang` Start-Projections](https://kotlinlang.org/docs/generics.html#star-projections)이 제공된다.  
 **Start-Projections**을 이해하는데 한정적 와일드카드가 도움이 된다.  
