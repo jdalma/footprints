@@ -3,7 +3,8 @@
 
 - [**코틀린의 결**](#%EC%BD%94%ED%8B%80%EB%A6%B0%EC%9D%98-%EA%B2%B0)
 - [**코틀린은 왜 if와 when 식을 도입했을까?**](#%EC%BD%94%ED%8B%80%EB%A6%B0%EC%9D%80-%EC%99%9C-if%EC%99%80-when-%EC%8B%9D%EC%9D%84-%EB%8F%84%EC%9E%85%ED%96%88%EC%9D%84%EA%B9%8C)
-- [**널이 될 수 있는 타입과 그렇지 않은 타입**](#%EB%84%90%EC%9D%B4-%EB%90%A0-%EC%88%98-%EC%9E%88%EB%8A%94-%ED%83%80%EC%9E%85%EA%B3%BC-%EA%B7%B8%EB%A0%87%EC%A7%80-%EC%95%8A%EC%9D%80-%ED%83%80%EC%9E%85)
+- [**널 가능성에 대한 스마트 캐스트와 Nothing 타입**](#%EB%84%90-%EA%B0%80%EB%8A%A5%EC%84%B1%EC%97%90-%EB%8C%80%ED%95%9C-%EC%8A%A4%EB%A7%88%ED%8A%B8-%EC%BA%90%EC%8A%A4%ED%8A%B8%EC%99%80-nothing-%ED%83%80%EC%9E%85)
+    - [**엘비스 연산자와 안전한 호출 연산자**](#%EC%97%98%EB%B9%84%EC%8A%A4-%EC%97%B0%EC%82%B0%EC%9E%90%EC%99%80-%EC%95%88%EC%A0%84%ED%95%9C-%ED%98%B8%EC%B6%9C-%EC%97%B0%EC%82%B0%EC%9E%90)
 - [**자바의 정적 메서드에서 코틀린 최상위 함수로**](#%EC%9E%90%EB%B0%94%EC%9D%98-%EC%A0%95%EC%A0%81-%EB%A9%94%EC%84%9C%EB%93%9C%EC%97%90%EC%84%9C-%EC%BD%94%ED%8B%80%EB%A6%B0-%EC%B5%9C%EC%83%81%EC%9C%84-%ED%95%A8%EC%88%98%EB%A1%9C)
 - [**자바 스트림에서 코틀린 이터러블이나 시퀀스로**](#%EC%9E%90%EB%B0%94-%EC%8A%A4%ED%8A%B8%EB%A6%BC%EC%97%90%EC%84%9C-%EC%BD%94%ED%8B%80%EB%A6%B0-%EC%9D%B4%ED%84%B0%EB%9F%AC%EB%B8%94%EC%9D%B4%EB%82%98-%EC%8B%9C%ED%80%80%EC%8A%A4%EB%A1%9C)
 - [**식과 연산자**](#%EC%8B%9D%EA%B3%BC-%EC%97%B0%EC%82%B0%EC%9E%90)
@@ -74,14 +75,85 @@ else
 
 `val` 사용을 편리하게 해주고 더 장려하기 위함이다.  
 
-# **널이 될 수 있는 타입과 그렇지 않은 타입**
+# **널 가능성에 대한 스마트 캐스트와 Nothing 타입**
+
 
 코틀린에서 정의한 모든 타입은 기본적으로 널이 될 수 없다.  
 
 > **널이 될 수 없는 타입을 정의 하지 않고 널이 될 수 있는 타입을 직접 정의하는 방법은 없다.**  
 > 타입 계층으로 볼 때, 널이 될 수 있는 타입은 널이 될 수 없는 타입의 **상위 타입**이기 때문이다.  
 
+```kotlin
+val nullable: Int? = null
+val result = if (nullable == null) 10 else nullable // Int로 스마트캐스트
+```
 
+코틀린은 위의 예제 처럼 `Int?`와 `Int`는 다른 타입이므로 `Int`로 스마트 캐스트를 지원한다.  
+  
+`Nothing`이 반환 타입으로 된 함수가 있다면 이 함수는 비정상적인 함수라는 것을 알 수 있다.  
+**`Nothing`타입을 반환하는 함수와 널이 될 수 있는 타입의 값에 대한 스마트 캐스트가 결합되면, 널인 경우 특정 코드로 절대 진입할 수 없다는 사실을 알고 컴파일러가 널 가능성을 잘 예측해줄 수 있다.**  
+
+```kotlin
+describe("Nothing과 Unit 반환 타입에 따른 널 추론") {
+    fun getIntOrNull() : Int? = if(Random.nextBoolean()) Random.nextInt(0, 1000) else null
+
+    it("항상 예외가 발생하고 Nothing을 반환하는 함수") {
+        fun alwaysFail(i: Int?) : Nothing { throw Throwable("항상 예외 발생") }
+
+        val number = getIntOrNull()
+        if (number == null || number > 900) {
+            alwaysFail(number)
+        }
+        val twice = number.times(2) // twice를 Int 타입으로 추론
+
+        twice.shouldBeInstanceOf<Int>()
+    }
+
+    it("항상 예외가 발생하고 Unit을 반환하는 함수") {
+        fun alwaysFail(i: Int?) : Unit { throw Throwable("항상 예외 발생") }
+
+        val number = getIntOrNull()
+        if (number == null || number > 900) {
+            alwaysFail(number)
+        }
+        val twice = number?.times(2) // number의 널을 허용한다.
+
+        twice.shouldBeInstanceOf<Int>()
+    }
+}
+```
+
+**`Nothing`을 반환하지 않고 `Unit` 등과 같은 구체적인 타입이었다면 컴파일러는 `alwaysFail()`이 항상 실패하는 함수라는 사실을 알 수 없다.**  
+
+## **엘비스 연산자와 안전한 호출 연산자**
+
+널 여부를 검사해서 널인 경우 사용할 수 있는 대안 값을 제공하는 특별한 연산자를 제공한다.  
+`v ?: value` 와 `if( v == null ) value else v` 와 같다.  
+
+```kotlin
+describe("엘비스 연산자") {
+    val string = ""
+
+    // firstOrNull이 Char? 타입을 반환하기 때문에 코드 연쇄를 쓸 수 없다.
+//        val firstLetterDoubleString = string.firstOrNull().code.toDouble().toString() // 컴파일 에러
+
+    val firstLetterDoubleString0 = string.firstOrNull()?.code?.toDouble()
+    val firstLetterDoubleString1 = string.firstOrNull()?.code?.toDouble().toString()
+    val firstLetterDoubleString2 = string.firstOrNull()?.code?.toDouble()?.toString()
+    val firstLetterDoubleString3 = string.firstOrNull()?.code?.toDouble()?.toString() ?: ""
+    val firstLetterDoubleString4 = (string.firstOrNull()?.code?.toDouble() ?: 0.0).toString()
+
+    shouldThrow<IllegalArgumentException> {
+        string.firstOrNull()?.code?.toDouble()?.toString() ?: throw IllegalArgumentException("널이에요")
+    }
+
+    firstLetterDoubleString0 shouldBe null
+    firstLetterDoubleString1 shouldBe "null"
+    firstLetterDoubleString2 shouldBe null
+    firstLetterDoubleString3 shouldBe ""
+    firstLetterDoubleString4 shouldBe "0.0"
+}
+```
 
 # **자바의 정적 메서드에서 코틀린 최상위 함수로**
 
