@@ -22,6 +22,7 @@
 - [**Nothing 이라는 특별한 타입을 왜 도입했을까?**](#nothing-%EC%9D%B4%EB%9D%BC%EB%8A%94-%ED%8A%B9%EB%B3%84%ED%95%9C-%ED%83%80%EC%9E%85%EC%9D%84-%EC%99%9C-%EB%8F%84%EC%9E%85%ED%96%88%EC%9D%84%EA%B9%8C)
 - [**데이터 클래스의 한계**](#%EB%8D%B0%EC%9D%B4%ED%84%B0-%ED%81%B4%EB%9E%98%EC%8A%A4%EC%9D%98-%ED%95%9C%EA%B3%84)
 - [**코틀린의 이터레이션과 for루프**](#%EC%BD%94%ED%8B%80%EB%A6%B0%EC%9D%98-%EC%9D%B4%ED%84%B0%EB%A0%88%EC%9D%B4%EC%85%98%EA%B3%BC-for%EB%A3%A8%ED%94%84)
+- [**패키지**](#%ED%8C%A8%ED%82%A4%EC%A7%80)
 
 <!-- /TOC -->
 
@@ -594,3 +595,33 @@ fun returnType(): Int {
   - `Opreator.next()`와 `Opreator.hasNext()`로도 구분한다  
 
 두 번째와 세 번째 방식은 해당 타입을 `Iterable`로 만들어 주지는 못하며, 코틀린 `for`루프만 적용할 수 있을 뿐이다.  
+
+# **패키지**
+
+최상위에 선언된 함수나 클래스 등의 이름이 서로 겹치지 않게 최상위 선언들을 잘 조직화 할 수 있어야 한다.  
+**코틀린은 패키지라는 개념을 사용해 최상위 선언들을 서로 분리해준다.**  
+- 이름이 같은 선언이라도 다른 패키지에 속해 있으면 컴파일하고 사용하는데 아무 문제가 없다.
+  
+> 패키지 계층은 **논리적이며 개념적인 구분일 뿐이므로 .kt 파일이 들어 있는 폴더의 계층 구조와 반드시 일치하지 않아도 된다.
+
+**현재 파일에 정의돼 있는 이름과 겹치는 이름을 임포트하면 임포트한 이름을 우선적으로 사용한다.**
+
+```kotlin
+// FunctionA.kt
+package _08_PackageAndImport
+
+fun first() = "FunctionA First Method"
+
+// FunctionB.kt
+package _08_PackageAndImport.subpackage
+
+import _08_PackageAndImport.first
+
+fun first() = "FunctionB First Method"
+
+fun main() {
+    println(first()) // FunctionA First Method
+}
+```
+
+  
