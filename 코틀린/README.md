@@ -23,6 +23,7 @@
 - [**데이터 클래스의 한계**](#%EB%8D%B0%EC%9D%B4%ED%84%B0-%ED%81%B4%EB%9E%98%EC%8A%A4%EC%9D%98-%ED%95%9C%EA%B3%84)
 - [**코틀린의 이터레이션과 for루프**](#%EC%BD%94%ED%8B%80%EB%A6%B0%EC%9D%98-%EC%9D%B4%ED%84%B0%EB%A0%88%EC%9D%B4%EC%85%98%EA%B3%BC-for%EB%A3%A8%ED%94%84)
 - [**패키지**](#%ED%8C%A8%ED%82%A4%EC%A7%80)
+- [**sumBy, sumByDouble을 사용하지 말라**](#sumby-sumbydouble%EC%9D%84-%EC%82%AC%EC%9A%A9%ED%95%98%EC%A7%80-%EB%A7%90%EB%9D%BC)
 
 <!-- /TOC -->
 
@@ -582,20 +583,6 @@ fun returnType(): Int {
 이런 경우에는 **직접 값 의미론을 구현해야 한다.**  
 **프로퍼티 사이에 불변 조건을 유지해야 하는 값 타입들은 데이터 클래스를 사용해 정의하지 말라**
 
-# **코틀린의 이터레이션과 `for`루프**
-
-코틀린에서는 `Iterable`이 아닌 다른 타입을 `for`루프에 사용할 수도 있다.
-- [`jdalma` Java Iterator, Enumerator, Iterable ?](https://jdalma.github.io/docs/lab/iterator_vs_enumeration/)
-
-1. `Iterable`을 확장하는 타입
-2. `Iterator`를 반환하는 `iterator()` 제공하는 타입
-3. `Iterator`를 반환하는  `T.iterator()` 확장 함수가 영역 안에 정의된 `T 타입`
-
-- 코틀린의 `Iterator`와 `Iterable`은 자바의 호환성을 위해서만 존재한다  
-  - `Opreator.next()`와 `Opreator.hasNext()`로도 구분한다  
-
-두 번째와 세 번째 방식은 해당 타입을 `Iterable`로 만들어 주지는 못하며, 코틀린 `for`루프만 적용할 수 있을 뿐이다.  
-
 # **패키지**
 
 최상위에 선언된 함수나 클래스 등의 이름이 서로 겹치지 않게 최상위 선언들을 잘 조직화 할 수 있어야 한다.  
@@ -624,4 +611,13 @@ fun main() {
 }
 ```
 
-  
+# **`sumBy()`, `sumByDouble()`을 사용하지 말라**
+
+```kotlin
+"sum, sumOf" {
+    listOf(Int.MAX_VALUE, Int.MAX_VALUE).sum() shouldBe -2
+    listOf(Int.MAX_VALUE, Int.MAX_VALUE).sumOf { it.toLong() } shouldBe 4294967294L
+}
+```
+
+`sumOf()`로 오버플로나 언더플로 문제를 해결할 수 있다.  

@@ -25,7 +25,7 @@
    - 참조를 결과로 반환하자마자 이를 불변 객체인 것처럼 취급해야 한다.  
 3. **성능을 위해 컬렉션을 가변 컬렉션으로 공유해야 하는 경우에는 이름을 주의 깊게 붙이고 `accmulator`, 공유 범위를 최대한 제한하라**  
 
-# 코틀린 컬렉션
+# **코틀린 컬렉션** [테스트 코드](https://github.com/jdalma/kotlin-playground/blob/main/src/test/kotlin/_09_Collection/CollectionUtils.kt)
 
 ![](imgs/collections-diagram.png)
 
@@ -45,49 +45,242 @@
   
 또한 컬렉션에 대한 공통 연산을 타입 계층을 통해 원활하게 지원하고자 코틀린은 두 가지 추가적인 타입을 정의하고 컬렉션들을 계층적인 타입 구조로 선언했다.
 
-## **Iterable<>**
+# **코틀린의 이터레이션과 `for`루프**
 
-원소를 차례로 방문하는 기능을 제공하는 컬렉션이 모두 지키키로 약속한 공통 인터페이스. **읽기 전용**  
-`hasNext()`와 `next()`가 존재하는 `Iterator`를 반환하는 메소드가 있다.  
+코틀린에서는 `Iterable`이 아닌 다른 타입을 `for`루프에 사용할 수도 있다.
+- [`jdalma` Java Iterator, Enumerator, Iterable ?](https://jdalma.github.io/2022y/iterator/)
+
+1. `Iterable`을 확장하는 타입
+2. `Iterator`를 반환하는 `iterator()` 제공하는 타입
+3. `Iterator`를 반환하는  `T.iterator()` 확장 함수가 영역 안에 정의된 `T 타입`
+
+- 코틀린의 `Iterator`와 `Iterable`은 자바의 호환성을 위해서만 존재한다  
+  - `Opreator.next()`와 `Opreator.hasNext()`로도 구분한다  
+
+**두 번째와 세 번째 방식은 해당 타입을 `Iterable`로 만들어 주지는 못하며, 코틀린 `for`루프만 적용할 수 있을 뿐이다.**  
 
 ```kotlin
-public fun <T> iterator(
-   @BuilderInference block: suspend SequenceScope<T>.() -> Unit
-): Iterator<T>
+class IterableTest: BehaviorSpec ({
+
+    val size = 5
+    val sum = 15
+
+    given("Iterable과 Iterator를 implement한 클래스는") {
+        class ImplementIterable(private val size: Int): Iterable<Int> {
+            override fun iterator(): Iterator<Int> = ImplementIterator(size)
+
+            inner class ImplementIterator(private val size: Int) : Iterator<Int> {
+                var number: Int = 0
+                override fun hasNext(): Boolean = number++ < size
+                override fun next(): Int = number
+            }
+        }
+
+
+        `when`("Iterable,Iterator 둘 다 for 문을 사용할 수 있다.") {
+
+            then("for .. in") {
+                val iterable = ImplementIterable(size)
+                val iterator = iterable.iterator()
+
+                var test = 0
+                for (i in iterable) { test += i }
+
+                /**
+                 * iterable을 통해 for문을 실행하면 내부 iterator의 number 상태가 변경되어있을 줄 알았지만, 0 그대로다.
+                 * iterable의 for문을 사용해도 내부 iterator는 일회용으로 사용되는 것 같다.
+                 */
+                test shouldBe sum
+                iterable.iterator().next() shouldBe 0
+
+                var test2 = 0
+                for (i in iterator) { test2 += i }
+                test2 shouldBe sum
+
+                test shouldBeEqual test2
+            }
+
+            then("forEach 블록") {
+                val iterable = ImplementIterable(size)
+                val iterator = iterable.iterator()
+
+                var test = 0
+                iterable.forEach { test += it }
+                test shouldBe sum
+
+                var test2 = 0
+                iterator.forEach { test2 += it }
+                test2 shouldBe sum
+            }
+
+            then("Iterable만 sum()이 존재한다.") {
+                val iterable = ImplementIterable(size)
+
+                iterable.sum() shouldBe sum
+            }
+        }
+    }
+
+    given("Iterable과 Iterator를 implement하지않고 operator만 작성한 클래스는") {
+        class JustIterable(private val size: Int) {
+            operator fun iterator(): JustIterator = JustIterator(size)
+
+            inner class JustIterator(private val size: Int) {
+                private var number: Int = 0
+                operator fun hasNext(): Boolean = number++ < size
+                operator fun next(): Int = number
+            }
+        }
+
+        `when`("Iterable만 for 문을 사용할 수 있다.") {
+            val iterable = JustIterable(size)
+            val iterator = iterable.iterator()
+
+            then("for .. in") {
+                var test = 0
+                for (i in iterable) { test += i }
+                test shouldBe sum
+            }
+
+            then("컴파일 에러") {
+//                for (i in iterator) { }
+//                iterable.forEach { test += it }
+//                iterator.forEach { test += it }
+//                iterable.sum()
+//                iterator.sum()
+            }
+        }
+    }
+})
 ```
 
-위 함수에 전달되는 람다는 일시 중단 람다인데, 사용하는 입장에서는 일반 람다와 큰 차이가 없이 사용할 수 있지만, `yield()`로 원소를 내놓을 수 있다는 점이 다르다.  
-- [`kotlinlang` Coroutines](https://kotlinlang.org/docs/coroutines-overview.html)
+# **정렬**
 
+정렬에는 새로운 컬렉션이나 배열 객체를 생성하지 않고 컬렉션 안에서 원소 순서를 변경하면서 정렬하는 **제자리 정렬**과 **새로운 객체를 생성하는 정렬**이 있다.  
+  
+원소를 정렬하는 기준으로
+1. **Comparable**
+   - `Comparable` 인터페이스에 정의된 `compareTo()` 멤버 함수를 통해 결졍되는 대소 관계에 따라 정해지는 순서를 뜻한다.
+   - 모든 수 타입들과 `String`은 `Comparable` 인터페이스를 이미 구현하고 있어 자연스러운 비교이다.
+2. **Comparator**
+3. **비교 가능한 값을 돌려주는 `셀렉터 람다`**
+
+
+## 제자리 정렬 : `sort()`, `sortDescending()`, `sortBy()`, `sortByDescending()`
+
+**가변 리스트**와 **배열**에서만 사용할 수 있고 반환 타입이 바뀌지 않는 제자리 정렬이다.  
+**제자리 정렬은 모두 `sort()`라는 이름으로 시작하며, 제자리 정렬이므로 `Unit`을 반환한다.**  
+  
 ```kotlin
-describe("Iterator") {
+"제자리 정렬" {
+   val array = intArrayOf(5,3,2,1,4)
+   array.sort()
+   array shouldBe intArrayOf(1,2,3,4,5)
 
-   val iter = listOf(
-      testA,
-      testB,
-      testC
-   ).iterator() // kotlin.collections.Iterator
+   array.sortDescending()
+   array shouldBe intArrayOf(5,4,3,2,1)
 
-   it("블록 내부에서 원소를 제공할 수 있다.") {
-      val yieldIter = iterator { // SequenceBuilderIterator
-            // 빌드 중인 Iterator 에 값을 생성하고 다음 값이 요청될 때까지 일시 중단합니다.
-            yield(testA)
-            yield(testB)
-            yield(testC)
-      }
+   val list = mutableListOf("a","e","d","c")
+   list.sort()
+   list shouldBe listOf("a","c","d","e")
 
-      while (iter.hasNext()) {
-            iter.next() shouldBeEqual yieldIter.next()
-      }
-      iter shouldNotBeEqual yieldIter
-   }
+   val students = arrayOf(
+      Score("a", 50, 60),
+      Score("b", 30, 10),
+      Score("c", 70, 50),
+      Score("d", 100, 80)
+   )
+   /**
+   * sortBy()는 람다가 만들어낸 기준값을 바탕으로 정렬을 수행한다.
+   */
+   students.sortBy { it.kor + it.eng / 2 }
+   students shouldBe arrayOf(
+      Score("b", 30, 10),
+      Score("a", 50, 60),
+      Score("c", 70, 50),
+      Score("d", 100, 80)
+   )
+
+   students.sortByDescending { it.kor + it.eng / 2 }
+   students shouldBe arrayOf(
+      Score("d", 100, 80),
+      Score("c", 70, 50),
+      Score("a", 50, 60),
+      Score("b", 30, 10)
+   )
 }
 ```
 
-위의 두 개의 `Iterator`는 서로 다른 구현체를 가진 `Iterator`다.  
+## 정렬된 복사본 리스트를 돌려주는 정렬 : `sorted()`, `sortedDescending()`, `sortedBy()`, `sortedByDescending()`
 
+**원본을 변화시키지 않고 정렬된 결과가 필요할 때 사용한다.**  
+그리고 정렬된 결과가 배열이 아니어도 될 수 있다.  
 
-## **Collection<>**
+```kotlin
+"정렬된 복사본 리스트를 돌려주는 정렬" {
+   val numbers = arrayOf(5,3,2,1,4)
+   numbers.sorted() shouldBeEqual listOf(1,2,3,4,5)             // List로 반환된다.
+   numbers.sortedDescending() shouldBeEqual listOf(5,4,3,2,1)   // List로 반환된다.
+   numbers shouldBe arrayOf(5,3,2,1,4)
 
-컬렉션 계층 구조의 최상위 타입 인터페이스. **읽기 전용 클래스가 지원하는 공통적인 기능을 제공**  
-`Iterable<>`을 구현해 원소에 대한 이터레이션을 지원한다.  
+   val students = arrayOf(
+      Score("a", 50, 60),
+      Score("b", 30, 10),
+      Score("c", 70, 50),
+      Score("d", 100, 80)
+   )
+   val transform: (Score) -> String = { it.name }
+
+   val sortedDescStudents = students.sortedByDescending { it.kor + it.eng / 2 }
+   sortedDescStudents shouldBeEqual listOf(
+      Score("d", 100, 80),
+      Score("c", 70, 50),
+      Score("a", 50, 60),
+      Score("b", 30, 10)
+   )
+   sortedDescStudents.joinToString(",", transform = transform) shouldBe "d,c,a,b"
+}
+```
+
+## 정렬된 복사본 배열을 돌려주는 정렬 : `sortedArray()`, `sortedArrayDescending()`
+
+```kotlin
+"정렬된 복사본 배열을 돌려주는 정렬" {
+   val numbers = arrayOf(5,3,2,1,4)
+   numbers.sortedArray() shouldBe arrayOf(1,2,3,4,5)
+   numbers shouldBe arrayOf(5,3,2,1,4)
+
+   numbers.sortedArrayDescending() shouldBe arrayOf(5,4,3,2,1)
+   numbers shouldBe arrayOf(5,3,2,1,4)
+}
+```
+
+## 비교기를 사용하는 정렬 : `sortWith()`, `sortedWith()`, `sortedArrayWith()`
+
+```kotlin
+"비교기를 사용하는 정렬" {
+   val students = arrayOf(
+      Score("a", 50, 60),
+      Score("b", 30, 10),
+      Score("c", 70, 50),
+      Score("d", 100, 80)
+   )
+   val transform: (Score) -> String = { it.name }
+
+   val korAscComparator : (Score, Score) -> Int = { s1,s2 -> s1.kor.compareTo(s2.kor) }
+   students.sortedWith(korAscComparator) shouldBe arrayOf(
+      Score("b", 30, 10),
+      Score("a", 50, 60),
+      Score("c", 70, 50),
+      Score("d", 100, 80)
+   )
+
+   val korDescComparator : (Score, Score) -> Int = { s1,s2 -> s2.kor.compareTo(s1.kor) }
+   students.sortedWith(korDescComparator) shouldBe arrayOf(
+      Score("d", 100, 80),
+      Score("c", 70, 50),
+      Score("a", 50, 60),
+      Score("b", 30, 10)
+   )
+}
+```
