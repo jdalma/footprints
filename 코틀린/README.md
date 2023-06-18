@@ -106,12 +106,54 @@ else
 코틀린 문자열은 기본적으로 2바이트 `Char`의 시퀀스처럼 취급한다.  
 이로 인해 **기본 다국어 평면에 들어 있지 않은 코드 포인트들은 서로게이트 쌍으로 처리되면서 길이가 1이 아니라 2로 계산된다.**  
   
-**로우 문자열**  
-```kotlin
-// TODO
-```
+문자열은 **불변 객체**이며, 코틀린에서는 `==`를 이용하여 문자열을 비교할 수 있다.  
+코틀린에서 `"a" == "B"`의 코드는 아래와 같이 변환된다.  
+  
+```java
+Intrinsics.areEqual("a", "B");
 
-**유니코드 정규화** // TODO
+public static boolean areEqual(Object first, Object second) {
+    return first == null ? second == null : first.equals(second);
+}
+```
+  
+`equals()`사용도 가능하다.
+```kotlin
+"문자열 비교" {
+    val test1 = "test"
+    val test2 = "TEST"
+
+    test1.equals(test2).shouldBeFalse()
+    test1.equals(test2, false).shouldBeFalse()
+    test1.equals(test2, true).shouldBeTrue()
+}
+```
+  
+**문자열 대소 비교**는 `사전식 순서`를 따른다.  
+
+```kotlin
+"문자열 대소 비교" {
+    ("0" < "9").shouldBeTrue()
+    ("9" < "A").shouldBeTrue()
+    ("A" < "a").shouldBeTrue()
+    ("Aa" < "aA").shouldBeTrue()
+    ("Aa" == "aA").shouldBeFalse()
+    ("AAA" < "AAAA").shouldBeTrue()
+    ("filename12" < "filename9").shouldBeTrue()
+    ("filename12" < "filename02").shouldBeFalse()
+
+    ("0".compareTo("9")) shouldBe -9
+    ("9".compareTo("0")) shouldBe 9
+    ("Aa".compareTo("aA")) shouldBe -32
+    ("AA".compareTo("aa")) shouldBe -32
+    ("AA".compareTo("aa", true)) shouldBe 0
+}
+```
+   
+**유니코드 정규화**
+
+유니코드 문자열의 경우 **정규형식**개념이 있다.  
+아래의 똑같은 글자가 서로 다른 이유다.  
 
 ```kotlin
 val denormal = "\u1112\u1161\u11AB"
@@ -121,7 +163,51 @@ val normal = "\uD55C"
 (denormal == normal) shouldBe false
 ```
 
+`java.textr.Normalizer`를 사용하여 `Normalizer.Form.FND`는 첫가끝 코드 쪽을 정규화된 것으로 생각하자는 플래그라 할 수 있고,  
+`Normalizer.Form.NFC`는 한글 소리마디 쪽을 정규화된 것으로 생각하자는 플래그라 할 수 있다.
 
+```kotlin
+"유니코드 정규화" {
+    val denormal = "\u1112\u1161\u11AB"
+    val normal = "\uD55C"
+
+    (denormal + normal) shouldBe "한한"
+    (denormal == normal) shouldBe false
+
+    java.text.Normalizer.isNormalized(normal, java.text.Normalizer.Form.NFC) shouldBe true
+    java.text.Normalizer.isNormalized(denormal, java.text.Normalizer.Form.NFC) shouldBe false
+    java.text.Normalizer.isNormalized(normal, java.text.Normalizer.Form.NFD) shouldBe false
+    java.text.Normalizer.isNormalized(denormal, java.text.Normalizer.Form.NFD) shouldBe true
+
+    (java.text.Normalizer.normalize(normal, java.text.Normalizer.Form.NFD) == denormal) shouldBe true
+    (java.text.Normalizer.normalize(denormal, java.text.Normalizer.Form.NFC) == normal) shouldBe true
+}
+```
+  
+**문자열 형식화**  
+
+- 자세한 내용은 [`java docs` Class Formatter](https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Formatter.html)를 확인하자
+
+```kotlin
+"문자열 형싟화" {
+    val test = "W %.4f".format(10.0 / 3.0)
+
+    test shouldBeEqual "W 3.3333"
+
+    val name = "Alice"
+    val age = 25
+    val weight = 62.5
+    val isStudent = true
+    val initial = 'A'
+
+    "Name: %s\nAge: %d\nWeight: %.1f\nIs Student: %b\nInitial: %c".format(name, age, weight, isStudent, initial) shouldBeEqual
+            "Name: Alice\nAge: 25\nWeight: 62.5\nIs Student: true\nInitial: A"
+
+    "%10.5f".format(1.23456e2) shouldBeEqual " 123.45600"
+    "%10.5g".format(1.23456e2) shouldBeEqual "    123.46"
+    "%15.5g".format(1.23456e-10) shouldBeEqual "     1.2346e-10"
+}
+```
 
 # **수 타입간의 타입 변환**
 
