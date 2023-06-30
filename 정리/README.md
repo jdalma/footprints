@@ -1,3 +1,6 @@
+
+1. 서비스 로케이터 패턴
+
 # 링크 모아놓기
 
 - [highscalability - 영어이지만,유용한 기술 글들이 많음](http://highscalability.com/all-time-favorites/)
@@ -60,6 +63,8 @@
 - [`Spring Docs` @EnableTransactionManagement](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/transaction/annotation/EnableTransactionManagement.html)
 - [스프링캠프 2019 [Track 2 Session 1] : GraalVM과 스프링, 이상과 현실](https://www.youtube.com/watch?v=C7toO3WV1NQ&ab_channel=springcamp.io)
 - [IoC와 DI를 이용한 Spring 멀티 모듈 아키텍처](https://kciter.so/posts/spring-multi-module-architecture)
+- [Spring Bean Injection 이야기(feat. 모두가 다 알고 있는 스프링빈, 정말 다 알고 있는가?)](https://tech.kakaopay.com/post/martin-dev-honey-tip-2/)
+- [Jackson Deserializer 코드 분석해보기](https://tech.kakaopay.com/post/martin-dev-honey-tip-1/)
 
 ## JPA
 
@@ -73,6 +78,7 @@
 
 ## Etc
 
+- [`martinfowler` CircuitBreaker](https://martinfowler.com/bliki/CircuitBreaker.html)
 - [마이크로서비스 패턴: 핵심패턴만 빠르게 이해하기](https://happycloud-lee.tistory.com/m/154?category=902418)
 - [이벤트 소싱 event-sourcing 패턴 정리](https://edykim.com/ko/post/eventsourcing-pattern-cleanup/)
 - [대용량 처리를 위한 서비스 구성](https://jistol.github.io/architecture/2017/02/14/architecture-traffic-issue/)

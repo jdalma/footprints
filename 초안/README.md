@@ -7,3 +7,8 @@
    - Docker의 차이
 3. `@ConfigurationPropertiesScan`, `@EnableConfigurationProperties`, `@EnableAutoConfiguration`
 4. `@Transactional` 샅샅이 파헤쳐보기
+5. JSON 직렬화 시 표준에 맞지 않는 네이밍이면 ??
+   1. `rName` -> `rname`으로 변환된다.
+   2. [참고](https://unhosted.tistory.com/82)
+   3. kotlin에서 필드에 `@JsonProperty`가 왜 안먹힐까?
+   4. 그리고 왜 `rname`으로 변환되는지 확인하기
