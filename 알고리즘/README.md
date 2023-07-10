@@ -107,6 +107,45 @@
 
 # **널리 사용되는 정렬 알고리즘**
 
+[`leetcode` Sort an Array](https://leetcode.com/problems/sort-an-array/) 문제를 여러 정렬 구현으로 풀어보자.  
+이 문제는 `O(nlog(n))` 시간복잡도를 지켜야하므로 어떤 정렬이 통과하고 실패하는지 확인할 수 있다.  
+
+```kotlin
+fun main() {
+    Solution().sortArray(IntArray(4).apply {
+        this.set(0, 5)
+        this.set(1, 2)
+        this.set(2, 3)
+        this.set(3, 1)
+    }).forEach { println(it) }
+}
+
+class Solution {
+    fun sortArray(nums: IntArray): IntArray {
+        return selectionSort(nums)
+    }
+
+    private fun selectionSort(nums: IntArray): IntArray {
+        nums.forEachIndexed {index, element ->
+            var min = index
+            for (innerIndex in index + 1 until nums.size) {
+                if (element > nums[innerIndex]) {
+                    min = innerIndex
+                    println("$index:${nums[index]} <-> $innerIndex:${nums[innerIndex]}")
+                }
+                nums.exchange(index, min)
+            }
+        }
+        return nums
+    }
+    private fun IntArray.exchange(index1: Int, index2: Int) {
+        val tmp = this[index1]
+        this[index1] = this[index2]
+        this[index2] = tmp
+    }
+}
+```
+
 ## ✋ **[TimSort에 대해 - NaverD2](https://d2.naver.com/helloworld/0315536)**
 
 ![](imgs/big-o.png)
