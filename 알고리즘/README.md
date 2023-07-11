@@ -5,8 +5,8 @@
 - [**널리 사용되는 정렬 알고리즘**](#%EB%84%90%EB%A6%AC-%EC%82%AC%EC%9A%A9%EB%90%98%EB%8A%94-%EC%A0%95%EB%A0%AC-%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98)
     - [✋ **TimSort에 대해 - NaverD2**](#-timsort%EC%97%90-%EB%8C%80%ED%95%B4---naverd2)
     - [**버블 정렬 Bubble Sort - 평균 및 최악 실행 시간 : On<sup>2</sup> , 메모리 : O1**](#%EB%B2%84%EB%B8%94-%EC%A0%95%EB%A0%AC-bubble-sort---%ED%8F%89%EA%B7%A0-%EB%B0%8F-%EC%B5%9C%EC%95%85-%EC%8B%A4%ED%96%89-%EC%8B%9C%EA%B0%84--onsup2sup--%EB%A9%94%EB%AA%A8%EB%A6%AC--o1)
-    - [**선택 정렬 Selection Sort - 평균 및 최악 실행 시간 : On<sup>2</sup> , 메모리 : O1**](#%EC%84%A0%ED%83%9D-%EC%A0%95%EB%A0%AC-selection-sort---%ED%8F%89%EA%B7%A0-%EB%B0%8F-%EC%B5%9C%EC%95%85-%EC%8B%A4%ED%96%89-%EC%8B%9C%EA%B0%84--onsup2sup--%EB%A9%94%EB%AA%A8%EB%A6%AC--o1)
-    - [**삽입 정렬 Insertion Sort - 평균 및 최악 실행 시간 : On<sup>2</sup> , 메모리 : 상황에 따라 다름**](#%EC%82%BD%EC%9E%85-%EC%A0%95%EB%A0%AC-insertion-sort---%ED%8F%89%EA%B7%A0-%EB%B0%8F-%EC%B5%9C%EC%95%85-%EC%8B%A4%ED%96%89-%EC%8B%9C%EA%B0%84--onsup2sup--%EB%A9%94%EB%AA%A8%EB%A6%AC--%EC%83%81%ED%99%A9%EC%97%90-%EB%94%B0%EB%9D%BC-%EB%8B%A4%EB%A6%84)
+    - [**선택 정렬 Selection Sort - 길이 N의 배열에 대해 ~N<sup>2</sup>/2번의 비교와 N번의 교환을 수행**](#%EC%84%A0%ED%83%9D-%EC%A0%95%EB%A0%AC-selection-sort---%EA%B8%B8%EC%9D%B4-n%EC%9D%98-%EB%B0%B0%EC%97%B4%EC%97%90-%EB%8C%80%ED%95%B4-nsup2sup2%EB%B2%88%EC%9D%98-%EB%B9%84%EA%B5%90%EC%99%80-n%EB%B2%88%EC%9D%98-%EA%B5%90%ED%99%98%EC%9D%84-%EC%88%98%ED%96%89)
+    - [**삽입 정렬 Insertion Sort - 평균적으로 ~N<sup>2</sup>/4번의 비교와 ~N<sup>2</sup>/4번의 교환을 수행**](#%EC%82%BD%EC%9E%85-%EC%A0%95%EB%A0%AC-insertion-sort---%ED%8F%89%EA%B7%A0%EC%A0%81%EC%9C%BC%EB%A1%9C-nsup2sup4%EB%B2%88%EC%9D%98-%EB%B9%84%EA%B5%90%EC%99%80-nsup2sup4%EB%B2%88%EC%9D%98-%EA%B5%90%ED%99%98%EC%9D%84-%EC%88%98%ED%96%89)
     - [**병합 정렬 Merge Sort - 평균 및 최악 실행 시간 : On log n , 메모리 : 상황에 따라 다름**](#%EB%B3%91%ED%95%A9-%EC%A0%95%EB%A0%AC-merge-sort---%ED%8F%89%EA%B7%A0-%EB%B0%8F-%EC%B5%9C%EC%95%85-%EC%8B%A4%ED%96%89-%EC%8B%9C%EA%B0%84--on-log-n--%EB%A9%94%EB%AA%A8%EB%A6%AC--%EC%83%81%ED%99%A9%EC%97%90-%EB%94%B0%EB%9D%BC-%EB%8B%A4%EB%A6%84)
     - [**퀵 정렬 Quick Sort - 실행 시간： 평균 Onlogn, 최악 On<sup>2</sup>. 메모리： Olog n**](#%ED%80%B5-%EC%A0%95%EB%A0%AC-quick-sort---%EC%8B%A4%ED%96%89-%EC%8B%9C%EA%B0%84-%ED%8F%89%EA%B7%A0-onlogn-%EC%B5%9C%EC%95%85-onsup2sup-%EB%A9%94%EB%AA%A8%EB%A6%AC-olog-n)
 - [**Binary Search 이분,이진 탐색**](#binary-search-%EC%9D%B4%EB%B6%84%EC%9D%B4%EC%A7%84-%ED%83%90%EC%83%89)
@@ -111,33 +111,35 @@
 이 문제는 `O(nlog(n))` 시간복잡도를 지켜야하므로 어떤 정렬이 통과하고 실패하는지 확인할 수 있다.  
 
 ```kotlin
-fun main() {
-    Solution().sortArray(IntArray(4).apply {
-        this.set(0, 5)
-        this.set(1, 2)
-        this.set(2, 3)
-        this.set(3, 1)
-    }).forEach { println(it) }
-}
-
 class Solution {
     fun sortArray(nums: IntArray): IntArray {
-        return selectionSort(nums)
+        // selectionSort(nums) // Time Limit Exceeded
+        insertionSort(nums) // Runtime 2900 ms, Memory 49.7 MB
+        return nums;
     }
 
-    private fun selectionSort(nums: IntArray): IntArray {
+    private fun selectionSort(nums: IntArray) {
         nums.forEachIndexed {index, element ->
             var min = index
             for (innerIndex in index + 1 until nums.size) {
-                if (element > nums[innerIndex]) {
+                if (nums[min] > nums[innerIndex]) {
                     min = innerIndex
-                    println("$index:${nums[index]} <-> $innerIndex:${nums[innerIndex]}")
                 }
-                nums.exchange(index, min)
+            }
+            nums.exchange(index, min)
+        }
+    }
+
+    private fun insertionSort(num: IntArray) {
+        for (index in 1 until num.size) {
+            var innerIndex = index
+            while (innerIndex > 0 && num[innerIndex] < num[innerIndex - 1]) {
+                num.exchange(innerIndex, innerIndex - 1)
+                innerIndex--
             }
         }
-        return nums
     }
+
     private fun IntArray.exchange(index1: Int, index2: Int) {
         val tmp = this[index1]
         this[index1] = this[index2]
@@ -158,16 +160,6 @@ class Solution {
 
 ![](imgs/sort.png)
 
-- **안정 정렬 (Stable Sort) , 불안정 정렬 (Unstable Sort)**
-  - 정렬의 안정적 특성이란 **"정렬되지 않은 상태에서 같은 키값을 가진 원소의 순서가 정렬 후에도 유지되느냐"** 이다.
-  - 정렬 방법 마다 **중복된 원소**가 본래 순서대로 정렬될 수도 있고 , 섞일 수도 있다.
-  - **안정 정렬**
-    - 중복된 값을 입력 순서와 동일하게 정렬되는 것
-    - **삽입 정렬 , 병합 정렬 , 버블 정렬**
-  - **불안정 정렬**
-    - 중복된 값이 입력 순서와 동일하지 않게 정렬되는 것
-    - **퀵 정렬 , 선택정렬 , 계수정렬**
-
 ## **버블 정렬 (Bubble Sort) - 평균 및 최악 실행 시간 : O(n<sup>2</sup>) , 메모리 : O(1)**
 
 - **서로 인접한 두 원소의 대소를 비교하고, 조건에 맞지 않다면 자리를 교환하며 정렬하는 알고리즘**
@@ -185,31 +177,26 @@ class Solution {
   - **시간복잡도가 최악, 최선, 평균 모두 O(n^<sup>2</sup>)으로, 굉장히 비효율적입니다.**
   - 정렬 돼있지 않은 원소가 정렬 됐을때의 자리로 가기 위해서, 교환 연산(swap)이 많이 일어나게 됩니다.
 
-## **선택 정렬 (Selection Sort) - 평균 및 최악 실행 시간 : O(n<sup>2</sup>) , 메모리 : O(1)**
-
-- **해당 순서에 원소를 넣을 위치는 이미 정해져 있고, 어떤 원소를 넣을지 선택하는 알고리즘**
-- **해당 자리를 선택하고 그 자리에 오는 값을 찾는 것**
+## **선택 정렬 (Selection Sort) - 길이 N의 배열에 대해 ~N<sup>2</sup>/2번의 비교와 N번의 교환을 수행**
 
 1. 주어진 배열 중에 최소값을 찾는다.
 2. 그 값을 맨 앞에 위치한 값과 교체한다.
-3. 맨 처음 위치를 뺀 나머지 배열을 같은 방법으로 교체한다.
+3. 인덱스를 한 칸 옮기고 나머지 배열을 같은 방법으로 교체한다.
 
 ![](imgs/selection-sort-001.gif)
 
-- **장점**
-  - 정렬을 위한 비교 횟수는 많지만, Bubble Sort에 비해 실제로 교환하는 횟수는 적기 때문에 많은 교환이 일어나야 하는 자료상태에서 비교적 효율적이다.
-  - 정렬하고자 하는 배열 안에서 교환하는 방식이므로, 다른 메모리 공간을 필요로 하지 않는다. ➜ 제자리 정렬(in-place sorting)
+- **특징**
+  - 매우 단순한 정렬 방법으로 이해하기도 쉽고 구현하기도 쉽다.
+  - **해당 순서에 원소를 넣을 위치는 이미 정해져 있고, 어떤 원소를 넣을지 선택하는 알고리즘**
+  - **해당 자리를 선택하고 그 자리에 오는 값을 찾는 것**
+  - 각 교환 작업은 각 항목을 종국적으로 위치할 자리에 두기 때문에 전체 교환 작업 횟수는 N이 된다.
+  - 따라서 실행 시간이 비교 횟수에 주요하게 영향받는다고 할 수 있다.
+  - 이미 정렬되어 있거나 완전히 정렬된 배열을 입력으로 주어도 무작위로 섞인 배열만큼이나 정렬에 시간이 오래 걸려 **실행시간이 입력에 민갑하다**
+  - 선택 정렬에서 이용하는 교환 횟수는 배열의 크기에 선형으로 비례하여 **데이터의 이동을 최소화한다.**
+- **명제**
+  - 선택 정렬은 길이 N의 배열에 대해 ~N<sup>2</sup>/2번의 비교와 N번의 교환을 수행한다.
 
-- **단점**
-  - 시간복잡도가 O(n<sup>2</sup>)으로, 비효율적이다.
-  - **불안정 정렬(Unstable Sort)**
-
-## **삽입 정렬 (Insertion Sort) - 평균 및 최악 실행 시간 : O(n<sup>2</sup>) , 메모리 : 상황에 따라 다름**
-
-- **2번째 원소부터 시작하여 그 앞(왼쪽)의 원소들과 비교하여 삽입할 위치를 지정한 후, 원소를 뒤로 옮기고 지정된 자리에 자료를 삽입 하여 정렬하는 알고리즘**
-- 최선의 경우 O(N)이라는 엄청나게 빠른 효율성을 가지고 있어, <span style="color:red; font-weight:bold">다른 정렬 알고리즘의 일부로 사용될 만큼 좋은 정렬 알고리즘</span>
-  - 모두 정렬이 되어있는 경우(Optimal)한 경우, 한번씩 밖에 비교를 안하므로 O(n) 의 시간복잡도를 가지게 된다.
-  - **또한, 이미 정렬되어 있는 배열에 자료를 하나씩 삽입/제거하는 경우에는, 현실적으로 최고의 정렬 알고리즘이 된다.**
+## **삽입 정렬 (Insertion Sort) - 평균적으로 ~N<sup>2</sup>/4번의 비교와 ~N<sup>2</sup>/4번의 교환을 수행**
 
 1. 정렬은 2번째 위치(index)의 값을 temp에 저장합니다.
 1. temp와 이전에 있는 원소들과 비교하며 삽입해나갑니다.
@@ -218,14 +205,15 @@ class Solution {
 ![](imgs/insertion-sort-001.gif)
 
 
-- **장점**
-  - 대부분의 원소가 이미 정렬되어 있는 경우, 매우 효율적일 수 있다.
-  - 정렬하고자 하는 배열 안에서 교환하는 방식이므로, 다른 메모리 공간을 필요로 하지 않는다..  ➜ 제자리 정렬(in-place sorting)
-  - **안정 정렬(Stable Sort)**
-  - **Selection Sort나 Bubble Sort과 같은 O(n<sup>2</sup>) 알고리즘에 비교하여 상대적으로 빠르다.**
-- **단점**
-  - 평균과 최악의 시간복잡도가 O(n<sup>2</sup>)으로 비효율적입니다.
-  - Bubble Sort와 Selection Sort와 마찬가지로, 배열의 길이가 길어질수록 비효율적입니다.
+- **특징**
+  - **2번째 원소부터 시작하여 그 앞(왼쪽)의 원소들과 비교하여 삽입할 위치를 지정한 후, 원소를 뒤로 옮기고 지정된 자리에 자료를 삽입 하여 정렬하는 알고리즘**
+  - 삽입 정렬은 큰 값을 오른쪽으로 밀어내듯이 정렬하여 기준 인덱스의 값이 왼쪽 인덱스보다 값이 크다면 바로 다음 요소로 넘어가게 된다. 따라서 배열의 접근 횟수가 절반으로 줄어든다.
+  - <span style="color:red; font-weight:bold">고급 정렬 알고리즘의 일부로 사용될 만큼 좋은 정렬 알고리즘</span>이다.
+- **명제**
+  - 중복 없는 키를 가진 무작위로 정렬된 크기 N의 배열에 대해 평균적으로 ~N<sup>2</sup>/4번의 비교와 ~N<sup>2</sup>/4번의 교환을 수행한다.
+  - 최악 조건에서는 ~N<sup>2</sup>/2번의 비교와 ~N<sup>2</sup>/2번의 교환을 수행한다.
+  - 최적 조건에서는 N-1번의 비교와 0번의 교환을 수행한다.
+  - 삽입 정렬에서 발생하는 교환 작업 횟수는 배열 안에 존재하는 역순 쌍의 개수와 동일하다. 그리고 비교 작업의 횟수는 최대, 역순 쌍의 개수 + (배열 크기 - 1)만큼 발생한다.
 
 ## **병합 정렬 (Merge Sort) - 평균 및 최악 실행 시간 : O(n log n) , 메모리 : 상황에 따라 다름**
 
