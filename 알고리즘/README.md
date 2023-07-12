@@ -7,6 +7,7 @@
     - [**버블 정렬 Bubble Sort - 평균 및 최악 실행 시간 : On<sup>2</sup> , 메모리 : O1**](#%EB%B2%84%EB%B8%94-%EC%A0%95%EB%A0%AC-bubble-sort---%ED%8F%89%EA%B7%A0-%EB%B0%8F-%EC%B5%9C%EC%95%85-%EC%8B%A4%ED%96%89-%EC%8B%9C%EA%B0%84--onsup2sup--%EB%A9%94%EB%AA%A8%EB%A6%AC--o1)
     - [**선택 정렬 Selection Sort - 길이 N의 배열에 대해 ~N<sup>2</sup>/2번의 비교와 N번의 교환을 수행**](#%EC%84%A0%ED%83%9D-%EC%A0%95%EB%A0%AC-selection-sort---%EA%B8%B8%EC%9D%B4-n%EC%9D%98-%EB%B0%B0%EC%97%B4%EC%97%90-%EB%8C%80%ED%95%B4-nsup2sup2%EB%B2%88%EC%9D%98-%EB%B9%84%EA%B5%90%EC%99%80-n%EB%B2%88%EC%9D%98-%EA%B5%90%ED%99%98%EC%9D%84-%EC%88%98%ED%96%89)
     - [**삽입 정렬 Insertion Sort - 평균적으로 ~N<sup>2</sup>/4번의 비교와 ~N<sup>2</sup>/4번의 교환을 수행**](#%EC%82%BD%EC%9E%85-%EC%A0%95%EB%A0%AC-insertion-sort---%ED%8F%89%EA%B7%A0%EC%A0%81%EC%9C%BC%EB%A1%9C-nsup2sup4%EB%B2%88%EC%9D%98-%EB%B9%84%EA%B5%90%EC%99%80-nsup2sup4%EB%B2%88%EC%9D%98-%EA%B5%90%ED%99%98%EC%9D%84-%EC%88%98%ED%96%89)
+    - [**셸 정렬 Shell Sort**](#%EC%85%B8-%EC%A0%95%EB%A0%AC-shell-sort)
     - [**병합 정렬 Merge Sort - 평균 및 최악 실행 시간 : On log n , 메모리 : 상황에 따라 다름**](#%EB%B3%91%ED%95%A9-%EC%A0%95%EB%A0%AC-merge-sort---%ED%8F%89%EA%B7%A0-%EB%B0%8F-%EC%B5%9C%EC%95%85-%EC%8B%A4%ED%96%89-%EC%8B%9C%EA%B0%84--on-log-n--%EB%A9%94%EB%AA%A8%EB%A6%AC--%EC%83%81%ED%99%A9%EC%97%90-%EB%94%B0%EB%9D%BC-%EB%8B%A4%EB%A6%84)
     - [**퀵 정렬 Quick Sort - 실행 시간： 평균 Onlogn, 최악 On<sup>2</sup>. 메모리： Olog n**](#%ED%80%B5-%EC%A0%95%EB%A0%AC-quick-sort---%EC%8B%A4%ED%96%89-%EC%8B%9C%EA%B0%84-%ED%8F%89%EA%B7%A0-onlogn-%EC%B5%9C%EC%95%85-onsup2sup-%EB%A9%94%EB%AA%A8%EB%A6%AC-olog-n)
 - [**Binary Search 이분,이진 탐색**](#binary-search-%EC%9D%B4%EB%B6%84%EC%9D%B4%EC%A7%84-%ED%83%90%EC%83%89)
@@ -214,6 +215,15 @@ class Solution {
   - 최악 조건에서는 ~N<sup>2</sup>/2번의 비교와 ~N<sup>2</sup>/2번의 교환을 수행한다.
   - 최적 조건에서는 N-1번의 비교와 0번의 교환을 수행한다.
   - 삽입 정렬에서 발생하는 교환 작업 횟수는 배열 안에 존재하는 역순 쌍의 개수와 동일하다. 그리고 비교 작업의 횟수는 최대, 역순 쌍의 개수 + (배열 크기 - 1)만큼 발생한다.
+
+## **셸 정렬 (Shell Sort)**
+
+- **특징**
+  - 삽입 정렬은 인접한 항목과의 교환만 일어나 한 번에 한 위치로만 이동할 수 있기 때문에 크기가 큰 정렬되지 않은 배열을 처리하는데 느리다.
+  - **셸 정렬은 삽입 정렬의 확장 버전으로 서로 멀리 떨어진 항목 간에도 교환이 일어날 수 있게 함으로써 삽입 정렬이 빠르게 처리할 수 있는 부분적으로 정렬된 배열을 만든다.**
+  - 매 `h번째` 항목들 간에 순서를 따질 때 정렬된 상태가 되도록 배열을 재정리하는 것이다. 이렇게 부분적으로 정렬된 배열을 "h-정렬 되었다" 라고 한다.
+  - 각각의 `h`에 대해, **`h`개의 부분 시퀀스**를 대상으로 한 독립적인 삽입 정렬을 수행하는 것이다. 단 배열을 1씩 이동 순회하는 대신 `h 단위`로 이동 순회하도록 수정해야 한다.
+  - 
 
 ## **병합 정렬 (Merge Sort) - 평균 및 최악 실행 시간 : O(n log n) , 메모리 : 상황에 따라 다름**
 
