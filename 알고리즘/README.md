@@ -114,8 +114,12 @@
 ```kotlin
 class Solution {
     fun sortArray(nums: IntArray): IntArray {
-        // selectionSort(nums) // Time Limit Exceeded
-        insertionSort(nums) // Runtime 2900 ms, Memory 49.7 MB
+//        selectionSort(nums) // Time Limit Exceeded
+//        insertionSort(nums) // Runtime 2900 ms, Memory 49.7 MB
+//        shellSort(nums) // Runtime 662 ms
+        aux = IntArray(nums.size)
+//        topDownMergeSort(nums, 0, nums.size - 1)
+
         return nums;
     }
 
@@ -138,6 +142,59 @@ class Solution {
                 num.exchange(innerIndex, innerIndex - 1)
                 innerIndex--
             }
+        }
+    }
+
+    private fun shellSort(num: IntArray) {
+        var N = num.size
+        var h = 1
+
+        while(h < N / 3) {
+            h = h * 3 + 1
+        }
+        while(h >= 1) {
+            for (index in h until N) {
+                var innerIndex = index
+                while (innerIndex >= h && num[innerIndex] < num[innerIndex - h]) {
+                    num.exchange(innerIndex, innerIndex - h)
+                    innerIndex -= h
+                }
+            }
+            h /= 3
+        }
+    }
+
+    private lateinit var aux: IntArray
+    private fun topDownMergeSort(num: IntArray, low: Int, high: Int) {
+        if (low >= high) return
+
+        val mid = low + (high - low) / 2
+        topDownMergeSort(num, low, mid)
+        topDownMergeSort(num, mid + 1, high)
+        merge(num, low, mid, high)
+    }
+
+    private fun bottomUpMergeSort(num: IntArray) {
+        var size = 1
+        while (size <= num.size) {
+            // do
+            size += size
+        }
+    }
+
+    private fun merge(num: IntArray, low: Int, mid: Int, high: Int) {
+        var i = low
+        var j = mid + 1
+
+        for (index in low .. high) {
+            aux[index] = num[index]
+        }
+
+        for (index in low .. high) {
+            if (i > mid) num[index] = aux[j++]              // i가 mid값을 넘어섰다는 말은 왼쪽 영역을 다 할당했다는 의미
+            else if (j > high) num[index] = aux[i++]        // j가 high값을 넘어섰다는 말은 오른쪽 영역을 다 할당했다는 의미
+            else if (aux[i] > aux[j]) num[index] = aux[j++] // 왼쪽 값이 더 크다면 오른쪽 값을 먼저 할당
+            else num[index] = aux[i++]                      // 위에 해당하지 않으면 왼쪽 값을 할당
         }
     }
 
