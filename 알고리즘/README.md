@@ -111,15 +111,20 @@
 [`leetcode` Sort an Array](https://leetcode.com/problems/sort-an-array/) 문제를 여러 정렬 구현으로 풀어보자.  
 이 문제는 `O(nlog(n))` 시간복잡도를 지켜야하므로 어떤 정렬이 통과하고 실패하는지 확인할 수 있다.  
 
+
+
 ```kotlin
 class Solution {
     fun sortArray(nums: IntArray): IntArray {
-//        selectionSort(nums) // Time Limit Exceeded
-//        insertionSort(nums) // Runtime 2900 ms, Memory 49.7 MB
-//        shellSort(nums) // Runtime 662 ms
-        aux = IntArray(nums.size)
-//        topDownMergeSort(nums, 0, nums.size - 1)
-
+//        selectionSort(nums)                       // Time Limit Exceeded
+//        insertionSort(nums)                       // Runtime 2900 ms
+//        shellSort(nums)                           // Runtime 662 ms
+//        aux = IntArray(nums.size)
+//        topDownMergeSort(nums, 0, nums.size - 1)  // Runtime 646ms
+//        bottomUpMergeSort(nums)                   // Runtime 693ms
+//        quickSort(nums, 0, nums.size - 1)         // Runtime 2055ms
+//        threeWayQuickSort(nums, 0, nums.size - 1) // Runtime 2088ms
+        nums.sort()                                 // Runtime 626ms
         return nums;
     }
 
@@ -177,7 +182,11 @@ class Solution {
     private fun bottomUpMergeSort(num: IntArray) {
         var size = 1
         while (size <= num.size) {
-            // do
+            for (low in 0 .. num.size - size step(size + size)) {
+                val mid = low + size - 1
+                val high = Math.min(low + size + size - 1, num.size - 1)
+                merge(num, low, mid, high)
+            }
             size += size
         }
     }
@@ -196,6 +205,57 @@ class Solution {
             else if (aux[i] > aux[j]) num[index] = aux[j++] // 왼쪽 값이 더 크다면 오른쪽 값을 먼저 할당
             else num[index] = aux[i++]                      // 위에 해당하지 않으면 왼쪽 값을 할당
         }
+    }
+
+    private fun quickSort(num: IntArray, low: Int, high: Int) {
+        if (low >= high) return
+
+        val pivot = partition(num, low, high)
+        quickSort(num, low, pivot - 1)
+        quickSort(num, pivot + 1, high)
+    }
+
+    private fun partition(num: IntArray, low: Int, high: Int): Int {
+        var left = low
+        var right = high + 1
+
+        val pivot = num[low]
+        while (true) {
+            while (num[++left] < pivot) {
+                if (left == high) break
+            }
+            while (pivot < num[--right]) {
+                if (right == low) break
+            }
+            if (left >= right) break
+            num.exchange(left, right)
+        }
+        num.exchange(low, right)
+        return right
+    }
+
+    private fun threeWayQuickSort(num: IntArray, low: Int, high: Int) {
+        if (low >= high) return
+
+        var left = low
+        var index = low + 1
+        var right = high
+        val pivot = num[low]
+
+        while (index <= right) {
+            val compare = num[index] - pivot
+            if (compare < 0) {
+                num.exchange(left++, index++)
+            }
+            else if (compare > 0) {
+                num.exchange(index, right--)
+            }
+            else {
+                index++
+            }
+        }
+        threeWayQuickSort(num, low, left - 1)
+        threeWayQuickSort(num, right + 1, high)
     }
 
     private fun IntArray.exchange(index1: Int, index2: Int) {
