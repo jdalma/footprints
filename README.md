@@ -26,6 +26,8 @@ mindmap
       📚 단위 테스트
     (Algorithm)
       📚 알고리즘 개정 4판
+    (Database)
+      📚 Real MySQL 1권
 ```
 
 - [MultiThread](https://www.udemy.com/course/java-multi-threading/?utm_medium=udemyads&utm_source=wj-facebook&utm_campaign=bat_conversion_individual&utm_content=all_detargeting_dev_etc02&utm_term=da_multithread_hours_1080x1080_230711&fbclid=IwAR0Ga0wLG2ciRk2-1evGHWhHy7oAnDFSTevcPYRz4X9DCyeGJJS4dqO3Kt4#instructor-1)
