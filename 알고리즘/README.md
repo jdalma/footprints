@@ -207,33 +207,6 @@ class Solution {
         }
     }
 
-    private fun quickSort(num: IntArray, low: Int, high: Int) {
-        if (low >= high) return
-
-        val pivot = partition(num, low, high)
-        quickSort(num, low, pivot - 1)
-        quickSort(num, pivot + 1, high)
-    }
-
-    private fun partition(num: IntArray, low: Int, high: Int): Int {
-        var left = low
-        var right = high + 1
-
-        val pivot = num[low]
-        while (true) {
-            while (num[++left] < pivot) {
-                if (left == high) break
-            }
-            while (pivot < num[--right]) {
-                if (right == low) break
-            }
-            if (left >= right) break
-            num.exchange(left, right)
-        }
-        num.exchange(low, right)
-        return right
-    }
-
     private fun threeWayQuickSort(num: IntArray, low: Int, high: Int) {
         if (low >= high) return
 
@@ -360,14 +333,12 @@ class Solution {
   - 문제를 작은 2개의 문제로 분리하고 각각을 해결한 다음, 결과를 모아서 원래의 문제를 해결하는 전략
   - Merge Sort와 달리 Quick Sort는 배열을 비균등하게 분할
 
-- **JAVA에서 Arrays.sort() 내부적으로도 Dual Pivot Quick Sort로 구현되어 있을 정도로 효율적인 알고리즘이고, 기술 면접에서 정말 빈번하게 나오는 주제이므로 반드시 숙지하시길 바랍니다.**
-
 1. 배열 가운데서 하나의 원소를 고릅니다. 이렇게 고른 원소를 피벗(pivot) 이라고 합니다.
 2. 피벗 앞에는 피벗보다 값이 작은 모든 원소들이 오고, 피벗 뒤에는 피벗보다 값이 큰 모든 원소들이 오도록 피벗을 기준으로 배열을 둘로 나눕니다.
     - 이렇게 배열을 둘로 나누는 것을 **분할(Divide)** 이라고 합니다.
     - 분할을 마친 뒤에 피벗은 더 이상 움직이지 않습니다.
 3. 분할된 두 개의 작은 배열에 대해 **재귀(Recursion)적으로 이 과정을 반복**합니다.
-4. 재귀 호출이 한번 진행될 때마다 최소한 하나의 원소는 최종적으로 위치가 정해지므로, 이 알고리즘은 반드시 끝난다는 것을 보장할 수 있습니다.
+4. 재귀 호출이 한번 진행될 때마다 최소한 하나의 원소는 최종적으로 위치가 정해진다.
 
 ![](imgs/quick-sort-001.gif)
 
@@ -379,141 +350,36 @@ class Solution {
   - 정렬된 배열에 대해서는 Quick Sort의 불균형 분할에 의해 오히려 수행시간이 더 많이 걸린다.
   - 배열 분할에 사용되는 원소가 중간값에 가까운 값이 되리라는 보장이 없기 때문에 , 정렬 알고리즘이 느리게 동작할 수 있다.
 
-```java
-public class main {
-	
-	public static void main(String[] args) {
-		int[] numArr = new int[30];
-		for(int i = 0 ; i < 30 ; i++) {
-			int value = (int)(Math.random()*100);
-			System.out.print(value + " ");
-			numArr[i] = value;
-		}
-		System.out.println();
-		sort(numArr);
+```kotlin
+private fun quickSort(num: IntArray, low: Int, high: Int) {
+    if (low >= high) return
 
-		for(int value : numArr) {
-			System.out.print(value + " ");
-		}
-	}
-	
-	public static void sort(int[] a) {
-		m_pivot_sort(a, 0, a.length - 1);
-	}
-	
-	/**
-	 *  중간 피벗 선택 방식
-	 * @param a		정렬할 배열
-	 * @param lo	현재 부분배열의 왼쪽
-	 * @param hi	현재 부분배열의 오른쪽
-	 */
-	private static void m_pivot_sort(int[] a, int lo, int hi) {
-		
-		/*
-		 *  lo가 hi보다 크거나 같다면 정렬 할 원소가 
-		 *  1개 이하이므로 정렬하지 않고 return한다.
-		 */
-		if(lo >= hi) {
-			return;
-		}
-		
-		/*
-		 * 피벗을 기준으로 요소들이 왼쪽과 오른쪽으로 약하게 정렬 된 상태로
-		 * 만들어 준 뒤, 최종적으로 pivot의 위치를 얻는다.
-		 * 
-		 * 그리고나서 해당 피벗을 기준으로 왼쪽 부분리스트와 오른쪽 부분리스트로 나누어
-		 * 분할 정복을 해준다.
-		 * 
-		 * [과정]
-		 * 
-		 * Partitioning:
-		 *
-		 *      left part      a[(right + left)/2]      right part      
-		 * +---------------------------------------------------------+
-		 * |    element < pivot    |  pivot  |    element >= pivot   |
-		 * +---------------------------------------------------------+
-		 *    
-		 *    
-		 *  result After Partitioning:
-		 *  
-		 *         left part         a[hi]          right part
-		 * +---------------------------------------------------------+
-		 * |   element < pivot    |  pivot  |    element >= pivot    |
-		 * +---------------------------------------------------------+
-		 *       
-		 *       
-		 *  result : pivot = hi     
-		 *       
-		 *
-		 *  Recursion:
-		 *  
-		 * m_pivot_sort(a, lo, pivot)         m_pivot_sort(a, pivot + 1, hi)
-		 *  
-		 *         left part                           right part
-		 * +-----------------------+             +-----------------------+
-		 * |   element <= pivot    |             |    element > pivot    |
-		 * +-----------------------+             +-----------------------+
-		 * lo                pivot          pivot + 1                   hi
-		 * 
-		 */
-		int pivot = partition(a, lo, hi);	
-		
-		m_pivot_sort(a, lo, pivot);
-		m_pivot_sort(a, pivot + 1, hi);
-	}
-	
-	/**
-	 * pivot을 기준으로 파티션을 나누기 위한 약한 정렬 메소드
-	 * 
-	 * @param a		정렬 할 배열 
-	 * @param left	현재 배열의 가장 왼쪽 부분
-	 * @param right	현재 배열의 가장 오른쪽 부분
-	 * @return		최종적으로 위치한 피벗의 위치(hi)를 반환
-	 */
-	private static int partition(int[] a, int left, int right) {
-		// lo와 hi는 각각 배열의 끝에서 1 벗어난 위치부터 시작한다.
-		int lo = left - 1;
-		int hi = right + 1;
-		int pivot = a[(left + right) / 2];		// 부분리스트의 중간 요소를 피벗으로 설정
-		
- 
-		while(true) {
-			/*
-			 * 1 증가시키고 난 뒤의 lo 위치의 요소가 pivot보다 큰 요소를
-			 * 찾을 떄 까지 반복한다.
-			 */
-			do { 
-				lo++; 
-			} while(a[lo] < pivot);
-			
-			/*
-			 * 1 감소시키고 난 뒤의 hi 위치가 lo보다 크거나 같은 위치이면서
-			 * hi위치의 요소가 pivot보다 작은 요소를 찾을 떄 까지 반복한다.
-			 */
-			do {
-				hi--;
-			} while(a[hi] > pivot && lo <= hi);
-			
-			/*
-			 * 만약 hi가 lo보다 크지 않다면(엇갈린다면) swap하지 않고 hi를 리턴한다.
-			 */
-			if(lo >= hi) {
-				return hi;
-			}
-			
-			// 교환 될 두 요소를 찾았으면 두 요소를 바꾼다.
-			swap(a, lo, hi);
-		}
-	}
-	
-	private static void swap(int[] a, int i, int j) {
-		int temp = a[i];
-		a[i] = a[j];
-		a[j] = temp;
-	}
+    val pivot = partition(num, low, high) // 2개의 파티션
+    quickSort(num, low, pivot - 1)          
+    quickSort(num, pivot + 1, high)
+}
+
+private fun partition(num: IntArray, low: Int, high: Int): Int {
+    var left = low
+    var right = high + 1
+
+    val pivot = num[low]
+    while (true) {
+        while (num[++left] < pivot) {   // pivot의 값보다 큰 원소를 찾는다
+            if (left == high) break
+        }
+        while (pivot < num[--right]) {  // pivot의 값보다 작은 원소를 찾는다
+            if (right == low) break
+        }
+        if (left >= right) break  // left와 right가 서로 교차할 때 멈춘다.
+        num.exchange(left, right) // 위에서 찾은 큰 원소와 작은 원소를 서로 바꾼다.
+    }
+    // right는 pivot보다 작은 원소를 가지고 있다는게 보장되기 때문에, 끝나면 pivot 위치와 바꾼다.
+    // pivot 기준 왼쪽은 모두 기준보다 작고, 기준 오른쪽은 모두 기준보다 크다.
+    num.exchange(low, right)
+    return right
 }
 ```
-- [퀵 정렬 구현코드 출처](https://st-lab.tistory.com/250)
 
 ***
 
