@@ -12,7 +12,6 @@
 ## NIO와 RPC 관련
 
 - [Spring WebFlux와 Armeria를 이용하여 Microservice에 필요한 Reactive + RPC 동시에 잡기](https://d2.naver.com/helloworld/6080222)
-- [`Armeria Java Doc` Server Core](https://javadoc.io/doc/com.linecorp.armeria/armeria-javadoc/latest/com/linecorp/armeria/server/package-summary.html)
 
 ## 네트워크
 
@@ -75,6 +74,10 @@
 - [TOTP: 시간 기반 일회성 암호 알고리즘](https://www.rfc-editor.org/rfc/rfc6238)
 - [HOTP: HMAC 기반 일회용 암호 알고리즘](https://www.rfc-editor.org/rfc/rfc4226)
 - [P nP 문제](https://gazelle-and-cs.tistory.com/64)
+
+## 이벤트 기반 아키텍처
+
+- [회원시스템 이벤트기반 아키텍처 구축하기](https://techblog.woowahan.com/7835/)
 
 ## Etc
 

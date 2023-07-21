@@ -403,6 +403,15 @@ private fun partition(num: IntArray, low: Int, high: Int): Int {
     num.exchange(low, right)
     return right
 }
+
+private fun IntArray.shuffle() {
+    for (index in 0 until this.size) {
+        val r = index + Random.nextInt(this.size - index)
+        val tmp = this[index]
+        this[index] = this[r]
+        this[r] = tmp
+    }
+}
 ```
 
 - **즉석 분할**  
@@ -410,18 +419,78 @@ private fun partition(num: IntArray, low: Int, high: Int): Int {
   - 임시 작업 메모리를 재귀 메서드 안에서 각 분할마다 매번 새로 생성하게 구현하면 정렬 수행 시간이 급격하게 늘어난다.
 - **경계선 넘지 않기**
   - 만약 분할 기준 항목이 가장 작은 키 또는 가장 큰 키를 가졌다면 스캔 중에 배열의 왼쪽 또는 오른쪽 끝을 넘어가지 않도록 주의해야 한다.
-- **무작위성의 유지**
-  - 배열을 무작위 순서로 섞는것이 알고리즘의 실행 시간을 예측할 수 있게 하는 데 중요한 역할을 한다.
-  - 무작위성을 유지하는 또 다른 방법은 `partition()`안에서 분할 기준을 무작위로 선택하는 것이다.
 - **분할 기준 항목과 동일한 키를 가지는 배열 항목 다루기**
   - 가장 좋은 방법은 좌측을 스캔할 떄는 `분할 기준 항목 보다 크거나 같은 항목`이 나오면 스캔을 중단하고,
   - 우측을 스캔할 때는 `분할 기준 항목보다 작거나 같은 항목`이 나올 때 스캔을 중단하는 것이다.
   - 비록 이러한 방식이 분할 기준 항목과 키가 같은 항목 간에 불필요한 교환을 유발하기는 하지만 특정 활용 환경에서 제곱 시간 성능으로 떨어지는 막기 위해서는 감수해야 할 오버헤드이다.
+- **무작위로 뒤섞는 작업**
+  - `shuffle()`을 진행하지 않고 정렬을 진행하면 `2000ms`정도 걸리지만, 무작위로 섞은 후 정렬을 진행하면 `700ms`이내에 정렬된다.
+  - **최악 조건이 발생하는 것을 막아주고 실행 시간을 예측할 수 있게 해주기 때문이다.**
 
 ### 삽입 정렬로의 컷오프 전환 **2.3.25 풀것** 📌
 
+거의 모든 재귀 알고리즘이 그렇듯이, 다음의 두 가지 관찰을 바탕으로 단서를 찾으면 퀵-정렬의 성능을 쉽게 개선할 수 있다.
+- **작은 부분 배열에서는 퀵-정렬이 삽입 정렬보다 느리다.**
+- **재귀적 동작으로 인해, 작은 부분 배열에 대해서도 반드시 퀵-정렬의 `sort()`가 호출된다.**
+
+따라서, 작은 부분 배열에 대해서 알고리즘을 삽입 정렬로 전환하면 성능 개선이 있을 수 있다.  
+`cutOff`는 `5 ~ 15`가 적절하다고 한다.  
+
+```kotlin
+private fun quickSort(num: IntArray, low: Int, high: Int, cutOff: Int) {
+    if (low >= high) return
+
+    val subArraySize = high - low + 1;
+
+    if (subArraySize < cutOff) {
+        insertionSort(num, low, high)
+        return
+    }
+
+    val pivot = partition(num, low, high)
+    quickSort(num, low, pivot - 1, cutOff)
+    quickSort(num, pivot + 1, high, cutOff)
+}
+
+private fun insertionSort(num: IntArray, low: Int, high: Int) {
+    for (index in low .. high) {
+        var innerIndex = index
+        while (innerIndex > 0 && num[innerIndex] < num[innerIndex - 1]) {
+            num.exchange(innerIndex, innerIndex - 1)
+            innerIndex--
+        }
+    }
+}
+```
+
+
 ### 3-중앙값 분할 📌
 
+```kotlin
+private fun threeWayQuickSort(num: IntArray, low: Int, high: Int) {
+    if (low >= high) return
+
+    var left = low
+    var index = low + 1
+    var right = high
+    val pivot = num[low]
+
+    while (index <= right) {
+        val compare = num[index] - pivot
+        if (compare < 0) {
+            num.exchange(left++, index++)
+        }
+        else if (compare > 0) {
+            num.exchange(index, right--)
+        }
+        else {
+            index++
+        }
+    }
+    threeWayQuickSort(num, low, left - 1)
+    threeWayQuickSort(num, right + 1, high)
+}
+```
 
 ***
 
