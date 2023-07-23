@@ -32,8 +32,10 @@
         - [전위 순회 pre-order traversal](#%EC%A0%84%EC%9C%84-%EC%88%9C%ED%9A%8C-pre-order-traversal)
         - [후위 순회 post-order traversal](#%ED%9B%84%EC%9C%84-%EC%88%9C%ED%9A%8C-post-order-traversal)
     - [**이진 힙 최소 힙**](#%EC%9D%B4%EC%A7%84-%ED%9E%99-%EC%B5%9C%EC%86%8C-%ED%9E%99)
-    - [**균형 vs 비균형** 레드-블랙 트리 , AVL트리 ->고급 주제에서 다룰 예정](#%EA%B7%A0%ED%98%95-vs-%EB%B9%84%EA%B7%A0%ED%98%95-%EB%A0%88%EB%93%9C-%EB%B8%94%EB%9E%99-%ED%8A%B8%EB%A6%AC--avl%ED%8A%B8%EB%A6%AC--%EA%B3%A0%EA%B8%89-%EC%A3%BC%EC%A0%9C%EC%97%90%EC%84%9C-%EB%8B%A4%EB%A3%B0-%EC%98%88%EC%A0%95)
-    - [**트라이 Trie 접두사 트리**](#%ED%8A%B8%EB%9D%BC%EC%9D%B4-trie-%EC%A0%91%EB%91%90%EC%82%AC-%ED%8A%B8%EB%A6%AC)
+- [균형 탐색 트리](#%EA%B7%A0%ED%98%95-%ED%83%90%EC%83%89-%ED%8A%B8%EB%A6%AC)
+    - [2-3 탐색 트리](#2-3-%ED%83%90%EC%83%89-%ED%8A%B8%EB%A6%AC)
+    - [레드 블랙 트리](#%EB%A0%88%EB%93%9C-%EB%B8%94%EB%9E%99-%ED%8A%B8%EB%A6%AC)
+- [**트라이 Trie 접두사 트리**](#%ED%8A%B8%EB%9D%BC%EC%9D%B4-trie-%EC%A0%91%EB%91%90%EC%82%AC-%ED%8A%B8%EB%A6%AC)
 - [**TreeSet**](#treeset)
     - [**TreeSet 선언**](#treeset-%EC%84%A0%EC%96%B8)
     - [**TreeSet 값 추가**](#treeset-%EA%B0%92-%EC%B6%94%EA%B0%80)
@@ -658,9 +660,13 @@ int binarySearch(int[] nums, int target){
 > ![](imgs/TreeAndGraph6.png)
 > - [출처 및 최대 힙](https://gmlwjd9405.github.io/2018/05/10/data-structure-heap.html)
 
-## **균형 vs 비균형** (레드-블랙 트리 , AVL트리 ->고급 주제에서 다룰 예정)
+# 균형 탐색 트리
 
-## **트라이 Trie (접두사 트리)**
+## `2-3` 탐색 트리
+
+## 레드 블랙 트리
+
+# **트라이 Trie (접두사 트리)**
 - **각 노드에 문자를 저장하는 자료구조 이다.**
 - 따라서 트리를 아래쪽으로 순회하면 단어가 하나 나온다.
 - **접두사를 빠르게 찾아보기 위한 아주 흔한 방식이다.**

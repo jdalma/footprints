@@ -1,4 +1,16 @@
 
+```
+docker run -it --name db001 -e MYSQL_ROOT_PASSWORD="root" -d percona:5.7.30
+docker run -it --name db001 -p 3306:3306 -v /db/db001/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD="root" -d mysql
+```
+
+1. `--interactive`, `-i`	:	Keep STDIN open even if not attached
+2. `--tty` , `-t` : Allocate a pseudo-TTY
+3. `--detach` , `-d` : Run container in background and print container ID
+4. `--env` , `-e` :	Set environment variables
+
+***
+
 ```yaml
 version: "3.9"
 services:
