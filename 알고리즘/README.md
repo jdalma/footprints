@@ -8,10 +8,10 @@
     - [**선택 정렬 Selection Sort - 길이 N의 배열에 대해 ~N<sup>2</sup>/2번의 비교와 N번의 교환을 수행**](#%EC%84%A0%ED%83%9D-%EC%A0%95%EB%A0%AC-selection-sort---%EA%B8%B8%EC%9D%B4-n%EC%9D%98-%EB%B0%B0%EC%97%B4%EC%97%90-%EB%8C%80%ED%95%B4-nsup2sup2%EB%B2%88%EC%9D%98-%EB%B9%84%EA%B5%90%EC%99%80-n%EB%B2%88%EC%9D%98-%EA%B5%90%ED%99%98%EC%9D%84-%EC%88%98%ED%96%89)
     - [**삽입 정렬 Insertion Sort - 평균적으로 ~N<sup>2</sup>/4번의 비교와 ~N<sup>2</sup>/4번의 교환을 수행**](#%EC%82%BD%EC%9E%85-%EC%A0%95%EB%A0%AC-insertion-sort---%ED%8F%89%EA%B7%A0%EC%A0%81%EC%9C%BC%EB%A1%9C-nsup2sup4%EB%B2%88%EC%9D%98-%EB%B9%84%EA%B5%90%EC%99%80-nsup2sup4%EB%B2%88%EC%9D%98-%EA%B5%90%ED%99%98%EC%9D%84-%EC%88%98%ED%96%89)
     - [**셸 정렬 Shell Sort**](#%EC%85%B8-%EC%A0%95%EB%A0%AC-shell-sort)
-    - [**병합 정렬 Merge Sort - 평균 및 최악 실행 시간 : On log n , 메모리 : 상황에 따라 다름**](#%EB%B3%91%ED%95%A9-%EC%A0%95%EB%A0%AC-merge-sort---%ED%8F%89%EA%B7%A0-%EB%B0%8F-%EC%B5%9C%EC%95%85-%EC%8B%A4%ED%96%89-%EC%8B%9C%EA%B0%84--on-log-n--%EB%A9%94%EB%AA%A8%EB%A6%AC--%EC%83%81%ED%99%A9%EC%97%90-%EB%94%B0%EB%9D%BC-%EB%8B%A4%EB%A6%84)
-    - [**퀵 정렬 Quick Sort - 실행 시간： 평균 Onlogn, 최악 On<sup>2</sup>. 메모리： Olog n**](#%ED%80%B5-%EC%A0%95%EB%A0%AC-quick-sort---%EC%8B%A4%ED%96%89-%EC%8B%9C%EA%B0%84-%ED%8F%89%EA%B7%A0-onlogn-%EC%B5%9C%EC%95%85-onsup2sup-%EB%A9%94%EB%AA%A8%EB%A6%AC-olog-n)
+    - [**병합 정렬 Merge Sort**](#%EB%B3%91%ED%95%A9-%EC%A0%95%EB%A0%AC-merge-sort)
+    - [**퀵 정렬 Quick Sort**](#%ED%80%B5-%EC%A0%95%EB%A0%AC-quick-sort)
         - [삽입 정렬로의 컷오프 전환 **2.3.25 풀것** 📌](#%EC%82%BD%EC%9E%85-%EC%A0%95%EB%A0%AC%EB%A1%9C%EC%9D%98-%EC%BB%B7%EC%98%A4%ED%94%84-%EC%A0%84%ED%99%98-2325-%ED%92%80%EA%B2%83-)
-        - [-중앙값 분할 📌](#-%EC%A4%91%EC%95%99%EA%B0%92-%EB%B6%84%ED%95%A0-)
+        - [-중앙값 분할](#-%EC%A4%91%EC%95%99%EA%B0%92-%EB%B6%84%ED%95%A0)
 - [**Binary Search 이분,이진 탐색**](#binary-search-%EC%9D%B4%EB%B6%84%EC%9D%B4%EC%A7%84-%ED%83%90%EC%83%89)
     - [Basic Template](#basic-template)
 - [**그래프**](#%EA%B7%B8%EB%9E%98%ED%94%84)
@@ -154,87 +154,6 @@ class Solution {
         }
     }
 
-    private fun shellSort(num: IntArray) {
-        var N = num.size
-        var h = 1
-
-        while(h < N / 3) {
-            h = h * 3 + 1
-        }
-        while(h >= 1) {
-            for (index in h until N) {
-                var innerIndex = index
-                while (innerIndex >= h && num[innerIndex] < num[innerIndex - h]) {
-                    num.exchange(innerIndex, innerIndex - h)
-                    innerIndex -= h
-                }
-            }
-            h /= 3
-        }
-    }
-
-    private lateinit var aux: IntArray
-    private fun topDownMergeSort(num: IntArray, low: Int, high: Int) {
-        if (low >= high) return
-
-        val mid = low + (high - low) / 2
-        topDownMergeSort(num, low, mid)
-        topDownMergeSort(num, mid + 1, high)
-        merge(num, low, mid, high)
-    }
-
-    private fun bottomUpMergeSort(num: IntArray) {
-        var size = 1
-        while (size <= num.size) {
-            for (low in 0 .. num.size - size step(size + size)) {
-                val mid = low + size - 1
-                val high = Math.min(low + size + size - 1, num.size - 1)
-                merge(num, low, mid, high)
-            }
-            size += size
-        }
-    }
-
-    private fun merge(num: IntArray, low: Int, mid: Int, high: Int) {
-        var i = low
-        var j = mid + 1
-
-        for (index in low .. high) {
-            aux[index] = num[index]
-        }
-
-        for (index in low .. high) {
-            if (i > mid) num[index] = aux[j++]              // i가 mid값을 넘어섰다는 말은 왼쪽 영역을 다 할당했다는 의미
-            else if (j > high) num[index] = aux[i++]        // j가 high값을 넘어섰다는 말은 오른쪽 영역을 다 할당했다는 의미
-            else if (aux[i] > aux[j]) num[index] = aux[j++] // 왼쪽 값이 더 크다면 오른쪽 값을 먼저 할당
-            else num[index] = aux[i++]                      // 위에 해당하지 않으면 왼쪽 값을 할당
-        }
-    }
-
-    private fun threeWayQuickSort(num: IntArray, low: Int, high: Int) {
-        if (low >= high) return
-
-        var left = low
-        var index = low + 1
-        var right = high
-        val pivot = num[low]
-
-        while (index <= right) {
-            val compare = num[index] - pivot
-            if (compare < 0) {
-                num.exchange(left++, index++)
-            }
-            else if (compare > 0) {
-                num.exchange(index, right--)
-            }
-            else {
-                index++
-            }
-        }
-        threeWayQuickSort(num, low, left - 1)
-        threeWayQuickSort(num, right + 1, high)
-    }
-
     private fun IntArray.exchange(index1: Int, index2: Int) {
         val tmp = this[index1]
         this[index1] = this[index2]
@@ -317,21 +236,82 @@ class Solution {
   - **셸 정렬은 삽입 정렬의 확장 버전으로 서로 멀리 떨어진 항목 간에도 교환이 일어날 수 있게 함으로써 삽입 정렬이 빠르게 처리할 수 있는 부분적으로 정렬된 배열을 만든다.**
   - 매 `h번째` 항목들 간에 순서를 따질 때 정렬된 상태가 되도록 배열을 재정리하는 것이다. 이렇게 부분적으로 정렬된 배열을 "h-정렬 되었다" 라고 한다.
   - 각각의 `h`에 대해, **`h`개의 부분 시퀀스**를 대상으로 한 독립적인 삽입 정렬을 수행하는 것이다. 단 배열을 1씩 이동 순회하는 대신 `h 단위`로 이동 순회하도록 수정해야 한다.
-  - 
 
-## **병합 정렬 (Merge Sort) - 평균 및 최악 실행 시간 : O(n log n) , 메모리 : 상황에 따라 다름**
+```kotlin
+private fun shellSort(num: IntArray) {
+    var N = num.size
+    var h = 1
+
+    while(h < N / 3) {
+        h = h * 3 + 1
+    }
+    while(h >= 1) {
+        for (index in h until N) {
+            var innerIndex = index
+            while (innerIndex >= h && num[innerIndex] < num[innerIndex - h]) {
+                num.exchange(innerIndex, innerIndex - h)
+                innerIndex -= h
+            }
+        }
+        h /= 3
+    }
+}
+```
+
+## **병합 정렬 (Merge Sort)**
 
 - **배열을 절반씩 나누어 각각을 정렬한 다음 이 둘을 합하여 다시 정렬 하는 방법이다.**
 - 나눈 절반을 정렬할 때도 같은 알고리즘이 사용되고 , **결국에는 원소 한 개짜리 배열 두 개를 병합하게 된다.**
+- 가장 큰 장점 중 하나는 크기 `N`인 배열을 정렬하는 시간이 `NlogN`에 비례한다는 것이다. 대신 `N`에 비례하는 추가적인 메모리 공간을 소요한다는 것이 가장 큰 단점이다.
 - **분할 (Divide)** : 입력 배열을 같은 크기의 2개의 부분 배열로 분할
 - **정복 (Conquer)** : 부분 배열을 정렬한다. 부분 배열의 크기가 충분히 작지 않으면 **순환 호출**을 이용하여 다시 분할 정복 방법을 적용한다.
 - **결합 (Combine)** : 정렬된 부분 배열들을 하나의 배열에 합병한다.
-- **안정 정렬(Stable Sort)**
 - **분할 정복 알고리즘의 하나**
 
 ![](imgs/mergesort.png)
 
-## **퀵 정렬 (Quick Sort) - 실행 시간： 평균 O(nlogn), 최악 O(n<sup>2</sup>). 메모리： O(log n)**
+```kotlin
+private lateinit var aux: IntArray
+
+private fun topDownMergeSort(num: IntArray, low: Int, high: Int) {
+    if (low >= high) return
+
+    val mid = low + (high - low) / 2
+    topDownMergeSort(num, low, mid)
+    topDownMergeSort(num, mid + 1, high)
+    merge(num, low, mid, high)
+}
+
+private fun bottomUpMergeSort(num: IntArray) {
+    var size = 1
+    while (size <= num.size) {
+        for (low in 0 .. num.size - size step(size + size)) {
+            val mid = low + size - 1
+            val high = Math.min(low + size + size - 1, num.size - 1)
+            merge(num, low, mid, high)
+        }
+        size += size
+    }
+}
+
+private fun merge(num: IntArray, low: Int, mid: Int, high: Int) {
+    var i = low
+    var j = mid + 1
+
+    for (index in low .. high) {
+        aux[index] = num[index]
+    }
+
+    for (index in low .. high) {
+        if (i > mid) num[index] = aux[j++]              // i가 mid값을 넘어섰다는 말은 왼쪽 영역을 다 할당했다는 의미
+        else if (j > high) num[index] = aux[i++]        // j가 high값을 넘어섰다는 말은 오른쪽 영역을 다 할당했다는 의미
+        else if (aux[i] > aux[j]) num[index] = aux[j++] // 왼쪽 값이 더 크다면 오른쪽 값을 먼저 할당
+        else num[index] = aux[i++]                      // 위에 해당하지 않으면 왼쪽 값을 할당
+    }
+}
+```
+
+## **퀵 정렬 (Quick Sort)**
 
 > 퀵-정렬의 내부 루프(분할 메서드에 있는)는 인덱스를 증가시켜가며 어떤 고정된 값과 배열 항목의 값을 비교한다.  
 > 이러한 단순함이 퀵-정렬을 빠르게 하는 요인 중 하나이다. (이보다 더 짤은 내부 루프를 고안하기는 어렵다.)  
@@ -466,7 +446,14 @@ private fun insertionSort(num: IntArray, low: Int, high: Int) {
 ```
 
 
-### 3-중앙값 분할 📌
+### 3-중앙값 분할
+
+분할 기준 항목을 정할 때 작은 크기의 샘플에서 그 중앙값을 이용하는 것도 퀵-정렬의 성능을 개선할 수 있다.  
+조금 더 효율적으로 분할을 할 수 있긴하지만, 중앙값을 계산하는 추가 비용이 따른다.  
+- [2.3.18 : 3-중앙값 분할을 퀵-정렬에 적용하고 효과가 있는지 확인하라](https://github.com/reneargento/algorithms-sedgewick-wayne/blob/master/src/chapter2/section3/Exercise18_MedianOf3Partitioning.txt)
+- [2.3.19 : 5-중앙값 분할은 효과가 있을까?](https://github.com/reneargento/algorithms-sedgewick-wayne/blob/master/src/chapter2/section3/Exercise19_MedianOf5Partitioning.txt)
+
+> **분할 기준 항목의 키값 보다 작은 부분, 같은 부분, 큰 부분으로 나눈다.**
 
 ```kotlin
 private fun threeWayQuickSort(num: IntArray, low: Int, high: Int) {
