@@ -276,10 +276,14 @@ private lateinit var aux: IntArray
 private fun topDownMergeSort(num: IntArray, low: Int, high: Int) {
     if (low >= high) return
 
-    val mid = low + (high - low) / 2
-    topDownMergeSort(num, low, mid)
-    topDownMergeSort(num, mid + 1, high)
-    merge(num, low, mid, high)
+    val mid = low + (high - low) / 2      // 오버플로우 예방
+    topDownMergeSort(num, low, mid)       // 왼쪽 절반 정렬
+    topDownMergeSort(num, mid + 1, high)  // 오른쪽 절반 정렬
+    merge(num, low, mid, high)            // 670ms 병합
+
+//    if (num[mid] > num[mid + 1]) {
+//      merge(num, low, mid, high)          // 610ms 병합
+//    }
 }
 
 private fun bottomUpMergeSort(num: IntArray) {
@@ -310,6 +314,18 @@ private fun merge(num: IntArray, low: Int, mid: Int, high: Int) {
     }
 }
 ```
+
+- **작은 부분 배열에 삽입 정렬 이용하기**
+  - 정렬 자체에 있어서는 삽입 정렬(또는 선택 정렬)이 더 단순하기 때문에 매우 작은 배열에 대해서는 병합 정렬보다 더 빠를 가능성이 크다.
+  - 작은 부분 배열(크기가 15이하인)에 대한 정렬을 삽입 정렬로 바꾸면 보통의 병합 정렬 구현 보다 `10% ~ 15%`에 이르는 성능 개선 효과를 볼 수 있다. [2.2.23 참조](https://github.com/reneargento/algorithms-sedgewick-wayne/blob/master/src/chapter2/section2/Exercise23_Improvements.txt)
+- **배열이 이미 정렬된 상태인지 확인하기**
+  - `a[mid] <= a[mid + 1]`을 확인하여 merge의 호출을 생략하도록 수정하면 배열에 대한 성능을 선형으로 만들 수 있다.
+  - 이 [문제](https://leetcode.com/problems/sort-an-array/description/)에 적용하면 `670ms`에서 `610ms`로 절감된다.
+- **임시 작업 배열로의 복제 제거** 
+  - 병합용 임시 작업 배열로의 복제에 드는 시간을 제거하는 것도 가능하다.
+  - 하나는 원본 배열을 입력으로 받아 정렬 결과를 임시 배열에 넣고, 다른 하나는 그 임시 배열을 입력으로 받아 정렬 결과를 원본 배열에 넣는다.
+  - 이러한 접근 방법으로 재귀적인 호출이 원본 배열과 임시 배열을 번갈아가며 이용하도록 조율한다.
+  - [2.2.11 참고](https://github.com/reneargento/algorithms-sedgewick-wayne/blob/master/src/chapter2/section2/Exercise11_Improvements.java)하여 테스트 해보기
 
 ## **퀵 정렬 (Quick Sort)**
 
