@@ -19,6 +19,12 @@
 - [gRPC over HTTP2](https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md)
 - [`RFC7540` HTTP/2.0](https://httpwg.org/specs/rfc7540.html#FrameHeader)
 
+## Redis
+
+- [Redis Cluster](https://blog.magical.dev/redis-cluster)
+- [Sentinel](https://redis.io/docs/management/sentinel/)
+- [Redis Cluster Spec](https://redis.io/docs/reference/cluster-spec/)
+
 ## Docker
 
 - [Docker 시작하기](https://medium.com/dtevangelist/docker-%EC%8B%9C%EC%9E%91%ED%95%98%EA%B8%B0-f930c5484f71)
