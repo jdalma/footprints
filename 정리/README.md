@@ -87,6 +87,7 @@
 
 ## Etc
 
+- [MySQL "swap insanity" 문제와 NUMA 아키텍처의 영향](https://blog.jcole.us/2010/09/28/mysql-swap-insanity-and-the-numa-architecture/)
 - [`martinfowler` CircuitBreaker](https://martinfowler.com/bliki/CircuitBreaker.html)
 - [마이크로서비스 패턴: 핵심패턴만 빠르게 이해하기](https://happycloud-lee.tistory.com/m/154?category=902418)
 - [이벤트 소싱 event-sourcing 패턴 정리](https://edykim.com/ko/post/eventsourcing-pattern-cleanup/)
