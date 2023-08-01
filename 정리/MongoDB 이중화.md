@@ -1,7 +1,3 @@
-```
-docker run --name mongodb -d -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=root mongo:4.4
-```
-
 # MongoDB Replication
 
 ```
@@ -89,3 +85,128 @@ Replica Set의 Secondary는 적용하는 데 작업 임계값보다 오래 걸�
 - originCache에 대한 내용을 중복 제거나 패밀리 그룹핑을 통해 재캐시되는 경우가 있다. 이때 2차,3차 결과물에 대한 내용을 삭제하게 되면 기존에 존재하던 캐시에 대해 수정이 필요하여 mongo를 사용
 - 사용자 설정 (하이라이트 단어, ...)
   - 검색 설정도 mongo에 넣을 계획
+
+
+# source
+
+```
+docker run --name mongodb -d -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=root mongo:4.4
+```
+
+```yml
+version: '3.7'
+
+services:
+  mongo1:
+    image: mongo:4.4
+    hostname: mongo1
+    container_name: mongo1
+    networks:
+      - mongo-bridge
+    ports:
+      - 30001:27017
+    volumes:
+      - /Users/jeonghyeonjun/data/mongo/db-01:/data/db
+    restart: always
+    command: ["mongod", "--replSet", "mongo-repl"]
+  mongo2:
+    image: mongo:4.4
+    hostname: mongo2
+    container_name: mongo2
+    networks:
+      - mongo-bridge
+    ports:
+      - 30002:27017
+    volumes:
+      - /Users/jeonghyeonjun/data/mongo/db-02:/data/db
+    restart: always
+    command: ["mongod", "--replSet", "mongo-repl"]
+  mongo3:
+    image: mongo:4.4
+    hostname: mongo3
+    container_name: mongo3
+    networks:
+      - mongo-bridge
+    ports:
+      - 30003:27017
+    volumes:
+      - /Users/jeonghyeonjun/data/mongo/db-03:/data/db
+    restart: always
+    command: ["mongod", "--replSet", "mongo-repl"]
+  # configure the mongo replica set
+  mongosetup:
+    build: ./mongosetup
+    networks:
+      - mongo-bridge
+    volumes:
+      - ./scripts:/scripts
+    entrypoint: [ "/scripts/setup_init.sh" ]
+
+networks:
+  mongo-bridge:
+    name: mongo-bridge
+```
+
+```sh
+#!/usr/bin/env bash
+
+echo "Waiting for MongoDB startup.."
+until [ "$(mongo --host mongo1:27017 admin --eval "printjson(db.serverStatus())" | grep uptime | head -1)" ]; do
+  printf '.'
+  sleep 1
+done
+
+echo $(mongo --host mongo1:27017 admin --eval "printjson(db.serverStatus())" | grep uptime | head -1)
+echo "MongoDB Started.."
+
+
+echo SETUP.sh time now: `date +"%T" `
+mongo --host mongo1:27017 <<EOF
+   var cfg = {
+        "_id": "mongo-repl",
+        "members": [
+            {
+                "_id": 0,
+                "host": "mongo1:27017",
+                "priority": 1
+            },
+            {
+                "_id": 1,
+                "host": "mongo2:27017",
+                "priority": 1
+            },
+            {
+                "_id": 2,
+                "host": "mongo3:27017",
+                "priority": 0,
+                "arbiterOnly": true
+            }
+        ]
+    };
+    rs.initiate(cfg, { force: true });
+    rs.reconfig(cfg, { force: true });
+    use admin;
+    db.createUser(
+    {
+        user: "root",
+        pwd: "$rootPassword",
+        roles: [ { role: "root", db: "admin" } ]
+    }
+    );
+    db.createUser(
+    {
+        user: "datadog",
+        pwd: "datadog",
+        roles: [ { role: "clusterMonitor", db: "admin" } ]
+    }
+    );
+    use medusa;
+    db.createUser(
+    {
+        user: "$userId",
+        pwd: "$userPassword",
+        roles: ["dbAdmin", "readWrite"]
+    }
+    );    
+EOF
+```

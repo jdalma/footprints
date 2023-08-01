@@ -12,3 +12,4 @@
    2. [참고](https://unhosted.tistory.com/82)
    3. kotlin에서 필드에 `@JsonProperty`가 왜 안먹힐까?
    4. 그리고 왜 `rname`으로 변환되는지 확인하기
+6. jackson TypeReference
