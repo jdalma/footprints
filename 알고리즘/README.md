@@ -44,6 +44,8 @@
 - [우선순위 큐 **2.4.3 참조**](#%EC%9A%B0%EC%84%A0%EC%88%9C%EC%9C%84-%ED%81%90-243-%EC%B0%B8%EC%A1%B0)
     - [**힙**](#%ED%9E%99)
     - [**힙 복구 작업**](#%ED%9E%99-%EB%B3%B5%EA%B5%AC-%EC%9E%91%EC%97%85)
+        - [**상향식 힙 복구swim**](#%EC%83%81%ED%96%A5%EC%8B%9D-%ED%9E%99-%EB%B3%B5%EA%B5%ACswim)
+        - [**하향식 힙 복구sink**](#%ED%95%98%ED%96%A5%EC%8B%9D-%ED%9E%99-%EB%B3%B5%EA%B5%ACsink)
 - [**해시 테이블**](#%ED%95%B4%EC%8B%9C-%ED%85%8C%EC%9D%B4%EB%B8%94)
     - [📌 **키와 값을 해시테이블에 넣을 때**는 다음의 과정을 거친다.](#-%ED%82%A4%EC%99%80-%EA%B0%92%EC%9D%84-%ED%95%B4%EC%8B%9C%ED%85%8C%EC%9D%B4%EB%B8%94%EC%97%90-%EB%84%A3%EC%9D%84-%EB%95%8C%EB%8A%94-%EB%8B%A4%EC%9D%8C%EC%9D%98-%EA%B3%BC%EC%A0%95%EC%9D%84-%EA%B1%B0%EC%B9%9C%EB%8B%A4)
 - [**해시 충돌 해결 방법**](#%ED%95%B4%EC%8B%9C-%EC%B6%A9%EB%8F%8C-%ED%95%B4%EA%B2%B0-%EB%B0%A9%EB%B2%95)
@@ -769,7 +771,7 @@ while(iter.hasNext()) {//값이 있으면 true 없으면 false
 기본적인 큐나 스택의 사용 방법과 비슷하지만, 우선순위에 따른 동작을 효율적으로 구현하는 것은 좀 더 어렵다.  
 **스택/큐 구현과 대비해 우선순위 큐를 구현하는 것의 중요한 차이는 최악 조건에서 삽입 작업 또는 최대 키 값 항목 삭제 작업이 로그 시간 성능을 보이는 것이다.**  
 - 정렬을 삽입에 하거나 값을 꺼낼 때 하던 결국은 `N`이지만, 우선순위 큐로는 `logN`이 걸린다.
-- [Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/) 풀기
+- **TODO** [Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/) 풀기
   
 우선순위 큐의 기본 동작들을 효율적으로 할 수 있게 해주는 힙에 대해 알아보자.
 
@@ -794,7 +796,45 @@ while(iter.hasNext()) {//값이 있으면 true 없으면 false
 
 ## **힙 복구 작업**
 
-// TODO
+### **상향식 힙 복구(swim)**
+
+**배열의 끝부분에 새로운 원소를 추가(삽입)할 때 발생한다.**  
+어떤 노드가 부모 노드보다 커지면서 힙의 순서가 어긋난다면 그 노드를 부모 노도와 교환하여 힙을 복구할 수 있다.  
+교환 후에도 새로운 부모와 비교해서 자식 노드가 더 크다면 같은 방식으로 교환해 나간다. (거슬러올라간다.)  
+
+```java
+private void swim(int k) {
+    while(k > 1 && this.less(k / 2, k)) {
+        this.exch(k / 2, k);
+        k /= 2;
+    }
+}
+```
+
+### **하향식 힙 복구(sink)**
+
+**힙의 최상위에서 원소를 꺼내고(최대 또는 최소 항목 삭제) 힙의 바닥에 있는 항목을 힙의 꼭대기로 옮긴 후에 발생한다.**   
+어떤 노드가 두 자식 노드들 중 어느 하나보다 작아서 힙 순서가 위반되었다면 그 노드를 자식 노드들 중에서 큰 노드와 교환함으로써 순서를 바로 잡을 수 있다.  
+교환 후에도 자식 노드들 보다 작다면 똑같이 교환해나가면서 순서를 바로 잡는다.  
+
+```java
+private void sink(int k) {
+    while(true) {
+        if (2 * k <= this.n) {
+            int j = 2 * k;
+            if (j < this.n && this.less(j, j + 1)) {
+                ++j;
+            }
+            if (this.less(k, j)) {
+                this.exch(k, j);
+                k = j;
+                continue;
+            }
+        }
+        return;
+    }
+}
+```
 
 ***
 
