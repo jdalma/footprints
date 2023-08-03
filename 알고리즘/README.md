@@ -771,8 +771,11 @@ while(iter.hasNext()) {//값이 있으면 true 없으면 false
 기본적인 큐나 스택의 사용 방법과 비슷하지만, 우선순위에 따른 동작을 효율적으로 구현하는 것은 좀 더 어렵다.  
 **스택/큐 구현과 대비해 우선순위 큐를 구현하는 것의 중요한 차이는 최악 조건에서 삽입 작업 또는 최대 키 값 항목 삭제 작업이 로그 시간 성능을 보이는 것이다.**  
 - 정렬을 삽입에 하거나 값을 꺼낼 때 하던 결국은 `N`이지만, 우선순위 큐로는 `logN`이 걸린다.
-- **TODO** [Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/) 풀기
-  
+- [Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/) 이 문제를 아래와 같은 방식으로 풀면
+  - Runtime 346ms Beats 98.78%of users with Kotlin
+  - Memory 49.84mb Beats 93.90%of users with Kotlin
+  - 위와 같은 성능이 나온다.
+
 우선순위 큐의 기본 동작들을 효율적으로 할 수 있게 해주는 힙에 대해 알아보자.
 
 ## **힙**
