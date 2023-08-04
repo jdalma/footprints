@@ -13,3 +13,4 @@
    3. kotlin에서 필드에 `@JsonProperty`가 왜 안먹힐까?
    4. 그리고 왜 `rname`으로 변환되는지 확인하기
 6. jackson TypeReference
+7. [On the priority of JsonCreator and Constructor](https://github.com/FasterXML/jackson-module-kotlin/issues/514)

@@ -1,72 +1,61 @@
 
 <!-- TOC -->
 
-- [**알고리즘을 왜 하고, 얼마나 깊게 해야할까**](#%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98%EC%9D%84-%EC%99%9C-%ED%95%98%EA%B3%A0-%EC%96%BC%EB%A7%88%EB%82%98-%EA%B9%8A%EA%B2%8C-%ED%95%B4%EC%95%BC%ED%95%A0%EA%B9%8C)
-- [**Binary Search 이분,이진 탐색**](#binary-search-%EC%9D%B4%EB%B6%84%EC%9D%B4%EC%A7%84-%ED%83%90%EC%83%89)
-    - [Basic Template](#basic-template)
-- [**그래프**](#%EA%B7%B8%EB%9E%98%ED%94%84)
-    - [**인접 리스트**](#%EC%9D%B8%EC%A0%91-%EB%A6%AC%EC%8A%A4%ED%8A%B8)
-    - [**인접 행렬**](#%EC%9D%B8%EC%A0%91-%ED%96%89%EB%A0%AC)
-    - [**그래프 탐색**](#%EA%B7%B8%EB%9E%98%ED%94%84-%ED%83%90%EC%83%89)
-        - [깊이 우선 탐색 DFS](#%EA%B9%8A%EC%9D%B4-%EC%9A%B0%EC%84%A0-%ED%83%90%EC%83%89-dfs)
-        - [넓이 우선 탐색 BFS](#%EB%84%93%EC%9D%B4-%EC%9A%B0%EC%84%A0-%ED%83%90%EC%83%89-bfs)
-        - [양방향 탐색](#%EC%96%91%EB%B0%A9%ED%96%A5-%ED%83%90%EC%83%89)
-- [**트리**](#%ED%8A%B8%EB%A6%AC)
-    - [**이진 트리 Binary Tree**](#%EC%9D%B4%EC%A7%84-%ED%8A%B8%EB%A6%AC-binary-tree)
-    - [**이진 탐색 트리 Binary Search Tree**](#%EC%9D%B4%EC%A7%84-%ED%83%90%EC%83%89-%ED%8A%B8%EB%A6%AC-binary-search-tree)
-    - [**완전 이진 트리 Complete Binary Search**](#%EC%99%84%EC%A0%84-%EC%9D%B4%EC%A7%84-%ED%8A%B8%EB%A6%AC-complete-binary-search)
-    - [**전 이진 트리 Full Binary Tree**](#%EC%A0%84-%EC%9D%B4%EC%A7%84-%ED%8A%B8%EB%A6%AC-full-binary-tree)
-    - [**포화 이진 트리 Perfect Binary Tree**](#%ED%8F%AC%ED%99%94-%EC%9D%B4%EC%A7%84-%ED%8A%B8%EB%A6%AC-perfect-binary-tree)
-    - [**이진 트리 순회**](#%EC%9D%B4%EC%A7%84-%ED%8A%B8%EB%A6%AC-%EC%88%9C%ED%9A%8C)
-        - [중위 순회 in-order traversal](#%EC%A4%91%EC%9C%84-%EC%88%9C%ED%9A%8C-in-order-traversal)
-        - [전위 순회 pre-order traversal](#%EC%A0%84%EC%9C%84-%EC%88%9C%ED%9A%8C-pre-order-traversal)
-        - [후위 순회 post-order traversal](#%ED%9B%84%EC%9C%84-%EC%88%9C%ED%9A%8C-post-order-traversal)
-    - [**이진 힙 최소 힙**](#%EC%9D%B4%EC%A7%84-%ED%9E%99-%EC%B5%9C%EC%86%8C-%ED%9E%99)
-- [균형 탐색 트리](#%EA%B7%A0%ED%98%95-%ED%83%90%EC%83%89-%ED%8A%B8%EB%A6%AC)
-    - [2-3 탐색 트리](#2-3-%ED%83%90%EC%83%89-%ED%8A%B8%EB%A6%AC)
-    - [레드 블랙 트리](#%EB%A0%88%EB%93%9C-%EB%B8%94%EB%9E%99-%ED%8A%B8%EB%A6%AC)
-- [**트라이 Trie 접두사 트리**](#%ED%8A%B8%EB%9D%BC%EC%9D%B4-trie-%EC%A0%91%EB%91%90%EC%82%AC-%ED%8A%B8%EB%A6%AC)
+- [**알고리즘을 왜 하고, 얼마나 깊게 해야할까**](#알고리즘을-왜-하고-얼마나-깊게-해야할까)
+- [**`Binary Search` 이분,이진 탐색**](#binary-search-이분이진-탐색)
+  - [Basic Template](#basic-template)
+- [**그래프**](#그래프)
+  - [**인접 리스트**](#인접-리스트)
+  - [**인접 행렬**](#인접-행렬)
+  - [**그래프 탐색**](#그래프-탐색)
+    - [깊이 우선 탐색 (DFS)](#깊이-우선-탐색-dfs)
+    - [넓이 우선 탐색 (BFS)](#넓이-우선-탐색-bfs)
+    - [양방향 탐색](#양방향-탐색)
+- [**트리**](#트리)
+  - [**이진 트리 (Binary Tree)**](#이진-트리-binary-tree)
+  - [**이진 탐색 트리 (Binary Search Tree)**](#이진-탐색-트리-binary-search-tree)
+  - [**완전 이진 트리 (Complete Binary Search)**](#완전-이진-트리-complete-binary-search)
+  - [**전 이진 트리 (Full Binary Tree)**](#전-이진-트리-full-binary-tree)
+  - [**포화 이진 트리 (Perfect Binary Tree)**](#포화-이진-트리-perfect-binary-tree)
+  - [**이진 트리 순회**](#이진-트리-순회)
+    - [중위 순회 (in-order traversal)](#중위-순회-in-order-traversal)
+    - [전위 순회 (pre-order traversal)](#전위-순회-pre-order-traversal)
+    - [후위 순회 (post-order traversal)](#후위-순회-post-order-traversal)
+  - [**이진 힙 (최소 힙)**](#이진-힙-최소-힙)
+- [균형 탐색 트리](#균형-탐색-트리)
+  - [`2-3` 탐색 트리](#2-3-탐색-트리)
+  - [레드 블랙 트리](#레드-블랙-트리)
+- [**트라이 Trie (접두사 트리)**](#트라이-trie-접두사-트리)
 - [**TreeSet**](#treeset)
-    - [**TreeSet 선언**](#treeset-%EC%84%A0%EC%96%B8)
-    - [**TreeSet 값 추가**](#treeset-%EA%B0%92-%EC%B6%94%EA%B0%80)
-    - [**TreeSet 값 삭제**](#treeset-%EA%B0%92-%EC%82%AD%EC%A0%9C)
-    - [**TreeSet 값 출력**](#treeset-%EA%B0%92-%EC%B6%9C%EB%A0%A5)
-- [우선순위 큐 **2.4.3 참조**](#%EC%9A%B0%EC%84%A0%EC%88%9C%EC%9C%84-%ED%81%90-243-%EC%B0%B8%EC%A1%B0)
-    - [**힙**](#%ED%9E%99)
-    - [**힙 복구 작업**](#%ED%9E%99-%EB%B3%B5%EA%B5%AC-%EC%9E%91%EC%97%85)
-        - [**상향식 힙 복구swim**](#%EC%83%81%ED%96%A5%EC%8B%9D-%ED%9E%99-%EB%B3%B5%EA%B5%ACswim)
-        - [**하향식 힙 복구sink**](#%ED%95%98%ED%96%A5%EC%8B%9D-%ED%9E%99-%EB%B3%B5%EA%B5%ACsink)
-- [**해시 테이블**](#%ED%95%B4%EC%8B%9C-%ED%85%8C%EC%9D%B4%EB%B8%94)
-    - [📌 **키와 값을 해시테이블에 넣을 때**는 다음의 과정을 거친다.](#-%ED%82%A4%EC%99%80-%EA%B0%92%EC%9D%84-%ED%95%B4%EC%8B%9C%ED%85%8C%EC%9D%B4%EB%B8%94%EC%97%90-%EB%84%A3%EC%9D%84-%EB%95%8C%EB%8A%94-%EB%8B%A4%EC%9D%8C%EC%9D%98-%EA%B3%BC%EC%A0%95%EC%9D%84-%EA%B1%B0%EC%B9%9C%EB%8B%A4)
-- [**해시 충돌 해결 방법**](#%ED%95%B4%EC%8B%9C-%EC%B6%A9%EB%8F%8C-%ED%95%B4%EA%B2%B0-%EB%B0%A9%EB%B2%95)
-    - [**개방 주소법Open Addressing**](#%EA%B0%9C%EB%B0%A9-%EC%A3%BC%EC%86%8C%EB%B2%95open-addressing)
-    - [**분리 연결법Seperate Chaining**](#%EB%B6%84%EB%A6%AC-%EC%97%B0%EA%B2%B0%EB%B2%95seperate-chaining)
-    - [**JAVA8의 분리 연결법**](#java8%EC%9D%98-%EB%B6%84%EB%A6%AC-%EC%97%B0%EA%B2%B0%EB%B2%95)
+- [우선순위 큐 **2.4.3 참조**](#우선순위-큐-243-참조)
+  - [**힙**](#힙)
+    - [**상향식 힙 복구(swim)**](#상향식-힙-복구swim)
+    - [**하향식 힙 복구(sink)**](#하향식-힙-복구sink)
 - [**StringBuilder**](#stringbuilder)
-- [**재귀 Recursive 와 동적 프로그래밍 Dynamic Programming**](#%EC%9E%AC%EA%B7%80-recursive-%EC%99%80-%EB%8F%99%EC%A0%81-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D-dynamic-programming)
-    - [**상향식 접근법 bottom-up approach**](#%EC%83%81%ED%96%A5%EC%8B%9D-%EC%A0%91%EA%B7%BC%EB%B2%95-bottom-up-approach)
-    - [**하향식 접근법 top-down approach**](#%ED%95%98%ED%96%A5%EC%8B%9D-%EC%A0%91%EA%B7%BC%EB%B2%95-top-down-approach)
-    - [**반반 접근법 half-and-half approach**](#%EB%B0%98%EB%B0%98-%EC%A0%91%EA%B7%BC%EB%B2%95-half-and-half-approach)
-    - [**동적계획법 & 메모이제이션**](#%EB%8F%99%EC%A0%81%EA%B3%84%ED%9A%8D%EB%B2%95--%EB%A9%94%EB%AA%A8%EC%9D%B4%EC%A0%9C%EC%9D%B4%EC%85%98)
-        - [Recursive Fibo](#recursive-fibo)
-        - [하향식 동적 프로그래밍 메모이제이션](#%ED%95%98%ED%96%A5%EC%8B%9D-%EB%8F%99%EC%A0%81-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D-%EB%A9%94%EB%AA%A8%EC%9D%B4%EC%A0%9C%EC%9D%B4%EC%85%98)
-        - [상향식 동적 프로그래밍](#%EC%83%81%ED%96%A5%EC%8B%9D-%EB%8F%99%EC%A0%81-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D)
-- [**최단경로 문제**](#%EC%B5%9C%EB%8B%A8%EA%B2%BD%EB%A1%9C-%EB%AC%B8%EC%A0%9C)
-    - [0-1BFS](#0-1bfs)
-    - [다익스트라 알고리즘](#%EB%8B%A4%EC%9D%B5%EC%8A%A4%ED%8A%B8%EB%9D%BC-%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98)
-    - [벨만-포드 알고리즘](#%EB%B2%A8%EB%A7%8C-%ED%8F%AC%EB%93%9C-%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98)
-        - [음수간선](#%EC%9D%8C%EC%88%98%EA%B0%84%EC%84%A0)
-    - [SPFA Shortest Path Faster Algorithm - 벨만-포드 알고리즘 보완](#spfa-shortest-path-faster-algorithm---%EB%B2%A8%EB%A7%8C-%ED%8F%AC%EB%93%9C-%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98-%EB%B3%B4%EC%99%84)
-- [**최소 신장 트리 Minimum Spanning Tree**](#%EC%B5%9C%EC%86%8C-%EC%8B%A0%EC%9E%A5-%ED%8A%B8%EB%A6%AC-minimum-spanning-tree)
-    - [**Kruskal Algorithm 크루스칼 알고리즘**](#kruskal-algorithm-%ED%81%AC%EB%A3%A8%EC%8A%A4%EC%B9%BC-%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98)
-    - [**Prim 프림 알고리즘**](#prim-%ED%94%84%EB%A6%BC-%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98)
-    - [✋ Kruskal , Prim 차이점](#-kruskal--prim-%EC%B0%A8%EC%9D%B4%EC%A0%90)
-- [**LIS 최장 증가 부분 수열 알고리즘**](#lis-%EC%B5%9C%EC%9E%A5-%EC%A6%9D%EA%B0%80-%EB%B6%80%EB%B6%84-%EC%88%98%EC%97%B4-%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98)
-- [**Backtracking 백트래킹 특징**](#backtracking-%EB%B0%B1%ED%8A%B8%EB%9E%98%ED%82%B9-%ED%8A%B9%EC%A7%95)
+- [**재귀 Recursive 와 동적 프로그래밍 Dynamic Programming**](#재귀-recursive-와-동적-프로그래밍-dynamic-programming)
+  - [**상향식 접근법 (bottom-up approach)**](#상향식-접근법-bottom-up-approach)
+  - [**하향식 접근법 (top-down approach)**](#하향식-접근법-top-down-approach)
+  - [**반반 접근법 (half-and-half approach)**](#반반-접근법-half-and-half-approach)
+  - [**동적계획법 \& 메모이제이션**](#동적계획법--메모이제이션)
+    - [Recursive Fibo](#recursive-fibo)
+    - [하향식 동적 프로그래밍 (메모이제이션)](#하향식-동적-프로그래밍-메모이제이션)
+    - [상향식 동적 프로그래밍](#상향식-동적-프로그래밍)
+- [**최단경로 문제**](#최단경로-문제)
+  - [0-1BFS](#0-1bfs)
+  - [다익스트라 알고리즘](#다익스트라-알고리즘)
+  - [벨만-포드 알고리즘](#벨만-포드-알고리즘)
+    - [음수간선](#음수간선)
+  - [SPFA (Shortest Path Faster Algorithm) - `벨만-포드 알고리즘 보완`](#spfa-shortest-path-faster-algorithm---벨만-포드-알고리즘-보완)
+- [**최소 신장 트리 `Minimum Spanning Tree`**](#최소-신장-트리-minimum-spanning-tree)
+  - [**`Kruskal Algorithm` 크루스칼 알고리즘**](#kruskal-algorithm-크루스칼-알고리즘)
+  - [**`Prim` 프림 알고리즘**](#prim-프림-알고리즘)
+  - [✋ `Kruskal` , `Prim` 차이점](#-kruskal--prim-차이점)
+- [**`LIS` 최장 증가 부분 수열 알고리즘**](#lis-최장-증가-부분-수열-알고리즘)
+- [**`Backtracking` 백트래킹 특징**](#backtracking-백트래킹-특징)
 - [**Kadane’s Algorithm**](#kadanes-algorithm)
 - [**Floyd's Cycle Finding Algorithm**](#floyds-cycle-finding-algorithm)
-- [오일러 회로 Eulerian Circuit](#%EC%98%A4%EC%9D%BC%EB%9F%AC-%ED%9A%8C%EB%A1%9C-eulerian-circuit)
-- [오일러 경로 Eulerian Trail](#%EC%98%A4%EC%9D%BC%EB%9F%AC-%EA%B2%BD%EB%A1%9C-eulerian-trail)
+- [오일러 회로 `Eulerian Circuit`](#오일러-회로-eulerian-circuit)
+- [오일러 경로 `Eulerian Trail`](#오일러-경로-eulerian-trail)
 
 <!-- /TOC -->
 
@@ -302,57 +291,6 @@ int binarySearch(int[] nums, int target){
 
 - [문제 - K번째 큰 수](https://jdalma.github.io/docs/algorithm/javaAlgorithm/section4/#treeset-k%EB%B2%88%EC%A7%B8-%ED%81%B0-%EC%88%98-%EC%8B%A4%ED%8C%A8)
 
-## **TreeSet 선언**
-
-```java
-TreeSet<Integer> set1 = new TreeSet<Integer>();//TreeSet생성
-TreeSet<Integer> set2 = new TreeSet<>();//new에서 타입 파라미터 생략가능
-TreeSet<Integer> set3 = new TreeSet<Integer>(set1);//set1의 모든 값을 가진 TreeSet생성
-TreeSet<Integer> set4 = new TreeSet<Integer>(Arrays.asList(1,2,3));//초기값 지정
-```
-
-## **TreeSet 값 추가**
-- 입력되는 값이 TreeSet 내부에 존재하지 않는다면 그 값을 추가한 뒤 true를 반환하고
-- 내부에 값이 존재한다면 false를 반환한다.
-- 7,4,9,2,5를 차례대로 TreeSet에 저장한다면 아래와같은 과정을 거치게 된다.
-
-```java
-  TreeSet<Integer> set = new TreeSet<Integer>();//TreeSet생성
-  set.add(7); //값추가
-  set.add(4);
-  set.add(9);
-  set.add(2);
-  set.add(5);
-```
-
-![](../../assets/images/algorithm/section4/2.png)
-
-
-## **TreeSet 값 삭제**
-- 매개변수 value의 값이 존재한다면 그 값을 삭제한 후 true를 반환하고 없으면 false를 반환한다.
-
-```java
-TreeSet<Integer> set = new TreeSet<Integer>();//TreeSet생성
-set.remove(1);//값 1 제거
-set.clear();//모든 값 제거
-```
-
-## **TreeSet 값 출력**
-
-```java
-TreeSet<Integer> set = new TreeSet<Integer>(Arrays.asList(4,2,3));//초기값 지정
-System.out.println(set); //전체출력 [2,3,4]
-System.out.println(set.first());//최소값 출력
-System.out.println(set.last());//최대값 출력
-System.out.println(set.higher(3));//입력값보다 큰 데이터중 최소값 출력 없으면 null
-System.out.println(set.lower(3));//입력값보다 작은 데이터중 최대값 출력 없으면 null
-
-Iterator iter = set.iterator();	// Iterator 사용
-while(iter.hasNext()) {//값이 있으면 true 없으면 false
-    System.out.println(iter.next());
-}
-```
-
 ***
 
 # 우선순위 큐 **2.4.3 참조** 
@@ -360,15 +298,18 @@ while(iter.hasNext()) {//값이 있으면 true 없으면 false
 우선순위 큐는 **추상 데이터 타입의 전형적인 예**이다.  
 기본적인 큐나 스택의 사용 방법과 비슷하지만, 우선순위에 따른 동작을 효율적으로 구현하는 것은 좀 더 어렵다.  
 **스택/큐 구현과 대비해 우선순위 큐를 구현하는 것의 중요한 차이는 최악 조건에서 삽입 작업 또는 최대 키 값 항목 삭제 작업이 로그 시간 성능을 보이는 것이다.**  
-- 정렬을 삽입에 하거나 값을 꺼낼 때 하던 결국은 `N`이지만, 우선순위 큐로는 `logN`이 걸린다.
+- 배열을 이용한 기초적인 구현은 정렬을 삽입에 하거나 값을 꺼낼 때 하던 결국은 `N`이지만, 우선순위 큐로는 `logN`이 걸린다.
 - [Kth Largest Element in an Array](https://leetcode.com/problems/kth-largest-element-in-an-array/) 이 문제를 아래와 같은 방식으로 풀면
   - Runtime 346ms Beats 98.78%of users with Kotlin
   - Memory 49.84mb Beats 93.90%of users with Kotlin
   - 위와 같은 성능이 나온다.
 
-우선순위 큐의 기본 동작들을 효율적으로 할 수 있게 해주는 힙에 대해 알아보자.
+우선순위 큐의 기본 동작들을 효율적으로 할 수 있게 해주는 힙에 대해 알아보자.  
 
 ## **힙**
+
+> `N`개의 키를 가진 우선순위 큐에서, 힙의 삽입 작업은 `1 + logN`이하의 비교 연산을 소요하고, 최대 키 값 항목 삭제 작업은 `2 logn`이하의 비교 연산을 소요한다.
+
 - **`Complete Binary Tree` 완전 이진 트리 이다.**
 - **모든 노드에 저장된 값들은 자식 노드들의 것보다 크거나 같다.**
 - **일종의 반정렬 상태(느슨한 정렬 상태) 를 유지한다.**
@@ -387,7 +328,9 @@ while(iter.hasNext()) {//값이 있으면 true 없으면 false
 
 [출처](https://gmlwjd9405.github.io/2018/05/10/data-structure-heap.html)
 
-## **힙 복구 작업**
+- **배열 크기 조정**
+  - 삽입과 삭제에서 배열 사이즈를 확인하며 자동으로 조정하는 버전을 만들 수 있다.
+  - 로그 시간 성능 경곗값은 우선순위 큐의 크기가 임의적이고 배열의 크기가 변경되는 것은 **분할 상쇄 성능**이 된다. [2.4.22 참조](https://github.com/reneargento/algorithms-sedgewick-wayne/blob/master/src/chapter2/section4/Exercise22_ArrayResizing.java)
 
 ### **상향식 힙 복구(swim)**
 
