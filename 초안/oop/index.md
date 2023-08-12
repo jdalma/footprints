@@ -155,67 +155,83 @@ public class HashSet<E> extends AbstractSet<E>
 
 ![](abstract.png)
 
-위의 다이어그램에서 만약 `노래 부를 수 있는` 타입을 추가해야한다면 어떻게 해야할까?  
+추상 클래스를 사용하는 위의 다이어그램에서 만약 `노래 부를 수 있는` 타입을 추가해야한다면 어떻게 해야할까?  
 
 ![](abstract2.png)
 
 이와 같이 경우의 수는 2의 제곱으로 늘어나 복잡도가 기하급수적으로 높아진다.  
 이 문제는 **인터페이스의 `합성`, `인터페이스`, `위임`을 사용하는게 적절하다.**  
 
-
-
-그럼 어떤 경우에 상속이 사용되면 좋을까? **타입 계층 구조가 필요할 때 이다.**  
+![](interface.png)
 
 ```kotlin
-fun main() {
-    val animals = listOf(
-        Cat("고양이"),
-        Dog("강아지")
-    )
-    animals.forEach(Animal::bark)
+interface Flyable { fun fly() }
+interface Tweetable { fun tweet() }
+
+class FlyAbility : Flyable { override fun fly() = TODO("do fly") }
+class TweetAbility : Tweetable { override fun tweet() = TODO("do tweet") }
+
+class Pigeon() : Flyable, Tweetable {
+    private val flyAbility = FlyAbility()       // 합성
+    private val tweetAbility = TweetAbility()   // 합성
+
+    override fun fly() = flyAbility.fly()       // 위임
+    override fun tweet() = tweetAbility.tweet() // 위임
 }
 
-interface Greeting {
-    fun greet()
-}
+class Penguin() : Tweetable {
+    private val tweetAbility = TweetAbility()   // 합성
 
-abstract class Animal (val name: String) : Greeting {
-    override fun greet() = this.bark()
-    abstract fun bark()
-}
-
-class Cat( name: String ) : Animal(name) {
-    override fun bark() = println("Meow")
-}
-
-class Dog ( name: String ) : Animal(name) {
-    override fun bark() = println("Woof")
+    override fun tweet() = tweetAbility.tweet() // 위임
 }
 ```
 
-`Greeting`으로 행위를 일반화하고, `Animal`의 구현 계층 구조에서 행위를 구현하였다.  
+이론적으로는 `is-a`관계는 합성과 인터페이스의 `has-a`관계로 대체될 수 있고,  
+다형성은 인터페이스를 사용하여 달성할 수 있으며,  
+코드 재사용은 합성과 위임으로 대체할 수 있다.  
+  
+그럼 어떤 경우에 상속이 사용되면 좋을까? **타입 계층 구조가 필요할 때 이다.**  
+
+```kotlin
+interface Flyable { fun fly() }
+interface Tweetable { fun tweet() }
+
+abstract class Bird (val name: String) : Flyable, Tweetable
+
+class Pigeon() : Bird("비둘기") {
+    override fun fly() = TODO()
+    override fun tweet() = TODO()
+}
+
+class Penguin() : Bird("펭귄") {
+    override fun fly() = throw OperationNotSupportedException()
+    override fun tweet() = TODO()
+}
+```
+
+인터페이스로 행위를 일반화하고, 추상 클래스로 계층 구조를 나누었고, 구현 계층에서 행위를 구현하였다.  
 계층 구조를 만들게 되면
 1. 인지적인 카테고리를 제공한다.
 2. 특정 계층의 타입에만 해당 기능을 제공할 수 있다.
   
-`"저런 구조는 인터페이스로도 가능하지 않나?"`, `"추상 계층의 내부 속성만 각 구현 계층으로 내리면 인터페이스로도 가능하지 않나?"` 맞는 말이다.  
+`"저런 구조는 인터페이스로도 가능하지 않나?"`, `"추상 계층의 내부 속성만 각 구현 계층으로 내리면 인터페이스로도 가능하지 않나?"`  
+맞는 말이다.  
   
 인터페이스에서 기본 메서드와 속성을 정의할 수 있긴 하지만(재차 강조하지만) 인터페이스의 본래 속성은 **프로토콜 또는 규약의 집합으로, 사용자에게 제공되는 기능의 목록**이다.  
   
 > [What's New in JDK 8](https://www.oracle.com/java/technologies/javase/8-whats-new.html)에서 인터페이스의 기본 메서드를 설명한다.  
 > "Default methods enable new functionality to be added to the interfaces of libraries and ensure binary compatibility with code written for older versions of those interfaces."  
 > **"기본 메서드를 사용하면 새 기능을 라이브러리 인터페이스에 추가할 수 있고 해당 인터페이스의 이전 버전용으로 작성된 코드와의 이진 호환성을 보장할 수 있습니다."** 라고 설명한다.  
-
+  
 내가 느끼기엔 "자 인터페이스에 기본 메서드로 구현 메서드를 작성할 수 있으니 적극 활용하세요."라는 느낌이 아니라 기존에 인터페이스로 개발된 곳을 어쩔 수 없이 API를 수정해야 한다면 기본 메서드를 **고려**해보라고 느껴진다.  
 **인터페이스 정의는 구현 세부 정보를 노출하지 않고, 구체적인 수행 방법이 아닌, 어떤 작업을 수행하는지만 고려해야 하기 때문이다.**  
   
-
 # **Getter와 Setter 남용**
 
 객체지향 프로그래밍 언어를 사용하여 모든 코드를 클래스에 넣기만 하면 그것이 바로 객체지향 프로그래밍이라고 생각하지만 절차지향 프로그래밍 스타일로 작성한 경우가 대부분일 것이다.  
 예를 들어, 많은 비즈니스 로직을 `Service` 계층에 몰아넣고 객체지향이다 라고 말하는 것과 같이 말이다.  
 대부분의 백엔드 개발자들은 (표현 계층, 논리 계층, 데이터 계층) MVC 아키텍처에 익숙하여 **빈약한 도메인 모델**을 의식하지 못하며 개발한다.  
-
+  
 ![](domainModel.png)
 - [이미지 출처 `KSUG` 대규모 엔터프라이즈 시스템 개선 경험기 - 2부 -](https://www.youtube.com/watch?v=u_y6UGzOPUk&ab_channel=SpringCampbyKSUG)
 
@@ -224,27 +240,48 @@ class Dog ( name: String ) : Animal(name) {
 > 2. Service 클래스는 여러 도메인 모델의 비즈니스 논리를 결합한다.  
 > 3. Service 클래스는 기능과 무관한 타 시스템과의 상호 작용을 담당한다.
   
-개발하는 시스템의 비즈니스가 비교적 단순할때는 굳이 복잡한 풍부한 도메인 모델을 설계하기 보다는 빈약한 도메인 모델이 더 적합하다.  
-하지만 복잡한 시스템일때 많은 개발자들이 풍부한 도메인 모델을 잘 설계하고 있진 않을 것이다.  
-**풍부한 도메인 모델은 설계하기가 훨씬 까다롭고, 빈약한 도메인 모델을 기반으로 하는 전통적인 개발 방식은 수년 동안 사용되어 왔고 대부분의 개발자에게 단단하게 박혀 있기 때문에 쉽게 적용하기에는 힘들 것이다.**  
+**풍부한 도메인 모델**은 데이터와 비즈니스 논리가 하나의 클래스에 포함되며 전형적인 객체지향 프로그래밍에 속한다.  
+즉, `Service`에 비즈니스 로직을 작성하는 것이 아니라 각 `도메인 모델`에 책임을 부여하는 것이다.  
+이에 기반한 **DDD** 개발방식은 **비즈니스 시스템을 분리하고, 비즈니스 모듈을 분할하고, 비즈니스 도메인 모델과 상호 작용을 정의하는 방법을 설계할 때 사용된다.**  
+DDD를 잘 하기 위한 핵심은 비즈니스에 익숙하지 않으면 합리적인 도메인 설계를 얻을 수 없기 때문에 DDD의 개념을 공부하고 익히는 것이 아니라 **비즈니스에 친숙해지는 것이다.**  
+  
+그리고 많은 백엔드 개발자들은 `Setter`는 열심히 막으려 하지만 `Getter`는 합리화한다. (나도 그렇다.)  
+도메인 모델의 속성이 객체일 때 클라이언트 코드가 참조한다면 신경써야할 것이 많다.  
+예를 들어, 컬렉션 내에있는 객체를 수정한다면? 수정할 수 없는 불변 컬렉션이였지만 가변 컬렉션으로 캐스팅하여 수정한다면?  
+**객체 전파**, **방어적 복사**, **앨리어싱 에러**들도 고려해야 한다.  
   
 시스템이 복잡할수록 코드 재사용성과 유지 관리 용이성에 대한 요구 사항은 점점 높아지기 때문에 초기 설계에 더 많은 시간과 에너지를 투자하여 **풍부한 도메인 모델에 기반한 DDD 개발 방식에 익숙해져야 할 것이다.**  
 
-
 # **결론**
 
+<h3>합성을 사용할지 상속을 사용할지?</h3>  
+
+합성을 더 많이 사용하고 상속을 덜 사용하도록 권장하지만, 언제나 합성이 옳은것도 아니고 상속이 항상 쓸모없는 것도 아니다.  
+클래스 간의 상속 구조가 안정적이어서 쉽게 변경되지 않고 상속 단계가 2단계 이하로 비교적 얕아 상속 관계가 복잡하지 않다면 과감하게 **상속**을 사용할 수 있다.  
+또한, 콘크리트 클래스의 특정 함수를 재정의하려 할 때도 **상속**을 사용할 수 있다.
+반대로 시스템이 불안정하고 상속 계층이 깊고 복잡하면 **합성**을 사용해야 한다.  
+  
+<h3>객체지향 프로그래밍? 풍부한 도메인 모델?</h3>  
+
+항상 객체지향 프로그래밍이 옳지만은 않다.  
+요구사항이 간단하고 전체적인 작업 흐름이 가지를 뻗어나가지 않고 고정된 형태를 띄는 경우에는 절차지향 프로그래밍이 적절할 수 있다.  
+그리고 개발하는 시스템의 비즈니스가 비교적 단순할때는 굳이 복잡한 풍부한 도메인 모델을 설계하기 보다는 빈약한 도메인 모델이 더 적합하다.  
+하지만 복잡한 시스템일때 많은 개발자들이 풍부한 도메인 모델을 쉽게 적용할 수 있진 않을 것이다.  
+**풍부한 도메인 모델은 설계하기가 훨씬 까다롭고, 빈약한 도메인 모델을 기반으로 하는 전통적인 개발 방식은 수년 동안 사용되어 왔고 대부분의 개발자에게 단단하게 박혀 있기 때문에 쉽게 적용하기에는 힘들 것이다.**  
+  
+<h3>결국엔?</h3>  
+
+기술이나 방법론에는 정답이 없다.  
+내가 처해있는 상황을 철저하게 분석하고 어떤 방법이 더 옳은지 판단하여 최선의 방법을 선택해야 한다.  
+그리고 이런 내용을 배웠다고 해서 팀내 컨벤션을 고려하지 않고 팀원들과 충분한 협의 없의는 적용해서는 안될 것이다.  
+  
 ![](repeat.png)
 - [이미지 출처 `KSUG` 대규모 엔터프라이즈 시스템 개선 경험기 - 1부 -](https://www.youtube.com/watch?v=UwAoUshVpgM&ab_channel=SpringCampbyKSUG)
 
-
-
-***
-
-인터페이스는 기능 단위로 분리된 인터페이스 여러 개를 구현하면 **단일책임규칙을 위반할 위험**이 있다.  
-
-> "중복 코들를 추상화하여 끄집어내는 것은 **DRY(Don't Repeat Yourself)**를 사용하는 좋은 출발점이지만, 그것이 전부는 아닙니다."  
-> "여러분이 중복 코드를 피하려고 하는 것은 사실 각 **기능과 요구사항을 한 번만 구현**하려고 노력하는 것입니다."  
+> "중복 코드를 추상화하여 끄집어내는 것은 **DRY(Don't Repeat Yourself)** 를 사용하는 좋은 출발점이지만, 그것이 전부는 아닙니다."  
+> "여러분이 중복 코드를 피하려고 하는 것은 사실 각 **기능과 요구사항을 한 번만 구현** 하려고 노력하는 것입니다."  
 > - Head First Object Oriented Analysis & Design
 
-코드에 매몰되지 말고 API에 집중해서 API의 책임이 중복되지 않게 신경써야 한다.  
+중복된 코드에 매몰되지 말고 API에 집중해서 API의 책임이 중복되지 않게 꾸준히 신경써야 하며, 고품질 코드에 대한 책임과 끈기를 가져야 할 것이다.  
+그리고 스스로의 안목을 키우기 위해 꾸준한 학습은 필수이다.  
 
