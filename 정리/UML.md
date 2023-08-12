@@ -81,7 +81,7 @@ public class Outer {
 
 ```mermaid
 classDiagram
-    classG --> classH : Association
+    Outer --> Inner : Association
 ```
 ```java
 public class Outer {
@@ -107,7 +107,7 @@ public class Outer {
 
 ```mermaid
 classDiagram
-    classK ..> classL : Dependency
+    Outer ..> Inner : Dependency
 ```
 ```java
 public class Outer {
