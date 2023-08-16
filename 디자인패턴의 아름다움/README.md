@@ -207,7 +207,10 @@
     - 특정 개인의 취향 또는 판단 (혹은 수준)
     - 남이 쓴다는 이유
     - KISS 원칙 기준은 주관적일 수 밖에 없기 때문에 개인적인 차원으로 느껴진다. 그래서 범용화하고 공용화하려 비용과 에너지를 들이지 않겠다.
-    - YAGNI 원칙은
+    - YAGNI 원칙은 도메인 문제로 느껴진다.
+  - **어려운 코드의 제약은 어느 수준의 레이어까지 적용하나?**
+    - 기저 레이어의 c++로 된 JNI 모듈도 자바로 고치나?
+    - 성능이 중요해지면 기준은 바뀌나?
 - **읽어보기**
   - [Thread exception handler](https://github.com/HomoEfficio/dev-tips/blob/master/Java-Thread%EB%82%B4%EC%97%90%EC%84%9C-%EB%B0%9C%EC%83%9D%ED%95%9C-Exception-%EC%B2%98%EB%A6%AC.md)
 
