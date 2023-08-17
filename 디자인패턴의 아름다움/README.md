@@ -211,6 +211,10 @@
   - **어려운 코드의 제약은 어느 수준의 레이어까지 적용하나?**
     - 기저 레이어의 c++로 된 JNI 모듈도 자바로 고치나?
     - 성능이 중요해지면 기준은 바뀌나?
+  - LoD안에 디미터의 법칙
+    - LoD : 알 것만 알아라
+    - 디미터의 법칙 : 의도치 않게 의존성이 노출될 수 있으니 조심해라
+  - 양방향은 제어할 수 없다. **의존성을 단방향으로만 흐르게 해라**
 - **읽어보기**
   - [Thread exception handler](https://github.com/HomoEfficio/dev-tips/blob/master/Java-Thread%EB%82%B4%EC%97%90%EC%84%9C-%EB%B0%9C%EC%83%9D%ED%95%9C-Exception-%EC%B2%98%EB%A6%AC.md)
 
