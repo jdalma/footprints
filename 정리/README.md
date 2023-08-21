@@ -40,7 +40,6 @@
 - [Java G1 GC](https://kwonnam.pe.kr/wiki/java/g1gc)
 - [`joosing` Java,Heap Memory 증가 현상 분석](https://velog.io/@joosing/Java-heap-memory-growth-analysis)
 - [`johngrib` Java 버전별 변경점](https://johngrib.github.io/wiki/java/enhancements/)
-- [`compareTo`를 재정의하면 왜 `equals`도 재정의 해야할까?](https://ohtaeg.tistory.com/3)
 - [Java 클래스 파일 내부의 상수 풀 이해](https://blogs.oracle.com/javamagazine/post/java-class-file-constant-pool)
 - [javap](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javap.html)
 
@@ -52,6 +51,13 @@
 ## Java
 
 - [DTO를 다시 생각해보자](https://blog.scottlogic.com/2020/01/03/rethinking-the-java-dto.html)
+- [`compareTo`를 재정의하면 왜 `equals`도 재정의 해야할까?](https://ohtaeg.tistory.com/3)
+
+## Kotlin
+
+- [에러 핸들링을 다른 클래스에게 위임하기](https://toss.tech/article/kotlin-result)
+- [Kotlin의 Extension은 어떻게 동작하는가 part 3](https://medium.com/til-kotlin-ko/kotlin%EC%9D%98-extension%EC%9D%80-%EC%96%B4%EB%96%BB%EA%B2%8C-%EB%8F%99%EC%9E%91%ED%95%98%EB%8A%94%EA%B0%80-part-3-587cc37e7337)
+- [DSL로 코드 짧게 만들기](https://www.bsidesoft.com/7795)
 
 ## Spring
 

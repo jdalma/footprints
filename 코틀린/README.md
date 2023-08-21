@@ -16,6 +16,7 @@
 - [**코틀린에서의 원시 타입은?**](#%EC%BD%94%ED%8B%80%EB%A6%B0%EC%97%90%EC%84%9C%EC%9D%98-%EC%9B%90%EC%8B%9C-%ED%83%80%EC%9E%85%EC%9D%80)
 - [**익명 함수와 람다** 📌](#%EC%9D%B5%EB%AA%85-%ED%95%A8%EC%88%98%EC%99%80-%EB%9E%8C%EB%8B%A4-)
     - [**클로저와 값 포획**](#%ED%81%B4%EB%A1%9C%EC%A0%80%EC%99%80-%EA%B0%92-%ED%8F%AC%ED%9A%8D)
+    - [**코틀린의 클로저**](#%EC%BD%94%ED%8B%80%EB%A6%B0%EC%9D%98-%ED%81%B4%EB%A1%9C%EC%A0%80)
 - [**클래스에 대해**](#%ED%81%B4%EB%9E%98%EC%8A%A4%EC%97%90-%EB%8C%80%ED%95%B4)
 - [**뒷받침하는 필드와 뒷받침하는 프로퍼티**](#%EB%92%B7%EB%B0%9B%EC%B9%A8%ED%95%98%EB%8A%94-%ED%95%84%EB%93%9C%EC%99%80-%EB%92%B7%EB%B0%9B%EC%B9%A8%ED%95%98%EB%8A%94-%ED%94%84%EB%A1%9C%ED%8D%BC%ED%8B%B0)
 - [**지연 초기화 프로퍼티**](#%EC%A7%80%EC%97%B0-%EC%B4%88%EA%B8%B0%ED%99%94-%ED%94%84%EB%A1%9C%ED%8D%BC%ED%8B%B0)
@@ -501,6 +502,127 @@ Int 하나를 파라미터로 받아서 Int 타입의 결과를 내어주는 함
   
 > 함수가 상태를 계속 유지할 수 있다는 것이 신기하다. 이 람다의 참조가 유지되는 한 상태는 계속 유지되겠지?  
 > 그리고 람다 밖의 변수도 참조가 유지되어야 하기 때문에 힙 영역에 저장하는것도 신기하다.
+
+## **코틀린의 클로저**
+
+이전 입력을 저장하는 (반환 타입 람다 외부의 지역변수를 참조하는) 클로저를 예제로 만들어보자.  
+- `0이면 기억된 값을 반환`
+- `0이 아니면 기억된 값을 반환하고, 그 값을 저장`
+
+```
+// 코틀린
+class KotlinFunction {
+    fun memoryClosure(param: Int) : (Int) -> Int {
+        var memory = param
+        return { param2 ->
+            when (param2) {
+                0 -> memory
+                else -> {
+                    val tmp = memory
+                    memory = param2
+                    tmp
+                }
+            }
+        }
+    }
+}
+
+fun main() {
+    val closure: (Int) -> Int = KotlinFunction().memoryClosure(10)
+    println(closure(0))
+}
+```
+
+```java
+// 자바
+public final class KotlinFunction {
+   @NotNull
+   public final Function1 memoryClosure(int param) {
+      final Ref.IntRef memory = new Ref.IntRef();
+      memory.element = param;
+      return (Function1)(new Function1() {
+         // $FF: synthetic method
+         // $FF: bridge method
+         public Object invoke(Object var1) {
+            return this.invoke(((Number)var1).intValue());
+         }
+
+         public final int invoke(int param2) {
+            int var10000;
+            switch (param2) {
+               case 0:
+                  var10000 = memory.element;
+                  break;
+               default:
+                  int tmp = memory.element;
+                  memory.element = param2;
+                  var10000 = tmp;
+            }
+
+            return var10000;
+         }
+      });
+   }
+}
+
+public final class KotlinFunctionKt {
+   public static final void main() {
+      new KotlinFunction();
+      Function1 closure = (new KotlinFunction()).memoryClosure(10);
+      int var2 = ((Number)closure.invoke(0)).intValue();
+      System.out.println(var2);
+   }
+}
+```
+  
+자바 코드로 디컴파일한 `memoryClosure()` 메소드를 보면 람다 외부로 지정된 `memory` 변수 참조를 유지하기 위해 `Ref` 클래스로 선언한 것을 제외하곤 큰 차이점은 없다.  
+위의 클로저 함수를 자바로 작성해보자.  
+- `MemoryClousre` 함수형 인터페이스의 구현을 통해 `ClousreFunction`을 반환
+  
+```java
+@FunctionalInterface
+public interface MemoryClosure {
+    ClosureFunction invoke(int value);
+}
+
+@FunctionalInterface
+public interface ClosureFunction {
+    Integer invoke(Integer value);
+}
+
+public class Program {
+    public static void main(String[] args) {
+        MemoryClosure closure = new MemoryClosure() {
+            @Override
+            public ClosureFunction invoke(int param) {
+                final Integer[] memory = {param};
+                return new ClosureFunction() {
+                    @Override
+                    public Integer invoke(Integer value2) {
+                        Integer result;
+                        if (value2 == 0) {
+                            result = memory[0];
+                        } else {
+                            Integer tmp = memory[0];
+                            memory[0] = value2;
+                            result = tmp;
+                        }
+                        return result;
+                    }
+                };
+            }
+        };
+
+        ClosureFunction function = closure.invoke(10);
+        System.out.println(function.invoke(0));
+        System.out.println(function.invoke(11));
+        System.out.println(function.invoke(12));
+        // 10
+        // 10
+        // 11
+    }
+}
+```
 
 # **클래스에 대해**
 
