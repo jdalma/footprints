@@ -52,6 +52,7 @@
 
 - [DTO를 다시 생각해보자](https://blog.scottlogic.com/2020/01/03/rethinking-the-java-dto.html)
 - [`compareTo`를 재정의하면 왜 `equals`도 재정의 해야할까?](https://ohtaeg.tistory.com/3)
+- [코틀린 코루틴 번역문](https://kotlinworld.com/notice/447)
 
 ## Kotlin
 
