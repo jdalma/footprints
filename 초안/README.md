@@ -14,3 +14,5 @@
    4. 그리고 왜 `rname`으로 변환되는지 확인하기
 6. jackson TypeReference
 7. [On the priority of JsonCreator and Constructor](https://github.com/FasterXML/jackson-module-kotlin/issues/514)
+8. `compareTo`로 동등성을 확인하는 자료구조가 존재하기 때문에 Comparable을 구현한다면 equals도 재정의해야한다. 그냥 Comparator를 정의해서 파라미터로 넣는것이 문제가를 덜 일으키는 방법일듯
+   1. PriorityQueue 와 SortedMap, SortedSet 인터페이스 위주로 비교해보면 좋을듯
