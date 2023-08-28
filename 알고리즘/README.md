@@ -631,3 +631,16 @@ F - 5
       - DFA 시뮬레이션
     - 보이어-무어(Boyer Moore) 부분 문자열 탐색
     - 라빈-카프(Rabin-Karp) 지문(fingerprint) 탐색
+  - 정규 표현식 [풀기](https://leetcode.com/problems/regular-expression-matching/)
+    - 비결정적 유한 상태 오토마타
+    - NFA 시뮬레이션
+  - 데이터 압축 [풀기](https://leetcode.com/problems/string-compression/)
+    - ASCII 인코딩
+    - 유전체학
+    - 반복-길이 인코딩
+    - 허프만 압축
+      - 유일-접두어 코드
+    - LZW 압축
+
+
+- 유일 접두어 코드에서 트라이를 사용하고, 성급한 프림 알고리즘에서 인덱스로 접근 가능한 우선순위 큐를 사용하는 것처럼
