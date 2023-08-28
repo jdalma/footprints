@@ -158,6 +158,12 @@ private void exception(
 
 // ApplicationFilterChain 시각화하기
 
+## OnceRerRequestFilter
+
+> 모든 서블릿 컨테이너에서 요청 디스패치당 단일 실행을 보장하는 것을 목표로 하는 필터 기본 클래스입니다.
+
+// 테스트 해보기
+
 # DispatcherServlet
 
 # Interceptor
