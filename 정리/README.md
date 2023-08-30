@@ -107,3 +107,4 @@
 - [Git 사용 가이드](https://tech.10000lab.xyz/archive.html?tag=Git+%EC%82%AC%EC%9A%A9+%EA%B0%80%EC%9D%B4%EB%93%9C)
 - [결제 요청, 인증, 승인… 이게 다 뭔가요?](https://velog.io/@tosspayments/%EA%B2%B0%EC%A0%9C-%EC%9A%94%EC%B2%AD-%EC%9D%B8%EC%A6%9D-%EC%8A%B9%EC%9D%B8-%EC%9D%B4%EA%B2%8C-%EB%8B%A4-%EB%AD%94%EA%B0%80%EC%9A%94)
 - [howhttps works](https://howhttps.works/ko/)
+- [Armeria About the blockingTaskExecutor](https://github.com/line/armeria/issues/2694)
