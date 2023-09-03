@@ -1,6 +1,4 @@
 
-1. 서비스 로케이터 패턴
-
 # 링크 모아놓기
 
 - [highscalability - 영어이지만,유용한 기술 글들이 많음](http://highscalability.com/all-time-favorites/)
@@ -15,44 +13,10 @@
 
 ## 네트워크
 
-- [`baeldung` RST flag](https://www.baeldung.com/cs/tcp-ip-reset-flag)
-- [gRPC over HTTP2](https://github.com/grpc/grpc/blob/master/doc/PROTOCOL-HTTP2.md)
-- [`RFC7540` HTTP/2.0](https://httpwg.org/specs/rfc7540.html#FrameHeader)
-
-## Redis
-
-- [Redis Cluster](https://blog.magical.dev/redis-cluster)
-- [Sentinel](https://redis.io/docs/management/sentinel/)
-- [Redis Cluster Spec](https://redis.io/docs/reference/cluster-spec/)
-
-## Docker
-
-- [Docker 시작하기](https://medium.com/dtevangelist/docker-%EC%8B%9C%EC%9E%91%ED%95%98%EA%B8%B0-f930c5484f71)
-- [Docker 기본](https://medium.com/dtevangelist/docker-%EA%B8%B0%EB%B3%B8-1-8-hello-docker-5165abd00a3d)
-- [`udemy` Docker & Kubernetes : 실전 가이드](https://www.udemy.com/course/docker-kubernetes-2022/)
-- [Docker Swarm을 이용한 쉽고 빠른 분산 서버 관리](https://subicura.com/2017/02/25/container-orchestration-with-docker-swarm.html)
-
-## JVM
-
-- [Java HotSpot VM G1GC](https://johngrib.github.io/wiki/java-g1gc/)
-- [일반적인 GC 내용과 G1GC (Garbage-First Garbage Collector) 내용](https://thinkground.studio/%EC%9D%BC%EB%B0%98%EC%A0%81%EC%9D%B8-gc-%EB%82%B4%EC%9A%A9%EA%B3%BC-g1gc-garbage-first-garbage-collector-%EB%82%B4%EC%9A%A9/)
-- [JVM과 Garbage Collection - G1GC vs ZGC](https://huisam.tistory.com/entry/jvmgc)
-- [Java G1 GC](https://kwonnam.pe.kr/wiki/java/g1gc)
-- [`joosing` Java,Heap Memory 증가 현상 분석](https://velog.io/@joosing/Java-heap-memory-growth-analysis)
-- [`johngrib` Java 버전별 변경점](https://johngrib.github.io/wiki/java/enhancements/)
-- [Java 클래스 파일 내부의 상수 풀 이해](https://blogs.oracle.com/javamagazine/post/java-class-file-constant-pool)
-- [javap](https://docs.oracle.com/en/java/javase/17/docs/specs/man/javap.html)
-
-## REST
-
-- [REST API는 어떻게 만들어야 하는가?](https://codesoom.github.io/wiki/api-design/03/)
-- [`aws` RESTful API란 무엇입니까?](https://aws.amazon.com/ko/what-is/restful-api/)
-
-## Java
-
 - [DTO를 다시 생각해보자](https://blog.scottlogic.com/2020/01/03/rethinking-the-java-dto.html)
 - [`compareTo`를 재정의하면 왜 `equals`도 재정의 해야할까?](https://ohtaeg.tistory.com/3)
 - [코틀린 코루틴 번역문](https://kotlinworld.com/notice/447)
+- [Thread Exception](https://github.com/HomoEfficio/dev-tips/blob/master/Java-Thread%EB%82%B4%EC%97%90%EC%84%9C-%EB%B0%9C%EC%83%9D%ED%95%9C-Exception-%EC%B2%98%EB%A6%AC.md)
 
 ## Kotlin
 
