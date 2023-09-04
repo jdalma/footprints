@@ -443,6 +443,9 @@ List<Apple> heavierThan150g = filter(inventory , (Apple apple) -> apple.getWeigh
 
 ![](./imgs/lambdaExpression/lambdaExpressionValidation.png)
 
+- 대상 형삭 : `Predicate<Apple>`
+- 함수 디스크립터 : `(Apple) -> Boolean`
+
 ## 같은 람다 , 다른 함수형 인터페이스
 
 - **대상 형식**이라는 특징 때문에 같은 람다 표현식이더라도 호환되는 추상 메서드를 가진 다른 함수를 인터페이스로 사용될 수 있다.
@@ -844,3 +847,4 @@ Function<String , String> transformationPipeline =
 - 실행 어라운드 패턴 *(자원의 할당 , 자원 정리 등 코드 중간에 실행해야 하는 메서드에 꼭 필요한 코드)*을 람다와 활용하면 유연성과 재사용성을 얻을 수 있다.
 - 람다 표현식의 기대 형식을 **대상 형식** 이라고 한다.
 - **메서드 참조를 이용하면 기존의 메서드 구현을 재사용하고 직접 전달할 수 있다.**
+- 자바에서 제공되는 함수형 인터페이스의 추상 메서드들은 체크 예외를 `throws`하고 있지 않기 때문에 직접 `throws`를 하는 추상 메서드를 가진 함수형 인터페이스를 선언하던지, 람다 구현에서 `try/catch`를 선언해줘야 한다.
