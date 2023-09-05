@@ -51,3 +51,6 @@ iterator에 한 개의 구현체가 존재함. 이 구현체가 주입기인듯
 
 - `@Async` 적용 함수는 왜 꼭 Public이어야 하지? 상속을 통해서 프록시로 만들어서 그러는 것 같은데 자세한 조사를 해봐야할듯
   - 같은 클래스에 있는 함수에 `@Async`를 적용하면 안됨, A.client()에서 `@Async`가 붙은 A.validate() 함수 호출해도 적용안됨
+- BeanFactory 후처리기를 통해서 빈을 등록하고 컨트롤러에서 주입받으려 하였지만 컨트롤러가 먼저 빈으로 등록되어서 주입시점에 빈을 찾을 수 없음
+  - 빈 등록 순서를 확인할 필요가 있음
+  - ConfigurableListableBeanFactory를 필드로 주입받던, BeanFactoryPostProcessor를 구현하던 똑같음
