@@ -54,3 +54,5 @@ iterator에 한 개의 구현체가 존재함. 이 구현체가 주입기인듯
 - BeanFactory 후처리기를 통해서 빈을 등록하고 컨트롤러에서 주입받으려 하였지만 컨트롤러가 먼저 빈으로 등록되어서 주입시점에 빈을 찾을 수 없음
   - 빈 등록 순서를 확인할 필요가 있음
   - ConfigurableListableBeanFactory를 필드로 주입받던, BeanFactoryPostProcessor를 구현하던 똑같음
+- 스프링 AOP의 인터페이스 캐싱 기능
+  - `http://www.***.com/user?cached=true`처럼 캐싱을 지원하는 필드가 있으면 메모리 캐시나 Redis 캐시 등에서 데이터를 가져와 직접 반환한다.

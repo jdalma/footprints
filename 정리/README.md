@@ -1,18 +1,18 @@
 
-# 링크 모아놓기
+<!-- TOC -->
 
-- [highscalability - 영어이지만,유용한 기술 글들이 많음](http://highscalability.com/all-time-favorites/)
+- [링크 모아놓기](#%EB%A7%81%ED%81%AC-%EB%AA%A8%EC%95%84%EB%86%93%EA%B8%B0)
+    - [패턴에 대한 이야기](#%ED%8C%A8%ED%84%B4%EC%97%90-%EB%8C%80%ED%95%9C-%EC%9D%B4%EC%95%BC%EA%B8%B0)
+    - [NIO와 RPC 관련](#nio%EC%99%80-rpc-%EA%B4%80%EB%A0%A8)
+    - [네트워크](#%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%81%AC)
+    - [Kotlin](#kotlin)
+    - [Spring](#spring)
+    - [JPA](#jpa)
+    - [알고리즘](#%EC%95%8C%EA%B3%A0%EB%A6%AC%EC%A6%98)
+    - [이벤트 기반 아키텍처](#%EC%9D%B4%EB%B2%A4%ED%8A%B8-%EA%B8%B0%EB%B0%98-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98)
+    - [Etc](#etc)
 
-## 패턴에 대한 이야기
-
-- [Facade](https://springframework.guru/gang-of-four-design-patterns/facade-pattern/)
-
-## NIO와 RPC 관련
-
-- [Spring WebFlux와 Armeria를 이용하여 Microservice에 필요한 Reactive + RPC 동시에 잡기](https://d2.naver.com/helloworld/6080222)
-
-## 네트워크
-
+<!-- /TOC -->
 - [DTO를 다시 생각해보자](https://blog.scottlogic.com/2020/01/03/rethinking-the-java-dto.html)
 - [`compareTo`를 재정의하면 왜 `equals`도 재정의 해야할까?](https://ohtaeg.tistory.com/3)
 - [코틀린 코루틴 번역문](https://kotlinworld.com/notice/447)
@@ -58,6 +58,7 @@
 
 ## Etc
 
+- [무엇이 탁월한 개발자를 만드는가](https://steady-study.super.site/what-makes-a-great-software-engineer)
 - [MySQL "swap insanity" 문제와 NUMA 아키텍처의 영향](https://blog.jcole.us/2010/09/28/mysql-swap-insanity-and-the-numa-architecture/)
 - [`martinfowler` CircuitBreaker](https://martinfowler.com/bliki/CircuitBreaker.html)
 - [마이크로서비스 패턴: 핵심패턴만 빠르게 이해하기](https://happycloud-lee.tistory.com/m/154?category=902418)
