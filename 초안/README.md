@@ -1,18 +1,9 @@
 # Item
+<!-- TOC -->
 
-- `Collections.synchronizedMap`과 `ConcurrentHashMap` 차이
-   - mutex로 한 개씩 락을 거는 방법과 Lock Striping에 대한 이해
-- [LXC 및 LXD: Linux 컨테이너 설명](https://www.sumologickorea.com/blog/lxc-lxd-linux-containers/)
-   - [`RedHat` Linux 컨테이너란?](https://www.redhat.com/ko/topics/containers/whats-a-linux-container)
-   - Docker의 차이
-- `@ConfigurationPropertiesScan`, `@EnableConfigurationProperties`, `@EnableAutoConfiguration`
-- `@Transactional` 샅샅이 파헤쳐보기
-- JSON 직렬화 시 표준에 맞지 않는 네이밍이면 ??
-   - `rName` -> `rname`으로 변환된다.
-   - [참고](https://unhosted.tistory.com/82)
-   - kotlin에서 필드에 `@JsonProperty`가 왜 안먹힐까?
-   - 그리고 왜 `rname`으로 변환되는지 확인하기
-- jackson TypeReference
+- [Item](#item)
+
+<!-- /TOC -->eReference
 - [On the priority of JsonCreator and Constructor](https://github.com/FasterXML/jackson-module-kotlin/issues/514)
 - `compareTo`로 동등성을 확인하는 자료구조가 존재하기 때문에 Comparable을 구현한다면 equals도 재정의해야한다. 그냥 Comparator를 정의해서 파라미터로 넣는것이 문제가를 덜 일으키는 방법일듯
    - PriorityQueue 와 SortedMap, SortedSet 인터페이스 위주로 비교해보면 좋을듯
