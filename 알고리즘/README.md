@@ -1,55 +1,4 @@
 
-<!-- TOC -->
-
-- [**알고리즘을 왜 하고, 얼마나 깊게 해야할까**](#알고리즘을-왜-하고-얼마나-깊게-해야할까)
-- [**`Binary Search` 이분,이진 탐색**](#binary-search-이분이진-탐색)
-  - [Basic Template](#basic-template)
-- [**그래프**](#그래프)
-  - [**인접 리스트**](#인접-리스트)
-  - [**인접 행렬**](#인접-행렬)
-  - [**그래프 탐색**](#그래프-탐색)
-    - [깊이 우선 탐색 (DFS)](#깊이-우선-탐색-dfs)
-    - [넓이 우선 탐색 (BFS)](#넓이-우선-탐색-bfs)
-    - [양방향 탐색](#양방향-탐색)
-- [**트리**](#트리)
-  - [**이진 트리 (Binary Tree)**](#이진-트리-binary-tree)
-  - [**이진 탐색 트리 (Binary Search Tree)**](#이진-탐색-트리-binary-search-tree)
-  - [**완전 이진 트리 (Complete Binary Search)**](#완전-이진-트리-complete-binary-search)
-  - [**전 이진 트리 (Full Binary Tree)**](#전-이진-트리-full-binary-tree)
-  - [**포화 이진 트리 (Perfect Binary Tree)**](#포화-이진-트리-perfect-binary-tree)
-  - [**이진 트리 순회**](#이진-트리-순회)
-    - [중위 순회 (in-order traversal)](#중위-순회-in-order-traversal)
-    - [전위 순회 (pre-order traversal)](#전위-순회-pre-order-traversal)
-    - [후위 순회 (post-order traversal)](#후위-순회-post-order-traversal)
-  - [**이진 힙 (최소 힙)**](#이진-힙-최소-힙)
-- [균형 탐색 트리](#균형-탐색-트리)
-  - [`2-3` 탐색 트리](#2-3-탐색-트리)
-  - [레드 블랙 트리](#레드-블랙-트리)
-- [**트라이 Trie (접두사 트리)**](#트라이-trie-접두사-트리)
-- [**StringBuilder**](#stringbuilder)
-- [**재귀 Recursive 와 동적 프로그래밍 Dynamic Programming**](#재귀-recursive-와-동적-프로그래밍-dynamic-programming)
-  - [**상향식 접근법 (bottom-up approach)**](#상향식-접근법-bottom-up-approach)
-  - [**하향식 접근법 (top-down approach)**](#하향식-접근법-top-down-approach)
-  - [**반반 접근법 (half-and-half approach)**](#반반-접근법-half-and-half-approach)
-  - [**동적계획법 \& 메모이제이션**](#동적계획법--메모이제이션)
-    - [Recursive Fibo](#recursive-fibo)
-    - [하향식 동적 프로그래밍 (메모이제이션)](#하향식-동적-프로그래밍-메모이제이션)
-    - [상향식 동적 프로그래밍](#상향식-동적-프로그래밍)
-- [**최단경로 문제**](#최단경로-문제)
-  - [0-1BFS](#0-1bfs)
-  - [다익스트라 알고리즘](#다익스트라-알고리즘)
-  - [벨만-포드 알고리즘](#벨만-포드-알고리즘)
-    - [음수간선](#음수간선)
-  - [SPFA (Shortest Path Faster Algorithm) - `벨만-포드 알고리즘 보완`](#spfa-shortest-path-faster-algorithm---벨만-포드-알고리즘-보완)
-- [**`LIS` 최장 증가 부분 수열 알고리즘**](#lis-최장-증가-부분-수열-알고리즘)
-- [**`Backtracking` 백트래킹 특징**](#backtracking-백트래킹-특징)
-- [**Kadane’s Algorithm**](#kadanes-algorithm)
-- [**Floyd's Cycle Finding Algorithm**](#floyds-cycle-finding-algorithm)
-- [오일러 회로 `Eulerian Circuit`](#오일러-회로-eulerian-circuit)
-- [오일러 경로 `Eulerian Trail`](#오일러-경로-eulerian-trail)
-
-<!-- /TOC -->
-
 # **알고리즘을 왜 하고, 얼마나 깊게 해야할까**
 
 > 컴퓨터를 이용해 문제를 풀어야할 때 같으 문제라도 여러 가지 해결 방법이 있을 수 있다.  
@@ -614,6 +563,19 @@ F - 5
 
 ***
 
+- 정렬
+  - 선택 정렬, 삽입 정렬, 셸 정렬, 병합 정렬 (상향식, 하향식), 퀵정렬 (3중 분할)
+  - 우선순위 큐
+    - 이진 힙, 힙 정렬
+    - 인덱스 방식 우선순위 큐
+- 탐색
+  - 심볼 테이블
+  - 이분 탐색
+  - 이진 탐색 트리
+  - 균형 탐색 트리
+    - 2-3 탐색 트리
+    - 레드 블랙 트리
+    - 
 - 문자열
   - 문자열 정렬 [풀기](https://leetcode.com/problems/sort-characters-by-frequency/)
     - 키-인덱스 카운팅
@@ -641,15 +603,10 @@ F - 5
     - 허프만 압축
       - 유일-접두어 코드
     - LZW 압축
-- 이벤트 기반 시뮬레이션
-  - 시간 기반 시뮬레이션
-  - 충돌 예측, 충돌 처리, 이벤트 취소
 - B-트리
 - 접미어 배열
 - 네트워크 흐름 알고리즘
-- 환원
-- 난해성 (Intractability)
-
+  
 ***
 
 - 유일 접두어 코드에서 트라이를 사용하고, 성급한 프림 알고리즘에서 인덱스로 접근 가능한 우선순위 큐를 사용하는 것처럼
