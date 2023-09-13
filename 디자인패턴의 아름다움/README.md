@@ -402,3 +402,174 @@ fun main() {
   - 전략 객체가 필요할 때 키에 상응하는 전략 객체를 반환하는 팩토리 함수를 지정하는 것이 훨씬 좋다.
 - 자바15부터는 리플렉션으로 메소드를 실행하는 것이랑 일반적으로 메소드를 실행하는 것과 성능 차이가 거의 없다.
 - 커맨드 패턴 중요하다~
+
+# 7주차 모임 - 8장. 행동 디자인 패턴
+
+- [infix-notation](https://kotlinlang.org/docs/functions.html#infix-notation)
+- [kotlin tailrec](https://www.baeldung.com/kotlin/tail-recursion)
+- [ktlint로 Kotlin 공식 코딩 컨벤션 맞추기](https://blog.benelog.net/ktlint.html)
+- 디자인 패턴의 핵심은 **문을 식으로 바꾼다.**
+  - 식은 평가하면 값이 된다.
+  - 디자인 패턴이 어려운 이유는 각 객체간 격리시킬 범위와 캡슐화(내장을 얼마나깔지)를 얼마나 지킬지 정의하기가 어려워서 그렇다.
+- **미디에이터와 파사드의 차이점을 꼭 인지해라**
+- [패턴을 활용한 리팩토링 책](https://www.yes24.com/Product/Goods/14752528) 추천
+- **책임 연쇄 패턴**
+  - 데코레이터 패턴의 형제
+  - 배열 기반, 링크드 리스트 기반 구현 책의 예제는 HandlerChain,HandlerHolder 때문에 잘못된 예제라고 볼 수 있다.
+  - 하지만 HandlerChain,HandlerHolder이 존재하는 이유는 프레임워크에서 편리하게 쓰기 위함이다.
+  - 내가 해결 못하면 너가 해결해 -> 책임 연쇄 패턴
+  - 그래서 데코레이터 패턴보다 사용하기가 쉽고 제약이 별로 없다고 볼 수 있다.
+  - 데코레이터 패턴은 각 데코레이터들이 협력해야해서 기능들을 분리하기가 힘들다.
+  - 아래의 Under와 Order 같은 구현체들은 전략 객체로 보일 수 있다.
+  - 전략 패턴의 형제인 상태 패턴에서도 이런 책임연쇄패턴이 사용될 수 있다.
+  - **플러그인** 이라는 단어를 만나면 책임연쇄이거나 데코레이터일 확률이 높다.
+  - 데코레이터패턴으로 사용되다가 중간에 연산을 끝내버리는 경우는 데코레이터와 책임연쇄가 합쳐졌다고 볼 수 있다.
+  - 상속 구조의 링크드리스트를 가로로 합성시킨 구조라고 볼 수 있다.
+
+```kotlin
+fun main(args: Array<String>) {
+    val test = Over(5) next Under(10)
+    println(test)
+}
+
+abstract class Action<T>{
+    private var next:Action<T>? = null
+
+    fun run(v:T):T? = action(v) ?: next?.run(v)
+
+    protected abstract fun action(v:T):T?
+
+    infix fun next(n:Action<T>):Action<T> {
+        var target = next
+        do{
+            if(target == null){
+                next = n
+                break
+            }
+            target = target.next
+        }while(true)
+        return this
+    }
+}
+
+class Under(private val base:Int):Action<Int>(){
+    override fun action(v:Int):Int?{
+        return if(base > v) v else null
+    }
+}
+class Over(private val base:Int):Action<Int>(){
+    override fun action(v:Int):Int?{
+        return if(base < v) v else null
+    }
+}
+```
+
+- **상태패턴**
+  - 상태 구현체들이 상태 머신 (상태를 관장하는 클래스)를 알아야 할 이유가 뭘까?
+  - 상태 구현체가 상태 머신의 상태를 직접 바꾸게되어 쌍방 참조가 일어난다.
+  - 마리오 예제는 StateMachine이 setScore를 가지고 있는 것도 이상하다. IScore가 있어야 하지 않나? 인터페이스 분리 원칙을 떠올려라
+  - 상태 머신의 캡슐화는 어느 정도로 해야하나? 이 예제는 모든 내장을 다 까고있다.
+  - 일반적으로는 상태 머신이 처리해야 할 메소드 obtainMushroom 등등을 인터페이스로 빼고 해당 인터페이스를 구현한 추상 클래스로 afterState를 정의하는 경우가 많다.
+
+```kotlin
+interface IMario{
+    fun obtainMushRoom()
+    fun obtainCape()
+    fun obtainFireFlower()
+    fun meetMonster()
+}
+
+abstract class MarioState:IMario{
+    private var state:MarioState = this
+    protected var afterObtainMushRoom:MarioState = this
+    protected var afterObtainCape:MarioState = this
+    protected var afterObtainFireFlower:MarioState = this
+    protected var afterMeetMonster:MarioState = this
+    val currentState:MarioState get() = if(state == this) this else state.currentState // 간이 책임연쇄패턴
+    override fun obtainMushRoom(){
+        _obtainMushRoom()
+        state = afterObtainMushRoom
+    }
+    protected abstract fun _obtainMushRoom()
+    override fun obtainCape(){
+        _obtainCape()
+        state = afterObtainCape
+    }
+    protected abstract fun _obtainCape()
+    override fun obtainFireFlower(){
+        _obtainFireFlower()
+        state = afterObtainFireFlower
+    }
+    protected abstract fun _obtainFireFlower()
+    override fun meetMonster(){
+        _meetMonster()
+        state = afterMeetMonster
+    }
+    protected abstract fun _meetMonster()
+}
+
+interface IScoreHolder {
+    var score:Int
+}
+class Mario:IScoreHolder{
+    override var score: Int = 0
+    private var state:MarioState = SmallMario(this)
+    fun obtainMushRoom() = state.currentState.also{state = it}.obtainMushRoom()
+    fun obtainCape() = state.currentState.obtainCape()
+    fun obtainFireFlower() = state.currentState.obtainFireFlower()
+    fun meetMonster() = state.currentState.meetMonster()
+}
+class SmallMario(val scoreHolder:IScoreHolder): MarioState() {
+    override fun _obtainMushRoom() {
+        scoreHolder.score += 100
+        afterObtainMushRoom = SuperMario(scoreHolder)
+    }
+
+    override fun _obtainCape() {
+        scoreHolder.score += 200
+        afterObtainCape = CapeMario(scoreHolder)
+    }
+
+    override fun _obtainFireFlower() {
+        println("obtainFireFlower")
+    }
+
+    override fun _meetMonster() {
+        println("meetMonster")
+    }
+}
+```
+
+- **이터레이터 패턴**
+  - 해당 패턴은 제어문과 합쳐서 써야한다
+  - 아무 문이나 식으로 바꾸면 안되나? 문을 함수에 담으면 된다. 함수의 조합으로 문을 대체하면 되지 않나?
+  - 문이 아닌 각각을 함수에 담아 식으로 바꾸면 원할 때 원하는 정도까지 실행하거나 반복하거나
+- **비지터 패턴**
+  - 해당 패턴은 사실상 모든 곳에 적용 가능하다.
+  - 제어 흐름이 일어나면, 제어 흐름을 관찰하는 관찰자를 넣으면 된다.
+  - **제어구조와 실행기를 분리하기 위한 패턴이다.**
+  - 자기 스스로가 어떤 제어구조를 순회하고 있는지 모른다.
+  - 순회기와 처리기를 분리하는 것!!!
+  - 전략 객체가 될 수도 있고 책임연쇄 객체가 될 수도 있다.
+
+```kotlin
+interface TakeCare{
+    fun run(result:ArrayList<TakeCare>?, visitor:(TakeCare, ArrayList<TakeCare>)->Unit):ArrayList<TakeCare>
+}
+
+class Folder:TakeCare{
+    private val children = arrayListOf<TakeCare>()
+    override fun run(result:ArrayList<TakeCare>?, visitor:(TakeCare, ArrayList<TakeCare>)->Unit): ArrayList<TakeCare>{
+        val target = result ?: arrayListOf()
+        children.forEach { it.run(target, visitor) }
+        return target
+    }
+}
+class File(val name:String, val ext:String, val size:Int):TakeCare{
+    override fun run(result:ArrayList<TakeCare>?, visitor:(TakeCare)->Boolean): ArrayList<TakeCare>{
+        val target = result ?: arrayListOf()
+        visitor(this, target)
+        return target
+    }
+}
+```
