@@ -47,3 +47,4 @@ iterator에 한 개의 구현체가 존재함. 이 구현체가 주입기인듯
   - ConfigurableListableBeanFactory를 필드로 주입받던, BeanFactoryPostProcessor를 구현하던 똑같음
 - 스프링 AOP의 인터페이스 캐싱 기능
   - `http://www.***.com/user?cached=true`처럼 캐싱을 지원하는 필드가 있으면 메모리 캐시나 Redis 캐시 등에서 데이터를 가져와 직접 반환한다.
+- 스프링의 빈 순환참조는 어떻게 감지할까? 위상정렬을 사용할까? 아니면 재귀적으로 빈을 생성하면서 감지할까?
