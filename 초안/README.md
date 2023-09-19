@@ -14,6 +14,14 @@
 - [On the priority of JsonCreator and Constructor](https://github.com/FasterXML/jackson-module-kotlin/issues/514)
 - `compareTo`로 동등성을 확인하는 자료구조가 존재하기 때문에 Comparable을 구현한다면 equals도 재정의해야한다. 그냥 Comparator를 정의해서 파라미터로 넣는것이 문제가를 덜 일으키는 방법일듯
    - PriorityQueue 와 SortedMap, SortedSet 인터페이스 위주로 비교해보면 좋을듯
+   - 2-3트리와 레드블랙트리에서 원소 동등성을 확인할 때 equals와 hashcode가 아니라 compareTo로만 비교하는 것을보고 의문이 들었었는데 아래의 주석을 읽고 조금 해소됐다.
+
+```
+(x.compareTo(y)==0) == (x.equals(y)) 를 강력히 권장하지만 반드시 요구되는 것은 아닙니다.
+일반적으로 Comparable 인터페이스를 구현하고 이 조건을 위반하는 모든 클래스는 이 사실을 명확하게 표시해야 합니다.
+권장되는 언어는 "참고: 이 클래스는 같음과 일치하지 않는 자연스러운 순서를 갖습니다."입니다.
+```
+
 - Sleuth에서 Unitrest로 요청하면 traceId, spanId가 헤더에 담기지 않는다.
    - restTemplate을 사용하면 헤더에 추적이 잘됨
    - 왜 그런지? WebClient로 요청해도 잘 담기는지?
