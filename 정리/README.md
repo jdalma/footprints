@@ -29,6 +29,7 @@
 - [DTO를 다시 생각해보자](https://blog.scottlogic.com/2020/01/03/rethinking-the-java-dto.html)
 - [`compareTo`를 재정의하면 왜 `equals`도 재정의 해야할까?](https://ohtaeg.tistory.com/3)
 - [코틀린 코루틴 번역문](https://kotlinworld.com/notice/447)
+- [코루틴 하루 10분 시리즈](https://brunch.co.kr/@mystoryg/181)
 - [Thread Exception](https://github.com/HomoEfficio/dev-tips/blob/master/Java-Thread%EB%82%B4%EC%97%90%EC%84%9C-%EB%B0%9C%EC%83%9D%ED%95%9C-Exception-%EC%B2%98%EB%A6%AC.md)
 
 ## Spring
@@ -48,6 +49,8 @@
 - [IoC와 DI를 이용한 Spring 멀티 모듈 아키텍처](https://kciter.so/posts/spring-multi-module-architecture)
 - [Spring Bean Injection 이야기(feat. 모두가 다 알고 있는 스프링빈, 정말 다 알고 있는가?)](https://tech.kakaopay.com/post/martin-dev-honey-tip-2/)
 - [Jackson Deserializer 코드 분석해보기](https://tech.kakaopay.com/post/martin-dev-honey-tip-1/)
+- [Transactional 테스트](https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Ftobyilee%2Fposts%2Fpfbid023bc4mgeRSMn7aLAt9xHKV84ChH9cV5g7degGu7XsQAEMKgBNuboqURSbaUfWQxy5l&show_text=true)
+- [선착순 티켓 예매의 동시성 문제: 잠금으로 안전하게 처리하기](https://tecoble.techcourse.co.kr/post/2023-08-16-concurrency-managing/?fbclid=IwAR1e1X_bVrN-l3W1jNMvOFFGlCw1wVHFv6uMXAJe1Enb7TFnXDVQbUjxubQ)
 
 ## JPA
 
