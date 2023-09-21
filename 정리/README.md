@@ -53,6 +53,9 @@
 
 - [Distributed Cache로 Hibernate Second Level Cache를 적용하여 성능 튜닝하기 - 이론편](https://pkgonan.github.io/2020/05/distributed-hibernate-second-level-cache-1)
 
+## Data Access
+
+- [MyBatis 개요](https://www.youtube.com/watch?v=9b5P4YiyqOY&ab_channel=SKplanetTacademy)
 
 ## 이벤트 기반 아키텍처
 
