@@ -129,7 +129,7 @@ static class CollectorImpl<T, A, R> implements Collector<T, A, R> {
 2. 요소 그룹화
 3. 요소 분할
 
-## 리듀싱과 요약
+# 리듀싱과 요약
 
 [예제를 작성한 테스트 코드](https://github.com/jdalma/kotlin-playground/blob/main/src/test/java/ReducingAndSummarizing.java)에서 확인할 수 있다.  
 스트림에 있는 객체의 숫자 필드의 합계나 평균등을 반환하는 연산에도 리듀싱 기능이 사용되는데, 이러한 연산을 **요약** 연산이라 부른다.  
@@ -157,3 +157,161 @@ public static <T, U> Collector<T, ?, U> reducing(
 2. 두 번째 인수는 **사용할 데이터** 이다. 칼로리 합계를 누적할 때 `Dish::calories`와 같은 데이터
 3. 세 번째 인수는 **같은 종류의 두 항목을 하나의 값으로 더하는 `BinaryOperator`이다.**
 
+**한 개의 인수를 갖는 reducing 컬렉터** 는 시작값이 없으므로 빈 스트림이 넘겨졌을 때 시작값이 설정되지 않는 상황이 벌어지기 때문에 `Optional<>`을 반환한다.
+
+```java
+public static <T> Collector<T, ?, Optional<T>> reducing(BinaryOperator<T> op) {
+    class OptionalBox implements Consumer<T> {
+        T value = null;
+        boolean present = false;
+
+        @Override
+        public void accept(T t) {
+            if (present) {
+                value = op.apply(value, t);
+            }
+            else {
+                value = t;
+                present = true;
+            }
+        }
+    }
+
+    return new CollectorImpl<T, OptionalBox, Optional<T>>(
+        Optiona              1
+        (a, b) -> { if (b.present) a.accept(b.value); return a; },
+        a -> Optional.ofNullable(a.value), 
+        CH_NOID
+    );
+}
+```
+
+<h3>collect와 reduce</h3>
+
+```java
+List<Integer> reduce = Stream.of(1, 2, 3, 4, 5, 6).reduce(
+    new ArrayList<Integer>(),
+    (List<Integer> list, Integer e) -> {
+        list.add(e);
+        return list;
+    },
+    (List<Integer> list1, List<Integer> list2) -> {
+        list1.addAll(list2);
+        return list1;
+    }
+);
+```
+
+`collect`메서드는 **도출하려는 결과를 누적하는 컨테이너를 바꾸도록 설계된 메서드**인 반면, `reduce`는 두 값을 하나로 도출하는 불변형 연산이라는 점에서 문제가 된다.  
+즉, 위 예제에서 `reduce`메서드는 **누적자로 사용된 리스트를 변환시키므로** 잘못 활용한 예에 해당한다.  
+게다가 여러 스레드가 동시에 같은 구조체를 고치면 리스트 자체가 망가지므로 **리듀싱 연산을 병렬로 수행할 수 없다**는 점도 문제다.  
+**가변 컨테이너 관련 작업이면서 병렬성을 확보하려면 `collect`메서드로 리듀싱 연산을 구현하는 것이 바람직하다.**  
+
+# 그룹화
+
+```java
+Map<Dish.Type, List<Dish>> collect = menu.stream().collect(groupingBy(Dish::type));
+
+// OTHER=[Dish{name='french fries', vegetarian=true, calories=530, type=OTHER}, Dish{name='rice', vegetarian=true, calories=350, type=OTHER}, Dish{name='season fruit', vegetarian=true, calories=120, type=OTHER}, Dish{name='pizza', vegetarian=true, calories=550, type=OTHER}], 
+// FISH=[Dish{name='prawns', vegetarian=false, calories=300, type=FISH}, Dish{name='salmon', vegetarian=false, calories=450, type=FISH}], 
+// MEAT=[Dish{name='pork', vegetarian=false, calories=800, type=MEAT}, Dish{name='beef', vegetarian=false, calories=700, type=MEAT}, Dish{name='chicken', vegetarian=false, calories=400, type=MEAT}]
+```
+
+이 함수를 기준으로 스트림이 그룹화되므로 이를 **분류 함수** 라고 한다.  
+단순한 속성 접근자 대신 더 복잡한 분류 기준이 필요한 상황에서는 메서드 참조를 분류 함수로 사용할 수 없는 대신 **람다 표현** 을 사용할 수 있다.  
+
+```java
+Map<CaloricLevel, List<Dish>> collect = menu.stream().collect(groupingBy(dish -> {
+    if (dish.calories() <= 400) return CaloricLevel.DIET;
+    else if (dish.calories() <= 700) return CaloricLevel.NORMAL;
+    else return CaloricLevel.FAT;
+}));
+
+Map<Dish.Type, List<Dish>> collect1 = menu.stream().filter(dish -> dish.calories() > 500)
+                .collect(groupingBy(Dish::type));
+//{
+//  MEAT=[Dish{name='pork', vegetarian=false, calories=800, type=MEAT}, Dish{name='beef', vegetarian=false, calories=700, type=MEAT}]
+//  OTHER=[Dish{name='french fries', vegetarian=true, calories=530, type=OTHER}, Dish{name='pizza', vegetarian=true, calories=550, type=OTHER}]
+//}
+        
+Map<Dish.Type, List<Dish>> collect2 = menu.stream().collect(
+        groupingBy(
+            Dish::type,
+            filtering(dish -> dish.calories() > 500, toList())
+        ));
+//{
+//  FISH=[], 
+//  MEAT=[Dish{name='pork', vegetarian=false, calories=800, type=MEAT}, Dish{name='beef', vegetarian=false, calories=700, type=MEAT}], 
+//  OTHER=[Dish{name='french fries', vegetarian=true, calories=530, type=OTHER}, Dish{name='pizza', vegetarian=true, calories=550, type=OTHER}]
+//}
+```
+
+`collect1`은 FISH 종류 요리가 없으므로 결과 맵에서 해당 키 자체가 사라진다. 이 문제는 `collect2`에서 **Collector 형식의 두 번째 인수를 갖도록 groupingBy 팩토리 메서드를 오버로드해 이 문제를 해결한다.**  
+두 번째 Collector안으로 **필터 프레디케이트** 를 이동함으로 이 문제를 해결할 수 있다.  
+  
+filtering 컬렉터와 같은 이유로 Collectors 클래스는 매핑 함수와 각 항목에 적용한 함수를 모으는 데 사용하는 또 다른 컬렉터를 인수로 받는 `mapping` 메서드를 제공한다.  
+
+```java
+Map<Dish.Type, List<String>> collect4 = menu.stream().collect(groupingBy(Dish::type, mapping(Dish::name, toList())));
+//{
+//  FISH=[prawns, salmon],
+//  MEAT=[pork, beef, chicken],
+//  OTHER=[french fries, rice, season fruit, pizza]
+//}
+```
+
+## 다수준 그룹화
+
+```java
+Map<Dish.Type, Map<CaloricLevel, List<Dish>>> dishesByTypeCaloricLevel = 
+    menu.stream()
+        .collect(
+            groupingBy(Dish::type,
+                groupingBy(dish -> {
+                    if (dish.calories() <= 400) return CaloricLevel.DIET;
+                    else if (dish.calories() <= 700) return CaloricLevel.NORMAL;
+                    else return CaloricLevel.FAT;
+                })
+            )
+        );
+// {
+//     FISH={
+//         DIET=[Dish{name='prawns', vegetarian=false, calories=300, type=FISH}], 
+//         NORMAL=[Dish{name='salmon', vegetarian=false, calories=450, type=FISH}]
+//     }, 
+//     MEAT={
+//         FAT=[Dish{name='pork', vegetarian=false, calories=800, type=MEAT}], 
+//         DIET=[Dish{name='chicken', vegetarian=false, calories=400, type=MEAT}], 
+//         NORMAL=[Dish{name='beef', vegetarian=false, calories=700, type=MEAT}]
+//     }, 
+//     OTHER={
+//         DIET=[Dish{name='rice', vegetarian=true, calories=350, type=OTHER}, Dish{name='season fruit', vegetarian=true, calories=120, type=OTHER}], 
+//         NORMAL=[Dish{name='french fries', vegetarian=true, calories=530, type=OTHER}, Dish{name='pizza', vegetarian=true, calories=550, type=OTHER}]
+//     }
+// }
+```
+
+다수준 그룹화 연산은 다양한 수준으로 확장할 수 있다. 즉, **n수준 그룹화의 결과는 n수준 트리 구조로 표현되는 n수준 맵이 된다.**  
+
+![](./imgs/streamData/nlevelmap.png)
+
+보통 `groupingBy`의 연산을 **버킷 (물건을 담을 수 있는 양동이)** 개념으로 생각하면 쉽다.  
+첫 번째 groupingBy는 **각 키의 버킷을 만들고** , **준비된 각각의 버킷을 서브스트림 컬렉터로 채워가기를 반복하면서 n수준 그룹화를 달성한다.**  
+
+```java
+Map<Dish.Type, Long> typesCount = menu.stream().collect(
+    groupingBy(Dish::type, Collectors.counting())
+);
+// {FISH=2, MEAT=3, OTHER=4}
+
+Map<Dish.Type, Optional<Dish>> mostCaloricType = menu.stream().collect(
+    groupingBy(Dish::type, maxBy(Comparator.comparingInt(Dish::calories)))
+);
+// {
+//     FISH=Optional[Dish{name='salmon', vegetarian=false, calories=450, type=FISH}],
+//     MEAT=Optional[Dish{name='pork', vegetarian=false, calories=800, type=MEAT}],
+//     OTHER=Optional[Dish{name='pizza', vegetarian=true, calories=550, type=OTHER}]
+// }
+```
+
+## 컬렉터 결과를 다른 형식에 적용하기
