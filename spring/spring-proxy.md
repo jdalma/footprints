@@ -861,7 +861,7 @@ proxyTargetClass=true   // CGLIB 사용
 `JDK 동적 프록시`를 사용하면 구체 클래스로 의존관계 주입 시 문제가 발생한다.  
 
 
-**@SpringBootTest(properties = {"spring.aop.proxy-target-class=false"})**로 JDK 동적 프록시 적용하여 구체 클래스를 주입받으려 하면 아래와 같은 예외가 발생한다.  
+**@SpringBootTest(properties = {"spring.aop.proxy-target-class=false"})** 로 JDK 동적 프록시 적용하여 구체 클래스를 주입받으려 하면 아래와 같은 예외가 발생한다.  
 - `구체 클래스 != JDK Proxy`
 
 ```
@@ -870,7 +870,7 @@ nested exception is org.springframework.beans.factory.BeanNotOfRequiredTypeExcep
 Bean named 'memberServiceImpl' is expected to be of type 'hello.aop.member.MemberServiceImpl' but was actually of type 'jdk.proxy3.$Proxy55'
 ```
   
-**@SpringBootTest(properties = {"spring.aop.proxy-target-class=true"})**로 CGLIB을 적용하여 구체 클래스를 주입받으면 정상적으로 주입받을 수 있다.
+**@SpringBootTest(properties = {"spring.aop.proxy-target-class=true"})** 로 CGLIB을 적용하여 구체 클래스를 주입받으면 정상적으로 주입받을 수 있다.
 ```
 memberService class=class hello.aop.member.MemberServiceImpl$$EnhancerBySpringCGLIB$$850d7c1f
 memberServiceImpl class=class hello.aop.member.MemberServiceImpl$$EnhancerBySpringCGLIB$$850d7c1f
