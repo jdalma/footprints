@@ -952,7 +952,7 @@ JVM 플랫폼에서는 이런 차이를 방지하기 위해 `strictfp`라는 **�
 |**a - b**|뺄셈 연산자|a.minus(b)|
 |**a -= b**||a.minusAssign(b)|
 |**a * b**|곱셈 연산자|a.times(b)|
-|**a *= b**||a.timesAssign(b)|
+|**`a *= b`**||a.timesAssign(b)|
 |**a / b**|나눗셈 연산자|a.div(b)|
 |**a /= b**||a.divAssign(b)|
 |**a % b**|나머지 연산자|a.rem(b)|
@@ -1014,3 +1014,52 @@ class Invoke: StringSpec ({
     }
 })
 ```
+
+# **멤버 함수를 중위 형식으로 쓸 수 있는 경우**
+
+코틀린은 멤버 함수의 인자가 1개뿐인 경우에는 `객체.함수(인자)` 형태 대신 `객체 함수 인자`형태로 호출할 수 있는 기능을 제공해 **이항 중위 연산자를 확장할 가능성을 열어준다.**  
+중위 연산자처럼 쓸 수 있는 함수를 만들고 싶으면 함수를 정의할 때 `fun`앞에 `infix` 변경자를 추가해야 한다.  
+  
+잘 활용하면 영어 문장 처럼 읽히는 코드를 제공할 수 있으므로 **영역 특화 언어`DSL`을 정의할 때 도움이 될 수 있다.**  
+
+```kotlin
+class Infix: StringSpec ({
+
+    class Inventory {
+        val stock = mutableListOf<String>()
+
+        operator fun plusAssign(s: String) {
+            stock.add(s)
+        }
+        operator fun minusAssign(s: String) {
+            stock.minusAssign(s)
+        }
+        infix operator fun contains(s: String) = stock.contains(s)
+    }
+
+    class Foo(val v: Int) {
+        infix operator fun plus(other: Foo) = this.v + other.v
+    }
+
+    "중위 표기법 함수" {
+        val inventory = Inventory()
+        inventory += "딸기"
+        inventory += "바나나 우유"
+        inventory contains "딸기" shouldBeEqual true
+
+        inventory -= "딸기"
+        inventory contains "딸기" shouldBeEqual false
+
+        Foo(1) + Foo(2) shouldBeEqual 3
+        Foo(1).plus(Foo(2)) shouldBeEqual 3
+        Foo(1) plus Foo(2) shouldBeEqual 3
+    }
+})
+```
+
+# **확장 함수와 확장 프로퍼티**
+
+> 확장 메서드와 프로퍼티는 정적으로 (statically) 디스패치 된다.  
+> 다른 말로, 확장 메서드나 프로퍼티는 대상 클래스를 실제로 변경해주지는 못한다.  
+> 호출될 확장 함수는 확장 함수의 수신자 위치 식 `(e.extension()의 경우 e)` 의 타입에 따라 (컴파일 시점에) 결정되며, 실행 시점에 해당 식을 계산한 결과에 따라 동적으로 결정되지 않는다.  
+> - 코틀린 함수형 프로그래밍 "확장 메서드와 프로퍼티" 65p
