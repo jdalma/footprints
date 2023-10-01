@@ -419,6 +419,11 @@ List<Dish> sliceMenu1 =
 takeWhile : Dish{name='seasonal fruit', vegetarian=true, calories=120, type=OTHER}
 takeWhile : Dish{name='prawns', vegetarian=false, calories=300, type=FISH}
 takeWhile : Dish{name='rice', vegetarian=true, calories=350, type=OTHER}
+
+[
+    Dish{name='seasonal fruit', vegetarian=true, calories=120, type=OTHER}, 
+    Dish{name='prawns', vegetarian=false, calories=300, type=FISH}
+]
 ```
 
 - 그리고 `dropWhile`를 활용하여 나머지 요소를 선택할 수 있다.
