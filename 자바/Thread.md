@@ -1,32 +1,3 @@
-<!-- TOC -->
-
-- [**프로세스와 스레드의 차이**](#프로세스와-스레드의-차이)
-  - [**`Process` 프로세스**](#process-프로세스)
-  - [**`Thread` 스레드**](#thread-스레드)
-  - [**`Java Thread` 자바 스레드**](#java-thread-자바-스레드)
-- [**자바 멀티 쓰레드 프로그래밍**](#자바-멀티-쓰레드-프로그래밍)
-  - [**`Thread` 주요 기능**](#thread-주요-기능)
-    - [`Thread` 테스트](#thread-테스트)
-    - [`InterruptedException` 테스트](#interruptedexception-테스트)
-    - [`Thread.join()`](#threadjoin)
-- [**Executors**](#executors)
-  - [**고수준 (High Level) Concurrency 프로그래밍**](#고수준-high-level-concurrency-프로그래밍)
-  - [**`Executros`가 하는일**](#executros가-하는일)
-  - [**주요 인터페이스**](#주요-인터페이스)
-    - [`ExecutorService` 테스트](#executorservice-테스트)
-    - [`Executors.newFixedThreadPool(n)` 테스트](#executorsnewfixedthreadpooln-테스트)
-    - [`ScheduledExecutorService`](#scheduledexecutorservice)
-    - [`Executors.newSingleThreadScheduledExecutor()` 테스트](#executorsnewsinglethreadscheduledexecutor-테스트)
-  - [**`Fork/Join` 프레임워크**](#forkjoin-프레임워크)
-- [**`Callable`과 `Future`**](#callable과-future)
-  - [`get()`](#get)
-  - [`isDone()`](#isdone)
-  - [`cancel()`](#cancel)
-  - [`invokeAll()`](#invokeall)
-  - [`invokeAny()`](#invokeany)
-- [**참고**](#참고)
-
-<!-- /TOC -->
 
 **자바에서 지원하는 Concurrent 프로그래밍**
 - **멀티 프로세싱(Process Builder)**
@@ -75,14 +46,26 @@
 
 # **자바 멀티 쓰레드 프로그래밍**
 
+스레드는 아무것도 하지 않을 때도 자원을 사용한다.  
+메모리와 일부 커널 리소스를 사용하고 CPU 시간 뿐만 아니라 CPU 캐시도 사용된다.  
+사용하지 않는 스레드라면 꼭 정리해야한다.  
+  
+메인 스레드가 끝났더라도 최소 하나의 스레드가 실행 중이라면 애플리케이션 자체가 종료되지 않는다는 점을 유의해야한다.  
+
 ## **`Thread` 주요 기능**
--   **현재 Thread 멈춰 두기 `sleep`**
-    -   다른 `Thread`가 처리할 수 있도록 기회를 주지만 그렇다고 `Lock`을 놔주진 않는다.
--   **다른 쓰레드 깨우기 `interrupt`**
-    -   다른 `Thread`를 깨워서 `interruptedException`을 발생 시킨다.
-    -   그 에러가 발생했을 때 할 일은 코딩하기 나름 , 종료 시킬 수도 있고 계속 하던 일 할 수도 있음
--   **다른 쓰레드 기다리기 `join`**
-    -   다른 쓰레드가 끝날 때 까지 기다린다.
+- **현재 Thread 멈춰 두기** `thread.sleep({ms});`
+    - 다른 `Thread`가 처리할 수 있도록 기회를 주지만 그렇다고 `Lock`을 놔주진 않는다.
+- **다른 쓰레드 깨우기** `thread.interrupt()`
+    - 다른 `Thread`를 깨워서 `InterruptedException`을 발생 시킨다.
+    - 그 에러가 발생했을 때 할 일은 코딩하기 나름, 종료 시킬 수도 있고 계속 하던 일을 할수도 있음
+    - 인터럽트 신호에 명시적으로 반응하지 않는 작업을 진행한다면 `InterruptedException`을 발생시켜 신호를 직접 처리해야 한다.
+      - 아니면 해당 작업을 Daemon 스레드로 실행시켜 메인 스레드가 종료되는 것에 방해가 되지 않도록 할 수 있다.
+- **해당 쓰레드 기다리기** `thread.join()`
+    - 해당 쓰레드가 끝날 때 까지 기다린다.
+- **데몬 쓰레드 만들기** `thread.setDaemon(true)`
+  - 앱의 주 작업이 아닌 백그라운드 작업을 맡는 스레드로 메인 스레드가 종료되어도 애플리케이션을 종료하지 않는다.
+  - 실행 여부와 완료 여부를 신경쓰지 않는다.
+  - 앱 종료를 방해하지 않아야 한다.
 
 ### `Thread` 테스트
 
@@ -133,33 +116,51 @@ public class AppForConcurrentTest {
 ### `InterruptedException` 테스트
 
 ```java
-public class AppForConcurrentTest {
-    public static void main(String[] args) throws InterruptedException {
-        // InterruptedException 테스트
-        Thread thread = new Thread(() -> {
-            while(true){
-                System.out.println("Thread : " + Thread.currentThread().getName());
-                try {
-                    Thread.sleep(1000L);
-                } catch (InterruptedException e) {
-                    System.out.println("exit!");
-                    return;
-                }
-            }
-        });
-        thread.start();
+@Test
+void interrupted() {
+    Runnable blockingTask = () -> {
+        try {
+            Thread.sleep(50_000);
+        } catch (InterruptedException e) {
+            System.out.println("Blocking Task Exit");
+            throw new RuntimeException(e);
+        }
+    };
 
-        System.out.println("Hello : " + Thread.currentThread().getName());
-        Thread.sleep(3000L);
-        thread.interrupt();
+    Thread thread = new Thread(blockingTask);
+    thread.start();
+    thread.interrupt();
+}
 
-//        출력
-//        Thread : Thread-0
-//        Hello : main
-//        Thread : Thread-0
-//        Thread : Thread-0
-//        exit!
+private record LongComputationTask(BigInteger base, BigInteger power) implements Runnable {
+    @Override
+    public void run() {
+        System.out.printf("%d^%d = %d\n", base, power, pow(base, power));
     }
+
+    private BigInteger pow(BigInteger base, BigInteger power) {
+        BigInteger result = BigInteger.ONE;
+        for (BigInteger i = BigInteger.ZERO; i.compareTo(power) != 0; i = i.add(BigInteger.ONE)) {
+            if (Thread.currentThread().isInterrupted()) {
+                System.out.println("Interrupted !!!");
+                return BigInteger.ZERO;
+            }
+            result = result.multiply(base);
+        }
+        return result;
+    }
+}
+
+@Test
+void interrupted2() {
+    LongComputationTask longComputationTask = new LongComputationTask(
+        new BigInteger("200"),
+        new BigInteger("1000")
+    );
+
+    Thread thread = new Thread(longComputationTask);
+    thread.start();
+    thread.interrupt();
 }
 ```
 
