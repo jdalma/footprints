@@ -1,28 +1,9 @@
 
-<!-- TOC -->
 
-- [**자바에서 비동기(Asynchronous) 프로그래밍을 가능케하는 인터페이스**](#자바에서-비동기asynchronous-프로그래밍을-가능케하는-인터페이스)
-- [**CompletableFuture**](#completablefuture)
-  - [**비동기로 작업 실행하기**](#비동기로-작업-실행하기)
-  - [**콜백 제공하기**](#콜백-제공하기)
-    - [`thenApply(Function)`](#thenapplyfunction)
-    - [`thenAccept(Consumer)`](#thenacceptconsumer)
-    - [`thenRun(Runnable)`](#thenrunrunnable)
-    - [콜백 자체를 또 다른 Thread에서 실행할 수 있다.](#콜백-자체를-또-다른-thread에서-실행할-수-있다)
-  - [**조합하기**](#조합하기)
-    - [`thenCompose()`](#thencompose)
-    - [`thenCombine()`](#thencombine)
-    - [`allOf()`](#allof)
-    - [`anyOf()`](#anyof)
-  - [**예외처리**](#예외처리)
-    - [`exceptionally(Function)`](#exceptionallyfunction)
-    - [`handle(BiFunction)`](#handlebifunction)
-- [**참고**](#참고)
 
-<!-- /TOC -->
 # **자바에서 비동기(Asynchronous) 프로그래밍을 가능케하는 인터페이스**
 
--   Future를 사용해서 어느정도 가능했지만 하기 힘든일 들이 많았다.
+-   Future를 사용해서 어느정도 가능했지만 하기 힘든 일 들이 많았다.
     -   Future를 외부에서 완료 시킬 수 없다. 취소하거나 , get()에 타임아웃을 설정할 수는 있다.
     -   블록킹 코드 get()을 사용하지 않고서는 작업이 끝났을 때 콜백을 실행할 수 없다.
     -   여러 Future를 조합할 수 없다.

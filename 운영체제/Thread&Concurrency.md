@@ -1,41 +1,3 @@
-<!-- TOC -->
-
-- [**스레드 Thread**](#%EC%8A%A4%EB%A0%88%EB%93%9C-thread)
-    - [**병렬성 Parallelism vs 동시성 Concurrency**](#%EB%B3%91%EB%A0%AC%EC%84%B1-parallelism-vs-%EB%8F%99%EC%8B%9C%EC%84%B1-concurrency)
-    - [**Thread 병렬 처리**](#thread-%EB%B3%91%EB%A0%AC-%EC%B2%98%EB%A6%AC)
-        - [Thread 안전 thread-safe](#thread-%EC%95%88%EC%A0%84-thread-safe)
-        - [재진입 reentrant](#%EC%9E%AC%EC%A7%84%EC%9E%85-reentrant)
-        - [뮤텍스 mutex vs semaphore](#%EB%AE%A4%ED%85%8D%EC%8A%A4-mutex-vs-semaphore)
-    - [**멀티 스레드 프로그래밍 장점**](#%EB%A9%80%ED%8B%B0-%EC%8A%A4%EB%A0%88%EB%93%9C-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D-%EC%9E%A5%EC%A0%90)
-    - [**Java에서 스레드를 명시적으로 생성하는 세 가지 기술**.](#java%EC%97%90%EC%84%9C-%EC%8A%A4%EB%A0%88%EB%93%9C%EB%A5%BC-%EB%AA%85%EC%8B%9C%EC%A0%81%EC%9C%BC%EB%A1%9C-%EC%83%9D%EC%84%B1%ED%95%98%EB%8A%94-%EC%84%B8-%EA%B0%80%EC%A7%80-%EA%B8%B0%EC%88%A0)
-        - [public class MyThread extends Thread](#public-class-mythread-extends-thread)
-        - [public class MyThread implements Runnable](#public-class-mythread-implements-runnable)
-        - [**Lambda 표현식 사용Java 버전 1.8부터**](#lambda-%ED%91%9C%ED%98%84%EC%8B%9D-%EC%82%AC%EC%9A%A9java-%EB%B2%84%EC%A0%84-18%EB%B6%80%ED%84%B0)
-        - [**부모 쓰레드의 대기**](#%EB%B6%80%EB%AA%A8-%EC%93%B0%EB%A0%88%EB%93%9C%EC%9D%98-%EB%8C%80%EA%B8%B0)
-        - [**쓰레드의 종료**](#%EC%93%B0%EB%A0%88%EB%93%9C%EC%9D%98-%EC%A2%85%EB%A3%8C)
-    - [**멀티코어 시스템의 멀티스레딩**](#%EB%A9%80%ED%8B%B0%EC%BD%94%EC%96%B4-%EC%8B%9C%EC%8A%A4%ED%85%9C%EC%9D%98-%EB%A9%80%ED%8B%B0%EC%8A%A4%EB%A0%88%EB%94%A9)
-        - [**멀티코어 시스템 프로그래밍 시 고려할 점**](#%EB%A9%80%ED%8B%B0%EC%BD%94%EC%96%B4-%EC%8B%9C%EC%8A%A4%ED%85%9C-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D-%EC%8B%9C-%EA%B3%A0%EB%A0%A4%ED%95%A0-%EC%A0%90)
-        - [✋ **코어는 무조건 많을수록 좋은가? Amdahl’s Law - 암달의 법칙**](#-%EC%BD%94%EC%96%B4%EB%8A%94-%EB%AC%B4%EC%A1%B0%EA%B1%B4-%EB%A7%8E%EC%9D%84%EC%88%98%EB%A1%9D-%EC%A2%8B%EC%9D%80%EA%B0%80-amdahls-law---%EC%95%94%EB%8B%AC%EC%9D%98-%EB%B2%95%EC%B9%99)
-- [**두 가지 유형의 Thread**](#%EB%91%90-%EA%B0%80%EC%A7%80-%EC%9C%A0%ED%98%95%EC%9D%98-thread)
-    - [**User Thread - 사용자 스레드**](#user-thread---%EC%82%AC%EC%9A%A9%EC%9E%90-%EC%8A%A4%EB%A0%88%EB%93%9C)
-    - [**Kernel Thread - 커널 스레드**](#kernel-thread---%EC%BB%A4%EB%84%90-%EC%8A%A4%EB%A0%88%EB%93%9C)
-- [**세 가지 주요 스레드 라이브러리**](#%EC%84%B8-%EA%B0%80%EC%A7%80-%EC%A3%BC%EC%9A%94-%EC%8A%A4%EB%A0%88%EB%93%9C-%EB%9D%BC%EC%9D%B4%EB%B8%8C%EB%9F%AC%EB%A6%AC)
-    - [**POSIX Pthread**](#posix-pthread)
-        - [예제 1](#%EC%98%88%EC%A0%9C-1)
-        - [예제 2](#%EC%98%88%EC%A0%9C-2)
-        - [❓ **문제**](#-%EB%AC%B8%EC%A0%9C)
-- [**The Strategy of Implicit Threading 암시적 스레딩 전략**](#the-strategy-of-implicit-threading-%EC%95%94%EC%8B%9C%EC%A0%81-%EC%8A%A4%EB%A0%88%EB%94%A9-%EC%A0%84%EB%9E%B5)
-    - [Thread Pools 스레드 풀](#thread-pools-%EC%8A%A4%EB%A0%88%EB%93%9C-%ED%92%80)
-    - [Fork & Join 포크 및 조인 🚩](#fork--join-%ED%8F%AC%ED%81%AC-%EB%B0%8F-%EC%A1%B0%EC%9D%B8-)
-    - [OpenMP](#openmp)
-        - [예제 1](#%EC%98%88%EC%A0%9C-1)
-        - [예제 2](#%EC%98%88%EC%A0%9C-2)
-        - [예제 3](#%EC%98%88%EC%A0%9C-3)
-- [**틀린 퀴즈**](#%ED%8B%80%EB%A6%B0-%ED%80%B4%EC%A6%88)
-    - [Pthread](#pthread)
-    - [Java 멀티 쓰레드](#java-%EB%A9%80%ED%8B%B0-%EC%93%B0%EB%A0%88%EB%93%9C)
-
-<!-- /TOC -->
 
 - 지금까지 우리는 프로세스가 단일 제어 스레드로 실행중인 프로그램이라고 가정했다.
 - 하지만 **프로세스는 여러 스레드를 포함 할 수 있다.**
@@ -523,6 +485,20 @@ real    0m0.001s
 user    0m0.001s
 sys     0m0.000s
 ```
+
+***
+
+# **스레드 스케줄링**
+
+운영체제는 **에포크** 에 맞춰 스레드의 작업 시간을 적당한 크기로 나눈다.  
+스레드의 타임 슬라이스를 종류별로 에포크에 할당한다. 하지만 모든 스레드가 각 에포크에서 할당되진 않는다.  
+
+> **Dynamic Priority = Static Priority + Bonus**  
+> Static Priority : 개발자가 미리 설정한다.  
+> Bonus : 운영 체제가 각각의 에포크마다 조절한다.
+
+위와 같이 적용하면 운영체제는 즉각적인 반응이 필요한 실시간 스레드나 인터랙티브 스레드에게 우선권을 준다.  
+동시에 기아현상을 막기위해 이전 에포크에서 실행 시간이 부족했거나 완료되지 않은 스레드도 놓치지 않는다.  
 
 ***
 
