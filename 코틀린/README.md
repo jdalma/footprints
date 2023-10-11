@@ -487,6 +487,31 @@ Int 하나를 파라미터로 받아서 Int 타입의 결과를 내어주는 함
 - 익명 함수에서는 반환 타입을 지정해주지 않으면 `Unit`으로 해석한다.
 그리고 람다 파라미터가 하나일 경우 `it`키워드를 사용하여 파라미터를 사용할 수 있다.  
 
+<h3>함수의 마지막 파라미터로 람다가 오는 경우</h3>
+
+고차 함수에 람다를 전달하는 경우에 '문법 설탕'을 제공한다.  
+고차 함수의 여러 파라미터 중에서 맨 마지막 파라미터가 람다라면 그 람다를 파라미터로 목록 밖에 위치시킬 수 있다.  
+
+```kotlin
+fun <A, B> foldRight(xs: TestList<A>, z: B, f: (A,B) -> B): B =
+    when(xs) {
+        is Nil -> z
+        is Cons -> f(xs.head, foldRight(xs.tail, z, f))
+    }
+
+fun <A> filter(list: TestList<A>, f: (A) -> Boolean): TestList<A> =
+    foldRight(
+        list,
+        TestList.empty()
+    ) { a, ls ->
+        if (f(a)) Cons(a, ls)
+        else ls
+    }
+```
+
+`filter`가 `foldRight`를 호출할 때 `f`가 괄호 밖에서 선언된 것을 확인할 수 있다.  
+이를 **트레일링 람다** 라고 하며, 물 흐르듯 읽기 쉬운 코드를 작성할 수 있다.  
+
 ## **클로저와 값 포획**
 
 람다나 익명 함수도 구문적 영역 규칙을 통해 찾을 수 있는 이름을 자유롭게 사용할 수 있다.  
