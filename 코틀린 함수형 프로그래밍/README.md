@@ -20,3 +20,39 @@ inline val <T> List<T>.head: T get() = first()
 - **클로져** = 함수 + 그 함수 안에 있는 자유변수에 값을 제공하기 위한 환경
   - 함수 본문에 그 함수의 파라미터나 지역변수가 아닌 변수가 등장하면 모두 다 자유변수
   - 클로저가 필요한 이유가 자유변수의 값을 알아내려면 환경을 바인딩해줘야 하기 때문이고 그때 어떤 환경을 바인딩해주냐에 따라 정적 스코프와 동적 스코프가 결정된다
+
+# 2주차. 3장 함수형 데이터 구조
+
+- `TestList`를 구현하면서 책에서는 `Cons`와 `Nil`을 밖으로 노출되어 있지만, 외부에서 `Cons`와 `Nil`을 모르도록 해야한다. 내부 필드는 더더욱
+
+```kotlin
+operator fun <A> invoke(vararg items:A): TestList<A> = items.foldRight(invoke(), ::Cons)
+operator fun <A> invoke(): TestList<A> = Nil
+```
+
+- 외부에서 `TestList`를 생성할 때 어떤 인자를 보내던 결국은 `TestList`의 타입으로 나오는 것이 중요한 것이다.
+- 대수 타입에서 가장 중요한 것은 `Tree`, `List`를 구현할 때 내부 `data class`를 외부에서 절대 모르게하는 것이다. 외부에서 해당 타입을 알게되면 대수 타입에 대한 의미가 없다.
+- **Functor 함자** ??
+- 꼬리 재귀와 스택 재귀가 foldLeft와 foldRight
+  - foldRight = reverse().fold()
+  - foldLeft = fold()
+  - **fold의 정체는 tail.fold()** 이다. 원소를 한 개씩 까면서 넘어가는 것
+  - foldLeft는 즉시 해소하기 때문에 스택 세이프하다.
+  - 하지만 foldRight는 함수 합성으로 인해 스택오버플로우예외가 발생할 수 있다.
+- `setHead`와 `drop`이 연산 자체가 없기 때문에 큐 자료구조에 굉장히 유리하다.
+- 코틀린에서 고차함수를 만들 때 하나의 함수를 받을 때는 `block`이라는 이름이 일반화되어 있다.
+  - 두 개의 고차함수일 때는 `block`과 `origin`으로 구분한 것
+  - `acc`는 결합값
+
+```kotlin
+fun FList<Int>.inc():FList<Int> = flatMap{ 
+  try{
+     FList(it + 1)
+  }catch(e:Throwable){
+     FList()
+  }
+}
+```
+
+- `map`은 `A -> B` 타입으로 변경할 때 절대 문제가 없을거라고 보장할 때 사용할 수 있다.
+- 근데 `map`은 너무 상남자식이라서 `flatMap`은 문제가 생겼을 때 문제가 되는 타입을 넣을 수 있고, `flatten`을 통해 데이터들을 정리하면 된다.
