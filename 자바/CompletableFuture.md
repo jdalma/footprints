@@ -57,30 +57,426 @@ sum = Arrays.stream(numbers).parallel().sum();
    - 보통 장기간 실행하는 인터넷 서비스를 관리하도록 오래 실행되는 `ExecutorService`를 갖는 것은 흔한 일이다.
    - 자바는 이런 상황을 다룰 수 있도록 `Thread.setDaemon`메서드를 제공한다.
 
-# Future 인터페이스로 자바 8의 CompletableFuture 구현
+# 엄격한 포크/조인
 
-# **자바에서 비동기(Asynchronous) 프로그래밍을 가능케하는 인터페이스**
+[포크/조인 프레임워크](https://github.com/jdalma/footprints/blob/main/%EC%9E%90%EB%B0%94/ForkJoin%20Framework.md)에서 말하는 동시성은 **한 개의 특별한 속성**  
+즉, **태스크나 스레드가 메서드 호출 안에서 시작되면 그 메서드 호출은 반환하지 않고 작업이 끝나기를 기다렸다.**  
+다시 말해 `스레드 생성`과 `join()`이 한 쌍처럼 중첩된 메서드 호출 내에 추가되었다.  
+이름 **엄격한 포크/조인** 이라고 한다.  
+  
+> 엄격한 포크/조인, 화살표는 스레드, 원은 포크와 조인을, 사각형은 메서드 호출과 반환을 의미한다.
 
--   Future를 사용해서 어느정도 가능했지만 하기 힘든 일 들이 많았다.
-    -   Future를 외부에서 완료 시킬 수 없다. 취소하거나 , get()에 타임아웃을 설정할 수는 있다.
-    -   블록킹 코드 get()을 사용하지 않고서는 작업이 끝났을 때 콜백을 실행할 수 없다.
-    -   여러 Future를 조합할 수 없다.
-    -   예) Event 정보 가져온 다음 Event에 참석하는 회원 목록 가져오기
-    -   예외 처리용 API를 제공하지 않는다.
+![](./imgs/completableFuture/strictForkJoin.png)
+  
+> 여유로운 포크/조인
 
-# **CompletableFuture**
+![](./imgs/completableFuture/leisurelyForkJoin.png)
 
-- [CompletableFuture (Java Platform SE 8 ) (oracle.com)](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html)
--   **Implements Future**
--   **Implements CompletionStage - [CompletionStage (Java Platform SE 8 ) (oracle.com)](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html)**
+엄격한과 여유로운의 차이는 메인 스레드가 어디에서 포크를 하는지의 차이인 것 같다.  
+엄격한은 포크를 뜬 이후에 자식 스레드의 로직이 실행되도록 되어있고, 여유로운은 메서드 내부에서 메인 스레드가 포크를 뜨는 차이인 것으로 보인다.  
 
-## **비동기로 작업 실행하기**
+> 아래와 같이메서드 호출자에 기능을 제공하도록 메서드가 반환된 후에도 만들어진 태스크 실행이 계속되는 메서드를 비동기 메서드라 한다.
 
--   **runAsync()** - 리턴 값이 없는 경우
--   **supplyAsync()** - 리턴 값이 있는 경우
--   원하는 Executor(Thread Pool)를 사용해서 실행할 수도 있다.
--   기본은 ForkJoinPool.commonPool()
-    -   ForkJoinPool - JAVA7
+![](./imgs/completableFuture/asyncMethod.png)
+
+# 비동기 메서드를 사용할 때 위험성
+
+1. 스레드 실행은 메서드를 호출한 다음의 코드와 동시에 실행되므로 데이터 경쟁 문제를 일으키지 않도록 주의해야 한다.
+2. 기존 실행 중이던 스레드가 종료되지 않은 상황에서 자바의 `main()`메서드가 반환하면 어떻게 될까? 다음과 같은 두 가지 방법이 있긴하지만 어느 방법도 안전하지 않다.
+   - 애플리케이션을 종료하지 못하고 모든 스레드가 실행을 끝낼 때까지 기다린다.
+   - 애플리케이션 종료를 방해하는 스레드를 강제종료 시키고 애플리케이션을 종료한다.
+   - **`main()`메서드는 모든 비데몬 스레드가 종료될 때 까지 프로그램을 종료하지 않고 기다린다.**
+
+<h3>잠자기(그리고 기타 블로킹 동작)는 해로운 것으로 간주</h3>
+
+스레드를 `sleep()`하여도 여전히 시스템 자원을 점유하고 있다.  
+스레드 풀에서 잠을 자는 태스크는 다른 태스크가 시작되지 못하게 막으므로 자원을 소비하는 사실을 명심해야 한다.  
+모든 블록 동작도 마찬가지다. 블록 동작은 다른 태스크가 어떤 동작을 완료하기를 기다리는 동작(예를 들어, Future에 get() 호출)과 외부 상호작용(예를 들어, 디비 작업이나 사용자 입력을 기다리는 등)을 기다리는 동작 두 가지로 구분할 수 있다.  
+
+```java
+// A코드
+void scheduling() throws InterruptedException() {
+    doSomething("first");
+    Thread.sleep(5000);
+    doSomething("second");
+}
+
+// B코드
+void scheduling() {
+    ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+
+    doSomething("first");
+    executorService.schedule(() -> doSomething("second"), 5, SECONDS);
+    executorService.shutdown();
+}
+```
+
+위의 코드는 스레드 풀 큐에 추가되며 나중에 차례가 되면 실행된다.  
+하지만 코드가 실행되면 워커 스레드를 점유한 상태에서 아무것도 하지 않고 5초를 잔다.  
+그리고 깨어나서 두 번째 작업을 실행한 다음 작업을 종료하고 워커 스레드를 해제한다.  
+
+두 개의 코드는 똑같은 행동을 수행하지만 `B코드`가 더 좋은 이유는 **A가 자는 동안 스레드 자원을 점유하는 반면 B는 다른 작업이 실행될 수 있도록 허용한다는 점이다.**  
+(스레드를 사용할 필요가 없이 메모리만 조금 더 사용했다.)  
+  
+태스크를 만들 때는 이런 특징을 잘 활용해야 한다.  
+태스크가 실행되면 귀중한 자원을 점유하므로 태스크가 끝나서 자원을 해제하기 전까지 태스크를 계속 실행해야 한다.  
+태스크를 블록하는 것보다는 다음 작업을 태스크로 제출하고 현재 태스크는 종료하는 것이 바람직하다.  
+  
+대표적으로 I/O 작업에 적용할 수 있다.  
+고전적으로 **읽기 작업을 기다리는 것이 아니라 블록하지 않는 '읽기 시작' 메서드를 호출하고 읽기 작업이 끝나면 이를 처리할 다음 태스크를 런타임 라이브러리에 스케줄하도록 요청하고 종료한다.**  
+  
+스레드에는 제한이 있고 저렴하지 않으므로 잠을 자거나 블록해야 하는 여러 태스크가 있을 때 가능하면 `B코드`의 형식을 따르는 것이 좋다.  
+`CompletableFuture` 인터페이스는 이전에 살펴본 `Future`에 `get()`을 이용해 명시적으로 블록하지 않고 콤비네이터를 사용함으로 이런 형식의 코드를 런타임 라이브러리 내에 추가한다.  
+
+# 비동기 API에서 예외는 어떻게 처리할까?
+
+`Future`나 리액티브 형식의 비동기 API에서 호출된 메서드의 실제 바디는 **별도의 스레드에서 호출되며 이때 발생하는 어떤 에러는 이미 호출자의 실행 범위와는 관계가 없는 상황이 된다.**  
+`Future`를 구현한 `CompletableFuture`에서는 런타임 `get()`메서드에 예외를 처리할 수 있는 기능을 제공하며 예외에서 회복할 수 있도록 `exceptionally()`같은 메서드도 제공한다.  
+  
+리액티브 형식의 비동기 API에서는 `return` 대신 기존 콜백이 호출되므로 예외가 발생했을 때 아래와 같이 실행될 추가 콜백을 만들어 인터페이스를 바꿔야 한다.  
+  
+```java
+void testFunc(int x, Consumer<Integer> dealWithResult, Consumer<Throwable> dealWithException);
+```
+
+`Flow API`에서는 여러 개의 콜백을 한 객체(네 개의 콜백을 각각 대표하는 네 메서드를 포함하는 `Subscriber<T>`)로 감싼다.  
+
+```java
+public static interface Subscriber<T> {
+    public void onSubscribe(Subscription subscription);
+    /**
+     * 값이 있을 때
+     */
+    public void onNext(T item);
+    /**
+     * 도중에 에러가 발생했을 때
+     */
+    public void onError(Throwable throwable);
+    /**
+     * 값을 다 소진했거나 에러가 발생해서 더 이상 처리할 데이터가 없을 때
+     */
+    public void onComplete();
+}
+```
+
+위와 같은 종류의 호출을 **메시지** 또는 **이벤트** 라 부른다.  
+
+# CompletableFuture와 콤비네이터를 이용한 동시성
+
+```java
+int t = p(x);
+Future<Integer> a1 = executorService.submit(() -> q1(t));
+Future<Integer> a2 = executorService.submit(() -> q2(t));
+Future<Integer> a3 = executorService.submit(() -> q3(t));
+System.out.println( r(a1.get(),a2.get() + a3.get()));
+```
+
+위의 코드에서 병렬성을 극대화하려면 모든 함수를 `Future`로 감싸야 한다.  
+이렇게 많은 태스크가 `get()` 메서드를 호출해 `Future`가 끝나기를 기다리는 상태에 놓이게 되면 **하드웨어의 병렬성을 제대로 활용하지 못하거나 심지어 데드락에 걸릴 수도 있다.**  
+  
+**CompletableFuture** 와 **콤비네이터** 를 활용해 태스크가 기다리게 만드는 일을 피할 수 있다.  
+(마찬가지로 자바 8 스트림은 자료 구조를 반복해야 하는 코드를 내부적으로 작업을 처리하는 스트림 콤비네이터로 바꿔준다.)  
+  
+자바 8에서 Future 인터페이스의 구현인 `CompletableFuture`를 이용해 Future를 조합할 수 있는 기능이 추가됐다.  
+그럼 `ComposableFuture`이 아니라 `CompletableFuture`라고 부르는 이유는 뭘까?  
+일반적으로 Future는 실행해서 get()으로 결과를 얻을 수 있는 `Callable`로 만들어진다.  
+하지만 **CompletableFuture는 실행할 코드 없이 Future를 만들 수 있도록 허용하며 complete() 메서드를 이용해 나중에 어떤 값을 이용해 다른 스레드가 이를 완료할 수 있고 get()으로 값을 얻을 수 있도록 허용하기 때문에 CompletableFuture라고 부른다.**  
+  
+```java
+@Test
+@DisplayName("CompletableFuture 적용")
+void completableFutureCombine() throws ExecutionException, InterruptedException {
+    ExecutorService executorService = Executors.newFixedThreadPool(2);
+    Future<Integer> result1 = executorService.submit(() -> sum(100));
+    Future<Integer> result2 = executorService.submit(() -> sum(1000));
+
+    Integer sum = Integer.sum(result1.get(), result2.get());
+    Assertions.assertThat(sum).isEqualTo(505550);
+
+    CompletableFuture<Integer> completableFuture1 = new CompletableFuture<>();
+    CompletableFuture<Integer> completableFuture2 = new CompletableFuture<>();
+    CompletableFuture<Integer> completableFuture3 = completableFuture1.thenCombine(completableFuture2, Integer::sum);
+    executorService.submit(() -> completableFuture1.complete(sum(100)));
+    executorService.submit(() -> completableFuture2.complete(sum(1000)));
+
+    Assertions.assertThat(completableFuture3.get()).isEqualTo(505550);
+    executorService.shutdown();
+}
+```
+
+`thenCombine()`을 통해 두 연산이 끝났을 때 스레드 풀에서 실행될 연산을 만든다.  
+결과를 더 하는 연산은 앞의 두 작업이 끝나기 전까지는 실행되지 않아 **먼저 시작해서 블록되지 않는 것이 특징이다.**  
+상황에 따라 메인 스레드가 `Future`의 `get()`을 기다리는 상황이 큰 문제가 되지 않을 때는 `Future`를 그대로 사용해도 괜찮다.  
+하지만 **여러 개의 `Future`를 사용해야 하는 경우에는 병렬 실행의 효율성을 높이고 데드락은 피할 수 있는 콤비네이터를 활용하자.**  
+
+# 발행-구독 그리고 리액티브 프로그래밍
+
+자바 9에서는 `Flow`의 인터페이스에 **발행-구독 모델** 을 적용해 리액티브 프로그래밍을 제공한다.  
+
+1. **구독자** 가 구독할 수 있는 **발행자**
+2. 이 연결을 **구독** 이라 한다.
+3. 이 연결을 이용해 **메시지** (또는 이벤트)를 전송한다.
+
+![](./imgs/completableFuture/pub-sub.png)
+
+여러 컴포넌트가 한 구독자로 구독할 수 있고 한 컴포넌트는 여러 개별 스트림을 발행할 수 있으며 한 컴포넌트는 여러 구독자에 가입할 수 있다.  
+  
+<h3>두 정보를 합치는 예제</h3>
+
+두 정보 소스로 부터 발생하는 이벤트를 합쳐서 다른 구독자가 볼 수 있도록 발행하는 예를 통해 발행-구독의 특징을 확인할 수 있다.  
+`=C1+C2`라는 공식을 포함하는 스프레드시트 셀 `C3`을 만든다고 가정하자.  
+C1이나 C2 셀의 값이 변경됐을 때 C3에게 두 값을 더하도록 **C1과 C2에 이벤트가 발생했을 때 C3을 구독하도록 만들어보자.**  
+
+```java
+interface Publisher<T> {
+    void subscribe(Subscriber<? super T> subscriber);
+}
+
+interface Subscriber<T> {
+    void onNext(T t);
+}
+private class SimpleCell implements Publisher<Integer>, Subscriber<Integer> {
+    private int value = 0;
+    private String name;
+    private List<Subscriber> subscribers = new ArrayList<>();
+
+    public SimpleCell(String name) {
+        this.name = name;
+    }
+
+    public int getValue() {
+        return this.value;
+    }
+
+    private void notifyAllSubscribers() {
+        this.subscribers.forEach(subscriber -> subscriber.onNext(this.value));
+    }
+
+    @Override
+    public void subscribe(Subscriber<? super Integer> subscriber) {
+        this.subscribers.add(subscriber);
+    }
+
+    @Override
+    public void onNext(Integer integer) {
+        this.value = integer;
+        System.out.printf("%s : %d\n", this.name, this.value);
+        notifyAllSubscribers();
+    }
+}
+
+private class ArithmeticCell extends SimpleCell {
+    private int left;
+    private int right;
+
+    public ArithmeticCell(String name) {
+        super(name);
+    }
+
+    public void setLeft(int left) {
+        this.left = left;
+        super.onNext(left + this.right);
+    }
+
+    public void setRight(int right) {
+        this.right = right;
+        super.onNext(right + this.left);
+    }
+}
+
+@Test
+@DisplayName("셀 pub-sub")
+void pubsub() {
+    SimpleCell c1 = new SimpleCell("C1");
+    SimpleCell c2 = new SimpleCell("C2");
+    SimpleCell c3 = new SimpleCell("C3");
+
+    c1.subscribe(c3);
+    c2.subscribe(c3);
+    c1.onNext(10);
+    Assertions.assertThat(c3.value).isEqualTo(10);
+    c2.onNext(20);
+    Assertions.assertThat(c3.value).isEqualTo(20);
+
+    ArithmeticCell c4 = new ArithmeticCell("C4");
+    c1.subscribe(c4::setLeft);
+    c2.subscribe(c4::setRight);
+
+    c1.onNext(10);
+    Assertions.assertThat(c4.getValue()).isEqualTo(10);
+    c2.onNext(20);
+    Assertions.assertThat(c4.getValue()).isEqualTo(30);
+
+//        C1 : 10
+//        C3 : 10
+//        C2 : 20
+//        C3 : 20
+//        C1 : 10
+//        C3 : 10
+//        C4 : 10
+//        C2 : 20
+//        C3 : 20
+//        C4 : 30
+}
+```
+
+> 데이터가 발행자(생산자)에서 구독자(소비자)로 흐름에 착안해 개발자는 이를 **업스트림** 또는 **다운스트림** 이라 부른다.  
+> 위 예제에서 데이터 `value`는 **업스트림 onNext()** 메서드로 전달되고, **notifyAllSubscribers()** 호출을 통해 **다운스트림 onNext()** 호출로 전달된다.  
+
+여기에서는 설명하지 않았지만 `onError`와 `onComplete`이 Flow API의 Subscriber에서 지원되니 **해당 메서드들을 사용하여 데이터의 흐름을 더 자세하게 제어해야 한다.**  
+
+## 압력과 역압력
+
+위와 같은 발행-구독 패턴에서 엄청난 데이터가 onNext()로 전달된다면 어떻게 될까? 이런 상황을 **압력** 이라 부른다.  
+수직 파이프에 많은 데이터의 압력이 들어온다고 생각했을 때 이 압력을 조절하는 **역압력** 기법이 필요하다.  
+**발행자가 무한의 속도로 아이템을 방출하는 대신 요청했을 때만 다음 아이템을 보내도록하는 `request()` 메서드 (Subscription이라는 새 인터페이스에 포함)를 제공한다. (밀어내기 모델이 아니라 당김 모델)**  
+  
+`Publisher`는 여러 `Subscriber`를 가지고 있으므로 역압력 요청이 한 연결에만 영향을 미쳐야 한다는 것이 문제가 될 수 있다.  
+
+```java
+/**
+ * 지정된 구독에 대해 다른 구독자 메서드를 호출하기 전에 호출되는 메서드입니다. 
+ * 이 메서드에서 예외가 발생하면 결과 동작이 보장되지 않지만 구독이 설정되지 않거나 취소될 수 있습니다.
+ * 일반적으로 이 메소드의 구현은 항목 수신을 활성화하기 위해 subscription.request 호출합니다.
+ */
+public void onSubscribe(Subscription subscription);
+```
+
+`Publisher`와 `Subscriber` 사이에 채널이 연결되면 첫 이벤트로 이 메서드가 호출된다.  
+`Subscription` 객체는 다음처럼 `Subscriber`와 `Publisher`와 통신할 수 있는 메서드를 포함한다.  
+
+```java
+public static interface Subscription {
+    public void request(long n);
+    public void cancel();
+}
+```
+  
+`Publisher`는 `Subscription` 객체를 만들어 `Subscriber`로 전달하면 `Subscriber`는 이를 이용해 `Publisher`로 정보를 보낼 수 있다.  
+
+
+# **예제**
+
+```java
+public class Shop {
+    public double getPrice(String product) {
+        return calculatePrice(product);
+    }
+
+    public Future<Double> getPriceAsync(String product) {
+        CompletableFuture<Double> futurePrice = new CompletableFuture<>();
+        new Thread(() -> {
+            double price = calculatePrice(product);
+            futurePrice.complete(price);
+        }).start();
+        return futurePrice;
+    }
+
+    private double calculatePrice(String product) {
+        delay();
+        return new Random().nextDouble() * product.charAt(0) + product.charAt(1);
+    }
+}
+
+@Test
+void getPriceAsync() {
+    Shop shop = new Shop();
+    long start = System.nanoTime();
+    Future<Double> myFavorite = shop.getPriceAsync("my favorite");
+    long invocationTime = ((System.nanoTime() - start) / 1_000_000);
+    System.out.println("invocation returned after " + invocationTime + " msecs");
+
+    System.out.println("doSomethingElse");
+
+    try {
+        Double price = myFavorite.get();
+        System.out.printf("Price is %.2f\n", price);
+    } catch (InterruptedException | ExecutionException e) {
+        throw new RuntimeException(e);
+    }
+
+    long retrievalTime = ((System.nanoTime() - start) / 1_000_000);
+    System.out.println("Price returned after " + retrievalTime + " msecs");
+}
+```
+
+위의 예제에서 **에러를 올바로 관리하는 방법을 살펴보자**  
+가격을 계산하는 동안 에러가 발생하면 어떻게 될까? 예외가 발생하면 해당 스레드에만 영향을 미친다.  
+즉 에러가 발생해도 가격 계산은 계속 진행되며 일의 순서가 꼬인다. 클라이언트는 `get()`이 반환될 때까지 영원히 기다리게 될 수도 있다.  
+  
+이런 상황에서는 **타임아웃을 활용하는 것이 좋다.** 그리고 에러가 왜 발생했는지 알 수 있도록 `completeExceptionally` 메서드를 이용해서 `CompletableFuture` 내부에서 발생한 예외를 클라이언트로 전달할 수 있다.  
+
+```java
+@Test
+@DisplayName("여러 Shop의 가격을 계산할 때 비블록 코드로 작성하기")
+void nonblock() {
+    List<Shop> shops = List.of(
+        new Shop("a"),
+        new Shop("b"),
+        new Shop("c"),
+        new Shop("d"),
+        new Shop("e")
+    );
+    long start = System.nanoTime();
+    String product = "iPhone";
+    List<String> single = shops.stream()
+            .map(shop -> String.format("%s price is %.2f", shop.name, shop.getPrice(product)))
+            .toList();
+
+    long duration = ((System.nanoTime() - start) / 1_000_000);
+    System.out.println("stream process duration " + duration + " msecs");
+    // 위의 결과는 각 상점마다 1초씩 딜레이가 존재하여 최소 5초 이상이다.
+    // stream process duration 5041 msecs
+
+
+    long start1 = System.nanoTime();
+    List<String> blockingParallel = shops.parallelStream()
+            .map(shop -> String.format("%s price is %.2f", shop.name, shop.getPrice(product)))
+            .toList();
+
+    long duration1 = ((System.nanoTime() - start1) / 1_000_000);
+    System.out.println("blockingParallel process duration1 " + duration1 + " msecs");
+    // blockingParallel process duration1 1009 msecs
+
+    // 리스트의 CompletableFuture는 각각 계산 결과가 끝난 상점의 이름 문자열을 포함한다.
+    // 하지만 필요한 반환 타입은 List<String>이므로 모든 CompletableFuture의 동작이 완료되고 결과를 추출한 다음에 리스트를 반환해야 한다.
+    // 즉, 리스트의 모든 CompletableFuture에 join을 호출해서 모든 동작이 끝나기를 기다린다.
+    // CompletableFuture의 join메서드는 Future인터페이스의 get 메서드와 같은 의미를 갖는다.
+    // 다만 join은 아무 예외도 발생시키지 않는다는 점이 다르다.
+    // 따라서 map의 람다 표현식을 try/catch로 감쌀 필요가 없는 것이다.
+    long start2 = System.nanoTime();
+    List<CompletableFuture<String>> futures = shops.stream()
+            .map(shop -> CompletableFuture.supplyAsync(() -> String.format("%s price is %.2f", shop.name, shop.getPrice(product))))
+            .toList();
+    List<String> strings = futures.stream()
+            .map(CompletableFuture::join)
+            .toList();
+    long duration2 = ((System.nanoTime() - start2) / 1_000_000);
+    System.out.println("futures process duration2 " + duration2 + " msecs");
+    // futures process duration2 1010 msecs
+}
+```
+
+![](./imgs/completableFuture/streamLazyAndParallel.png)
+
+윗부분은 순차적으로 평가를 진행하는 단일 파이프라인 스트림 처리 과정을 표현한 것이다. (점선으로 표시된 부분이 스트림 처리 과정을 표현한 것이다.)  
+즉, 이전 요청의 처리가 완전히 끝난 다음에 새로 만든 `CompletableFuture`가 처리된다.  
+반면 아래쪽은 우선 `CompletableFuture`를 리스트로 모은 다음에 다른 작업과는 독립적으로 각자의 작업을 수행하는 모습이다.  
+결국 `CompletableFuture`를 리스트로 먼저 모아놓고 비동기로 태스크를 처리할 수 있는 시간을 벌어놓은 것으로 볼 수 있다.  
+  
+마지막 `futures`의 연산에서 하나의 스트림 파이프라인으로 처리하지 않고 두 개의 스트림 파이프라인으로 처리했다는 점에 주목해야 한다.  
+**스트림 연산은 게으른 특성이 있으므로 하나의 파이프라인으로 연산을 처리했다면 모든 가격 정보 요청 동작이 동기적, 순차적으로 이루어지는 결과가 된다.**  
+`CompletableFuture`로 각 상점의 정보를 요청할 때 기존 요청 작업이 완료되어야 `join`이 결과를 반환하면서 다음 상점으로 정보를 요청할 수 있기 때문이다.  
+
+***
+
+- **runAsync()** - 리턴 값이 없는 경우
+- **supplyAsync()** - 리턴 값이 있는 경우
+   - `Supplier`를 인수로 받아 비동기로 실행해서 `CompletableFuture`를 반환한다.
+   - ForkJoinPool의 Executor 중 하나가 `Supplier`를 실행할 것이다.
+-  원하는 Executor(Thread Pool)를 사용해서 실행할 수도 있다.
+-  기본은 ForkJoinPool.commonPool()
+    -  ForkJoinPool - JAVA7
 
 ```java
 public static void main(String[] args) throws ExecutionException, InterruptedException {
@@ -134,7 +530,7 @@ public static void main(String[] args) throws ExecutionException, InterruptedExc
 ```
 
 ### `thenAccept(Consumer)`
-- **리턴 값으로 또 다른 작업을 처리하는 콜백 ( 리턴없이 )**
+- **리턴 값으로 또 다른 작업을 처리하는 콜백 (리턴없이)**
 
 ```java
     public static void main(String[] args) throws ExecutionException, InterruptedException {
@@ -378,7 +774,3 @@ public static void main(String[] args) throws ExecutionException, InterruptedExc
     // 에외가 발생하지 않았을 시 "Hello" 반환
 }
 ```
-
-# **참고**
-- [ForkJoinPool (Java Platform SE 8 ) (oracle.com)](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html)
-- [CompletableFuture (Java Platform SE 8 ) (oracle.com)](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html)
