@@ -355,7 +355,7 @@ public static interface Subscription {
 `Publisher`는 `Subscription` 객체를 만들어 `Subscriber`로 전달하면 `Subscriber`는 이를 이용해 `Publisher`로 정보를 보낼 수 있다.  
 
 
-# **예제**
+# CompletableFuture 적용해보기
 
 ```java
 public class Shop {
@@ -467,8 +467,234 @@ void nonblock() {
 마지막 `futures`의 연산에서 하나의 스트림 파이프라인으로 처리하지 않고 두 개의 스트림 파이프라인으로 처리했다는 점에 주목해야 한다.  
 **스트림 연산은 게으른 특성이 있으므로 하나의 파이프라인으로 연산을 처리했다면 모든 가격 정보 요청 동작이 동기적, 순차적으로 이루어지는 결과가 된다.**  
 `CompletableFuture`로 각 상점의 정보를 요청할 때 기존 요청 작업이 완료되어야 `join`이 결과를 반환하면서 다음 상점으로 정보를 요청할 수 있기 때문이다.  
+  
+> **스트림 병렬화와 CompletableFuture 병렬화**  
+> 병렬 스트림으로 변환해서 컬렉션을 처리하는 방법과 컬렉션을 반복하면서 CompletableFuture 내부의 연산으로 만드는 방법과 어떤 것을 선택해야 할까?  
+> 1. CompletableFuture를 이용하면 전체적인 계산이 블록되지 않도록 스레드 풀의 크기를 조절할 수 있다.  
+> 2. I/O가 포함되지 않은 계산 중심의 동작이라면 스트림 인터페이스가 가장 구현하기 간단하며 효율적일 수 있다.  
+> 3. I/O를 기다리는 작업을 병렬로 실행할 때는 CompletableFuture가 더 많은 유연성을 제공하며 `W/C`의 비율에 적합한 스레드 수를 설정할 수 있다.
+  
+> **스레드 풀 크기 조절**  
+> 자바 병렬 프로그래밍(책)에서 스레드 풀의 최적값을 찾는 방법을 제안한다.  
+> 스레드 풀이 너무 크면 CPU와 메모리 자원을 서로 경쟁하느라 시간을 낭비할 수 있다.  
+> 반면 스레드 풀이 너무 작으면 CPU의 일부 코어는 활용되지 않을 수 있다.  
+> `threads = nCPU * uCPU * (1 + W/C)`  
+> nCPU는 `Runtime.getRuntime().availableProcessors()`가 반환하는 코어의 수  
+> uCPU는 0과 1사이의 값을 갖는 CPU 활용 비율  
+> W/C는 대기시간과 계산시간의 비율  
 
-***
+위의 상점에서 상품을 찾는 시간은 99퍼센트의 시간을 기다리므로 W/C 비율을 100으로 간주하고, CPU 활용률을 100퍼센트, 사용할 수 있는 코어의 수는 4라면 **400개의 스레드** 를 갖는 스레드 풀을 만들어야 한다.  
+하지만 상점 수 보다 많은 스레드를 가지고 있어 봐야 사용할 가능성이 전혀 없으므로 상점 수보다 많은 스레드를 갖는 것은 낭비일 뿐이다.  
+
+# 비동기 작업 파이프라인 만들기
+
+```java
+@Test
+void discount() {
+    List<Shop> shops = List.of(
+            new Shop("a"),
+            new Shop("b"),
+            new Shop("c"),
+            new Shop("d"),
+            new Shop("e"),
+            new Shop("f"),
+            new Shop("g"),
+            new Shop("h")
+    );
+    final Executor executor = Executors.newFixedThreadPool(shops.size());
+    final String product = "iPhone";
+
+    List<String> collect = shops.stream()
+            .map(shop -> shop.getPriceOfCode(product))
+            .map(Quote::parse)
+            .map(Discount::applyDiscount)
+            .toList();
+
+    List<CompletableFuture<String>> collect1 = shops.stream()
+            .map(shop -> CompletableFuture.supplyAsync(
+                    () -> shop.getPriceOfCode(product), executor))
+            .map(future -> future.thenApply(Quote::parse))
+            .map(future -> future.thenCompose(quote ->
+                    CompletableFuture.supplyAsync(() -> Discount.applyDiscount(quote), executor)))
+            .toList();
+
+    for(CompletableFuture<String> future : collect1) {
+        assertThat(future.isDone()).isEqualTo(false);
+    }
+
+    List<String> list = collect1.stream()
+            .map(CompletableFuture::join)
+            .toList();
+
+    for (int i = 0; i < collect1.size(); i++) {
+        CompletableFuture<String> future = collect1.get(i);
+        assertThat(future.isDone()).isEqualTo(true);
+
+        String e = list.get(i);
+        assertThat(e).isNotEmpty();
+    }
+}
+```
+
+![](./imgs/completableFuture/taskCombine.png)
+
+`List`에 담겨있는 `CompletableFuture<String>`은 (`join`이 호출되기 전에 언제 호출될지는 모르지만) 비동기적으로 상점에서 정보를 조회한다.  
+`thenApply()`는 `CompletableFuture`가 끝날 때 까지 블록하지 않는다. 즉,  CompletableFuture가 동작을 완전히 완료한 다음에 `thenApply` 메서드로 전달된 람다 표현식을 적용할 수 있다.  
+따라서 `CompletableFuture<String>`을 `CompletableFuture<Quote>`로 변환한다.  
+  
+위에서 조합한 `thenCompose()`는 Async 버전도 존재한다.
+
+```java
+public <U> CompletableFuture<U> thenComposeAsync(Function<? super T, ? extends CompletionStage<U>> fn) {
+    return uniComposeStage(defaultExecutor(), fn);
+}
+```
+
+**Aysnc로 끝나지 않는 메서드는 이전 작업을 수행한 스레드와 같은 스레드에서 작업을 실행함을 의미** 하며 **Async로 끝나는 메서드는 다음 작업이 다른 스레드에서 실행되도록 스레드 풀로 작업을 제출한다.**  
+위의 예제에서는 스레드 전환 오버헤드를 적게 발생시키기 위해 `thenCompose`를 사용했다.  
+  
+## 독립적으로 실행된 두 개의 CompletableFuture 합치기
+
+위에서는 `thenCompose`를 통해 첫 번째 CompletableFuture가 끝나면 그 결괏값을 가지고 다음 CompletableFuture를 실행시켜 보았다.  
+하지만 **두 개의 CompletableFuture를 독립적으로 실행하고 합치고 싶다면 어떻게 해야할까?**  
+  
+예를 들어, 한 온라인 상점에서 고객에게 유로 가격을 보여줄 때 달러 가격과 환율을 외부 서비스를 통해 재공해줘야 한다고 생각해보자.  
+
+```java
+@Test
+void futurePrice() {
+    final Shop shop = new Shop("a");
+    final String product = "iPhone";
+    CompletableFuture<Double> doubleCompletableFuture = CompletableFuture
+            .supplyAsync(() -> shop.getPrice(product))
+            .thenCombine(
+                CompletableFuture.supplyAsync(() -> getRate(Money.EUR, Money.USD)),
+                (price, rate) -> price * rate
+            );
+    Double result = doubleCompletableFuture.join();
+}
+
+@Test
+void java7_futurePrice() {
+    final Shop shop = new Shop("a");
+    final String product = "iPhone";
+    ExecutorService executorService = Executors.newCachedThreadPool();
+    Future<Double> futureRate = executorService.submit(new Callable<Double>() {
+        @Override
+        public Double call() throws Exception {
+            return getRate(Money.EUR, Money.USD);
+        }
+    });
+    Future<Double> futureResult = executorService.submit(new Callable<Double>() {
+        @Override
+        public Double call() throws Exception {
+            double priceInUSD = shop.getPrice(product);
+            return priceInUSD * futureRate.get();
+        }
+    });
+}
+```
+
+`thenCombine`에도 Aysnc 동작을 지원하는 메서드 `thenCombineAsync`를 제공하며 두 번째 인수로 받는 `BiFunction` (CompletableFuture 결과를 어떻게 합칠지 정의)를 스레드 풀로 제출되면서 별도의 태스크에서 비동기적으로 수행된다.  
+그리고 자바 7에서 사용한 방법과 비교하면 CompletableFuture를 통해 복잡한 연산 수행 방법을 효과적으로 쉽게 정의할 수 있는 것을 알 수 있다.  
+
+## 타임아웃 사용하기
+
+Future의 계산 결과를 기다릴때는 무한정 기다리는 상황이 발생할 수 있으므로 블록을 하지 않는 것이 좋다.  
+자바 9에서 추가된 타임아웃을 사용할 수 있다.  
+
+```java
+@Test
+void futurePrice() {
+    final Shop shop = new Shop("a");
+    final String product = "iPhone";
+    CompletableFuture<Double> doubleCompletableFuture = CompletableFuture
+            .supplyAsync(() -> shop.getPrice(product))
+            .thenCombine(
+                CompletableFuture.supplyAsync(() -> getRate(Money.EUR, Money.USD)),
+                (price, rate) -> price * rate
+            )
+            .orTimeout(3, TimeUnit.SECONDS);
+    Double result = doubleCompletableFuture.join();
+}
+```
+
+`orTimeout`메서드는 지정된 시간이 지난 후에 CompletableFuture를 `TimeoutException`으로 완료하면서 또 다른 CompletableFuture를 반환할 수 있도록 내부적으로 **ScheduledThreadExecutor를 활용한다.**  
+이 메서드를 이용하면 계산 파이프라인을 연결하고 여기서 `TimeoutException`이 발생했을 때 사용자가 쉽게 이해할 수 있는 메시지를 제공할 수 있다.  
+  
+그리고 `completeOnTimeout()` 메서드를 통해 **타임아웃 발생 시 기본값을 지정하여 다음 CompletableFuture에 대한 태스크도 계속 진행되도록 할 수 있다.**  
+
+```java
+@Test
+void futurePrice() {
+    final Shop shop = new Shop("a");
+    final String product = "iPhone";
+    CompletableFuture<Double> doubleCompletableFuture = CompletableFuture
+            .supplyAsync(() -> shop.getPrice(product))
+            .thenCombine(
+                CompletableFuture.supplyAsync(() -> getRate(Money.EUR, Money.USD))
+                                .completeOnTimeout(DEFAULT_RATE, 1, TimeUnit.SECONDS),
+                (price, rate) -> price * rate
+            )
+            .orTimeout(3, TimeUnit.SECONDS);
+    Double result = doubleCompletableFuture.join();
+}
+```
+
+## CompletableFuture의 종료에 대응하는 방법
+
+만약 여러 상점에서 가격을 조회할 때 일부 상점은 응답을 빠르게 줬다고 가정했을 때 **모든 상점에서 가격 조회가 끝났을 때 까지 가디리지 않고 가격 정보 응답이 끝날 때 마다 즉시 보여줄 수 있다면 사용자 경험이 더 좋아질 것이다.**  
+
+```java
+@Test
+void findPricesStream() {
+    List<Shop> shops = List.of(
+            new Shop("a"),
+            new Shop("b"),
+            new Shop("c"),
+            new Shop("d"),
+            new Shop("e")
+    );
+    final String product = "iPhone";
+    ExecutorService executorService = Executors.newCachedThreadPool();
+
+    long start = System.nanoTime();
+    CompletableFuture[] futures = shops.stream()
+            .map(shop -> CompletableFuture.supplyAsync(() -> shop.getPriceOfCodeAndRandomDelay(product), executorService))
+            .map(future -> future.thenApply(Quote::parse))
+            .map(future -> future.thenCompose(futureQuote ->
+                    CompletableFuture.supplyAsync(() -> Discount.applyDiscount(futureQuote), executorService))
+            )
+            .map(future -> future.thenAccept(it -> System.out.printf("%s (done in %s msecs)\n", it, (System.nanoTime() - start) / 1_000_000)))
+            .toArray(CompletableFuture[]::new);
+
+    CompletableFuture.allOf(futures).join();
+//        첫 번쨰
+//        d price is 68.425 (done in 2777 msecs)
+//        a price is 81.605 (done in 2887 msecs)
+//        e price is 118.61 (done in 2910 msecs)
+//        b price is 73.967 (done in 3169 msecs)
+//        c price is 154.60649999999998 (done in 3350 msecs)
+//        두 번째
+//        c price is 162.22 (done in 2558 msecs)
+//        e price is 135.43200000000002 (done in 2588 msecs)
+//        a price is 132.752 (done in 2762 msecs)
+//        d price is 114.08800000000001 (done in 3188 msecs)
+//        b price is 125.229 (done in 3345 msecs)
+}
+```
+
+위의 결과를 보면 shop마다 반환되는 순서와 시간이 서로 다르고 먼저 응답하는 정보부터 출력되는 것을 확인할 수 있다.  
+  
+`thenAccept()`메서드를 통해 CompletableFuture의 계산이 끝나면 값을 소비하는 작업을 Consumer 인수를 통해 지정할 수 있다.  
+다른 것과 마찬가지로 `thenAceeptAsync()`도 존재한다.  
+  
+추가적으로 `allOf`를 통해 `CompletableFuture<Void>` 타입의 모든 태스크가 실행 완료되기를 기다리게 할 수 있다.  
+반대로 `anyOf`를 통해 처름으로 완료한 `CompletableFuture<Object>` 타입을 반환받을 수 있다.  
+
+위의 모든 예제는 [여기서](https://github.com/jdalma/kotlin-playground/blob/main/src/test/java/reactive/AsyncShop.java) 확인할 수 있다.  
+
+# 자바 8 인프런 강의 예제
 
 - **runAsync()** - 리턴 값이 없는 경우
 - **supplyAsync()** - 리턴 값이 있는 경우
@@ -599,6 +825,7 @@ public static void main(String[] args) throws ExecutionException, InterruptedExc
 
 ### `thenCompose()`
 - **두 작업이 서로 이어서 실행하도록 조합**
+- 첫 번째 연산의 결과를 두 번째 연산으로 전달한다.
 
 ```java
 public static void main(String[] args) throws ExecutionException, InterruptedException {
