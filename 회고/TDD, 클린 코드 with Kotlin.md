@@ -17,23 +17,22 @@
 8. `!!`를 사용하고 있는 것은 코틀린을 잘 못 쓰고 있다는 시그널이다.
 9.  `!`을 플랫폼 타입이라고 한다.
 
-## 1주차 회고
 
-1주차는 5단계로 이루어져 있었다.
-  
-1단계: 환경 세팅  
-2단계: [문자열 계산기](https://github.com/next-step/kotlin-racingcar/pull/1315)  
-3단계: [자동차 경주 구현](https://github.com/next-step/kotlin-racingcar/pull/1381)  
-4단계: [자동차 경주 우승자 기능 추가](https://github.com/next-step/kotlin-racingcar/pull/1440)  
-5단계: [자동차 경주 리팩토링](https://github.com/next-step/kotlin-racingcar/pull/1473)  
-  
-자동차 경주는 우테캠 프리코스에서 한 번 해본 경험도 있었고 기능 자체는 간단하지만 책임을 나누는 것 역시 쉽지 않았다.  
-그리고 코틀린을 코틀린스럽게 작성하는 것에 익숙하지 않다는 것을 느꼈다.  
-  
-비즈니스 로직이 UI 로직과 혼재되어 있던 부분을 "결과 객체"를 추가하여 결합도를 낮출 수 있었고,  
-테스트를 작성하기 쉽도록 외부에서 필요한 정보들을 주입 받도록 리팩토링 해보았다.  
-  
-이제 2주차 부터 TDD를 진행하기 위해서는 **요구 사항 분석 및 설계** 가 필수이다.  
-과제를 진행하면서 README에 **구현할 기능 목록을 작성하여** 해당 기능들을 한 개씩 TDD로 진행해봐야겠다.  
-  
-구현할 기능 목록을 작성하고 고민되는 지점을 시각화하는 것 자체가 이미 훈련이다.  
+# 2주차
+
+
+10. JvmInline과 value class
+12. 리스코프 치환 원칙을 위반한 예제
+13. 상속이 문제가 아니라 상속을 잘 활용하는 것이 문제다.
+14. 코틀린에서 Int와 Integer를 처리하는 방법과 Int의 캐싱 범위 예제
+15. 백킹 프로퍼티를 활용한 방어적 복사
+16. [좋은 객체의 7가지 덕목](https://codingnuri.com/seven-virtues-of-good-object/)
+17. [우아한객체지향 by 우아한형제들 개발실장 조영호](https://www.youtube.com/watch?v=dJ5C4qRqAgA&ab_channel=%EC%9A%B0%EC%95%84%ED%95%9C%ED%85%8C%ED%81%AC)
+18. [Spring Batch를 더 우아하게 사용하기 - Spring Batch Plus](https://d2.naver.com/helloworld/9879422)
+
+# 3주차
+
+1. 수신 객체 지정 람다를 이용한 Kotlin DSL
+11. Builder들의 책임과 비즈니스 로직에서 사용할 값 객체의 책임
+   1. 마지막 주차 1단계 예제에서 PersonBuilder 내부 필드를 한 번에 초기화 하는 것이였는데 Skill과 Language 빌더들이 너무 더럽다고 느꼈지만 제이슨님은 PersonBuilder 자체가 더러움을 책임지는 객체라고 생각하셨다.
+   2. 비즈니스 로직에서 관심가지는 것은 값 객체에 대한 정보이기 때문에 각 data class들이 불변 필드들을 가지고 있는것에 만족하셨다.
