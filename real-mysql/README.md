@@ -8,3 +8,18 @@ update시 where 절에 index 컬럼으로 특정 지으면 해당 index에 해�
 테이블에 인덱스가 없으면 모든 행들이 락이 걸린다.  
 where 절에 포함된 최소한의 범위로 락을 잡으려고 한다.  
 - 클러스터 인덱스와 보조 인덱스를 같이 where 절에 추가한다면 클러스터 인덱스 기준으로 락을 건다.  
+
+***
+
+```sql
+select count(A.ID)
+from A_TABLE A
+inner join (select *
+            from B_TABLE
+            where FOLDER_ID = 'bFolder') B
+ON A.ID = B.ID
+where A.folder_id = 'aFolder'
+```
+
+위의 SQL에서 B_TABLE 서브 쿼리는 `*`로 모두 조회하는 것과 원하는 `ID` 컬럼만 조회하는 것의 차이가 있지 않을까?  
+모두 조회하면 메모리에 모든 컬럼의 정보들을 올리고 조인을 하는걸까??
