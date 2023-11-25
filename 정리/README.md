@@ -51,6 +51,9 @@
 - [Jackson Deserializer 코드 분석해보기](https://tech.kakaopay.com/post/martin-dev-honey-tip-1/)
 - [Transactional 테스트](https://www.facebook.com/plugins/post.php?href=https%3A%2F%2Fwww.facebook.com%2Ftobyilee%2Fposts%2Fpfbid023bc4mgeRSMn7aLAt9xHKV84ChH9cV5g7degGu7XsQAEMKgBNuboqURSbaUfWQxy5l&show_text=true)
 - [선착순 티켓 예매의 동시성 문제: 잠금으로 안전하게 처리하기](https://tecoble.techcourse.co.kr/post/2023-08-16-concurrency-managing/?fbclid=IwAR1e1X_bVrN-l3W1jNMvOFFGlCw1wVHFv6uMXAJe1Enb7TFnXDVQbUjxubQ)
+- [DependsOn](https://www.baeldung.com/spring-depends-on)
+- [HikariCP Dead lock에서 벗어나기 (이론편)](https://techblog.woowahan.com/2664/)
+- [DataSource routing](https://medium.com/javarevisited/read-write-in-different-db-instances-java-spring-a43bf18a5c77)
 
 ## JPA
 
@@ -80,3 +83,4 @@
 - [결제 요청, 인증, 승인… 이게 다 뭔가요?](https://velog.io/@tosspayments/%EA%B2%B0%EC%A0%9C-%EC%9A%94%EC%B2%AD-%EC%9D%B8%EC%A6%9D-%EC%8A%B9%EC%9D%B8-%EC%9D%B4%EA%B2%8C-%EB%8B%A4-%EB%AD%94%EA%B0%80%EC%9A%94)
 - [howhttps works](https://howhttps.works/ko/)
 - [Netty 참고하기](https://sightstudio.tistory.com/15)
+- [필독 개발자 온보딩 가이드 참고하기](https://blog.benelog.net/missing-readme)
