@@ -1,6 +1,9 @@
 
 <!-- TOC -->
 
+https://madplay.github.io/post/java-threadlocal
+https://techblog.woowahan.com/7349/
+
 - [링크 모아놓기](#%EB%A7%81%ED%81%AC-%EB%AA%A8%EC%95%84%EB%86%93%EA%B8%B0)
     - [패턴에 대한 이야기](#%ED%8C%A8%ED%84%B4%EC%97%90-%EB%8C%80%ED%95%9C-%EC%9D%B4%EC%95%BC%EA%B8%B0)
     - [NIO와 RPC 관련](#nio%EC%99%80-rpc-%EA%B4%80%EB%A0%A8)
