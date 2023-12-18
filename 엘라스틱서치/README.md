@@ -135,3 +135,8 @@ kill -SIGTERM `cat {pid file}`
 bin/kibana
 bin/cerebro
 ```
+
+# 확인 목록
+
+1. scroll api 보다는 search_after를 사용하라
+2. 페이지네이션으로 전부 순회하며 집계를 하려고 한다면 size를 무작정 계속 높이는 것 보다는 composite 집계를 사용하라
