@@ -140,3 +140,6 @@ bin/cerebro
 
 1. scroll api 보다는 search_after를 사용하라
 2. 페이지네이션으로 전부 순회하며 집계를 하려고 한다면 size를 무작정 계속 높이는 것 보다는 composite 집계를 사용하라
+3. vm.max_map_count 값 조회, 일반적으로 262144가 권고된다고 한다. `sysctl vm.max_map_count` 조회, `sudo sysctl -w vm.max_map_count=262144` 수정
+4. 파일 기술자 값 조회 `ulimit -a | grep "open files"`, 65535 이상으로 지정하도록 가이드한다고 한다.
+5. `cluster.routing.allocation.same_shard.host` 옵션으로 샤드 할당 시 같은 샤드의 주 샤드와 복제 샤드가 한 서버에 몰리지 않도록 조정할 수 있다. 기본값은 false이기 때문에 한 서버에 여러 프로세스를 띄우는 경우에만 수정하면 된다.
