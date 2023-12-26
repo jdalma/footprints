@@ -19,10 +19,6 @@
 
 **이 책은 3번 ~ 8번 단계에 집중한다.** (2번 단계도 언급되긴 한다.)  
 
-
-- [`AWS` 웹 브라우저에 URL을 입력하면 어떻게 되나?](https://aws.amazon.com/ko/blogs/korea/what-happens-when-you-type-a-url-into-your-browser/)  
-- [`널널한개발자` 웹 브라우저에 URL을 입력하면 어떻게 되나?](https://www.youtube.com/watch?v=GAyZ_QgYYYo&list=RDCMUCdGTtaI-ERLjzZNLuBj3X6A&start_radio=1&rv=GAyZ_QgYYYo&t=6&ab_channel=%EB%84%90%EB%84%90%ED%95%9C%EA%B0%9C%EB%B0%9C%EC%9E%90TV)  
-
 ## **HTTP가 무엇이고 HTTP/1.1까지 어떻게 진화했는지 설명해 주세요**
 
 하이퍼텍스트 전송 프로토콜을 의미하며, 처음에는 하이퍼텍스트 문서(다른 문서로의 링크를 담은 문서)를 전송할 의도로 만들어졌고, 첫 번째 버전은 이러한 문서만 지원했다.  
