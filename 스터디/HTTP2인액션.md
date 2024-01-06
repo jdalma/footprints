@@ -128,11 +128,6 @@ HTTPS는 암호화,복호화를 제외하고는 기존의 HTTP와 동일하다. 
 > 공개키 암호화는 느리기 때문에 공개 암호화키는 **공유 비밀키를 협상하는 데만 사용된다.**  
 > 공유 비밀키는 더 나은 성능으로 향후의 메시지를 암호화하는 데 사용된다.
 
-
-## **HTTPS가 동작하는 과정에 대해서 설명해 주세요.**
-
-
-
 # 2장. HTTP/2를 향한 여정
 
 ## **HTTP/1.1의 근본적인 성능 문제란 무엇인가요?**
@@ -249,7 +244,10 @@ HTTP/2의 주요 이득은 최종 사용자에서 말단 서버(이 경우 역�
 
 # 4장. HTTP/2 프로토콜 기초
 
-[HTTP/2](https://datatracker.ietf.org/doc/html/rfc7540)가 제공하는 모든 것에서 혜택을 보려면 프로토콜과 동작 방식을 더 깊이 이해할 필요가 있다.  
+[HTTP/2](https://datatracker.ietf.org/doc/html/rfc7540)가 제공하는 모든 것에서 혜택을 보려면 바이너리 프로토콜과 동작 방식을 더 깊이 이해할 필요가 있다.  
+클라이언트와 서버는 어떠한 HTTP 메시지를 전송하기 전에 HTTP/2를 사용하기로 합의해야만 한다.  
+이 합의는 대개 HTTPS 연결 협상 과정에서 ALPN이라고 하는 새로운 확장을 사용해 이뤄진다.  
+
 
 ## **HTTP/2에서 새롭게 추가된 개념 여섯가지에 대해 설명해 주세요.**
 
@@ -364,6 +362,185 @@ HTTPS를 사용하는 것은 HTTP/1이든 HTTP/2든 간에 표준 HTTP 연결을
 `curl -vso /dev/null --http2 https://www.facebook.com` 명령어로 ALPN이 사용된 HTTPS 핸드셰이크를 확인할 수 있다.  
 
 ## **HTTP/2 프레임에 대해서 설명해 주세요.**
+
+**HTTP/2 프레임 헤더 형식**  
+- `Length` 필드는 24비트, 프레임의 길이를 의미하며 SETTINGS_MAX_FRAME_SIZE에 의해 제한된다.
+- `Type` 필드는 8비트, [현재 14개의 프레임 유형](https://www.iana.org/assignments/http2-parameters/http2-parameters.xhtml)이 있다.
+- `Flags` 필드는 8비트, 프레임 특화 플래그 이다.
+- `Reserved Bit` 필드는 1비트, 현재 사용되지 않으며 반드시 0으로 설정돼야 한다.
+- `Stream Identifier` 필드는 31비트, 프레임을 식별하는 부호 없는 31비트 정수다.
+
+```
+nghttp -va https://www.facebook.com | more
+
+
+[  0.028] Connected
+The negotiated protocol: h2
+[  0.038] send SETTINGS frame <length=12, flags=0x00, stream_id=0>
+          (niv=2)
+          [SETTINGS_MAX_CONCURRENT_STREAMS(0x03):100]
+          [SETTINGS_INITIAL_WINDOW_SIZE(0x04):65535]
+[  0.038] send PRIORITY frame <length=5, flags=0x00, stream_id=3>
+          (dep_stream_id=0, weight=201, exclusive=0)
+[  0.038] send PRIORITY frame <length=5, flags=0x00, stream_id=5>
+          (dep_stream_id=0, weight=101, exclusive=0)
+[  0.038] send PRIORITY frame <length=5, flags=0x00, stream_id=7>
+          (dep_stream_id=0, weight=1, exclusive=0)
+[  0.038] send PRIORITY frame <length=5, flags=0x00, stream_id=9>
+          (dep_stream_id=7, weight=1, exclusive=0)
+[  0.038] send PRIORITY frame <length=5, flags=0x00, stream_id=11>
+          (dep_stream_id=3, weight=1, exclusive=0)
+[  0.038] send HEADERS frame <length=40, flags=0x25, stream_id=13>
+          ; END_STREAM | END_HEADERS | PRIORITY
+          (padlen=0, dep_stream_id=11, weight=16, exclusive=0)
+          ; Open new stream
+          :method: GET
+          :path: /
+          :scheme: https
+          :authority: www.facebook.com
+          accept: */*
+          accept-encoding: gzip, deflate
+          user-agent: nghttp2/1.58.0
+[  0.043] recv SETTINGS frame <length=30, flags=0x00, stream_id=0>
+          (niv=5)
+          [SETTINGS_HEADER_TABLE_SIZE(0x01):4096]
+          [SETTINGS_MAX_FRAME_SIZE(0x05):16384]
+          [SETTINGS_MAX_HEADER_LIST_SIZE(0x06):81920]
+          [SETTINGS_MAX_CONCURRENT_STREAMS(0x03):100]
+          [SETTINGS_INITIAL_WINDOW_SIZE(0x04):65536]
+[  0.043] recv WINDOW_UPDATE frame <length=4, flags=0x00, stream_id=0>
+          (window_size_increment=20905985)
+[  0.043] recv SETTINGS frame <length=0, flags=0x01, stream_id=0>
+          ; ACK
+          (niv=0)
+[  0.043] recv WINDOW_UPDATE frame <length=4, flags=0x00, stream_id=13>
+          (window_size_increment=10420224)
+[  0.043] send SETTINGS frame <length=0, flags=0x01, stream_id=0>
+          ; ACK
+          (niv=0)
+[  0.378] recv (stream_id=13) :status: 200
+[  0.378] recv (stream_id=13) vary: Accept-Encoding
+[  0.378] recv (stream_id=13) content-encoding: gzip
+[  0.378] recv (stream_id=13) set-cookie: fr=0nfYJ83FYbKbWWU3n..BlmUCE.8z.AAA.0.0.BlmUCE.AWXB9FlkMqs; expires=Fri, 05-Apr-2024 11:59:00 GMT; Max-Age=7776000; path=/; domain=.face
+book.com; secure; httponly
+[  0.378] recv (stream_id=13) set-cookie: sb=hECZZaBnookGbnMCXh3FyeMH; expires=Sun, 09-Feb-2025 11:59:00 GMT; Max-Age=34560000; path=/; domain=.facebook.com; secure; httponly
+[  0.378] recv (stream_id=13) reporting-endpoints: default="https://www.facebook.com/ajax/browser_error_reports/?device_level=unknown"
+[  0.378] recv (stream_id=13) report-to: {"max_age":259200,"endpoints":[{"url":"https:\/\/www.facebook.com\/ajax\/browser_error_reports\/?device_level=unknown"}]}
+[  0.378] recv (stream_id=13) content-security-policy: default-src data: blob: 'self' https://*.fbsbx.com 'unsafe-inline' *.facebook.com *.fbcdn.net 'unsafe-eval';script-src *.fa
+cebook.com *.fbcdn.net *.facebook.net *.google-analytics.com *.google.com 127.0.0.1:* 'unsafe-inline' blob: data: 'self' connect.facebook.net 'unsafe-eval';style-src fonts.google
+apis.com *.fbcdn.net data: *.facebook.com 'unsafe-inline';connect-src *.facebook.com facebook.com *.fbcdn.net *.facebook.net wss://*.facebook.com:* wss://*.whatsapp.com:* wss://*
+.fbcdn.net attachment.fbsbx.com ws://localhost:* blob: *.cdninstagram.com 'self' http://localhost:3103 wss://gateway.facebook.com wss://edge-chat.facebook.com wss://snaptu-d.face
+book.com wss://kaios-d.facebook.com/ v.whatsapp.net *.fbsbx.com *.fb.com;font-src data: *.gstatic.com *.facebook.com *.fbcdn.net *.fbsbx.com;img-src *.fbcdn.net *.facebook.com da
+ta: https://*.fbsbx.com *.tenor.co media.tenor.com facebook.com *.cdninstagram.com fbsbx.com fbcdn.net *.giphy.com connect.facebook.net *.carriersignal.info blob: android-webview
+-video-poster: googleads.g.doubleclick.net www.googleadservices.com *.whatsapp.net *.fb.com *.oculuscdn.com;media-src *.cdninstagram.com blob: *.fbcdn.net *.fbsbx.com www.faceboo
+k.com *.facebook.com https://*.giphy.com data:;frame-src *.doubleclick.net *.google.com *.facebook.com www.googleadservices.com *.fbsbx.com fbsbx.com data: www.instagram.com *.fb
+cdn.net https://paywithmybank.com https://sandbox.paywithmybank.com;worker-src blob: *.facebook.com data:;block-all-mixed-content;upgrade-insecure-requests;
+[  0.378] recv (stream_id=13) document-policy: force-load-at-top
+[  0.378] recv (stream_id=13) permissions-policy-report-only: autoplay=(), clipboard-read=(), clipboard-write=(), encrypted-media=(), keyboard-map=()
+[  0.378] recv (stream_id=13) permissions-policy: accelerometer=(), ambient-light-sensor=(), bluetooth=(), camera=(self), display-capture=(self), fullscreen=(self), gamepad=*, ge
+olocation=(self), gyroscope=(), hid=(), idle-detection=(), local-fonts=(), magnetometer=(), microphone=(self), midi=(), otp-credentials=(), payment=(), picture-in-picture=(self),
+ publickey-credentials-get=(self), screen-wake-lock=(), serial=(), usb=(), window-management=()
+[  0.378] recv (stream_id=13) cross-origin-resource-policy: cross-origin
+[  0.378] recv (stream_id=13) cross-origin-opener-policy: unsafe-none
+[  0.378] recv (stream_id=13) pragma: no-cache
+[  0.378] recv (stream_id=13) cache-control: private, no-cache, no-store, must-revalidate
+[  0.378] recv (stream_id=13) expires: Sat, 01 Jan 2000 00:00:00 GMT
+[  0.378] recv (stream_id=13) x-content-type-options: nosniff
+[  0.378] recv (stream_id=13) x-xss-protection: 0
+[  0.378] recv (stream_id=13) x-frame-options: DENY
+[  0.378] recv (stream_id=13) strict-transport-security: max-age=15552000; preload
+[  0.378] recv (stream_id=13) content-type: text/html; charset="utf-8"
+[  0.378] recv (stream_id=13) x-fb-debug: PfKur3RDm4qRg7123/THgHJYqez64Bg9cSi4Bv9C1rTFqOdxVAQJCcU0y5xg1SJewJWhnEWRfR0gMeMyfGl1oA==
+[  0.378] recv (stream_id=13) date: Sat, 06 Jan 2024 11:59:01 GMT
+[  0.378] recv (stream_id=13) alt-svc: h3=":443"; ma=86400
+[  0.379] recv HEADERS frame <length=2378, flags=0x04, stream_id=13>
+          ; END_HEADERS
+          (padlen=0)
+          ; First response header
+<!DOCTYPE html>
+<html lang="ko" id="facebook" class="no_js">
+<head><meta charset="utf-8" /><meta name="referrer" content="default" id="meta_referrer" /><script nonce="sNVEKIkh">
+...
+</script></body></html>
+[6635.171] recv DATA frame <length=605, flags=0x01, stream_id=13>
+          ; END_STREAM
+[6635.172] recv GOAWAY frame <length=8, flags=0x00, stream_id=0>
+          (last_stream_id=13, error_code=NO_ERROR(0x00), opaque_data(0)=[])
+```
+
+1. **SETTINGS 프레임**
+   - 공통 프레임 헤더에서 설정할 수 있는 단 하나의 플래그 `ACK`를 정의하며 
+   - ACK 플래그가 0으로 정의되면 설정을 알리는 경우이고 1로 정의되면 해당 요청의 응답이라는 의미이다.
+   - 여러 개의 `필드/값` 쌍으로 구성된다. 예를 들어 `[SETTINGS_MAX_CONCURRENT_STREAMS(0x03):100]`로 설정되며 이 설정의 개수는 `niv`의 값으로 표시된다.
+   - 프레임에 `Identifier`로 사용할 수 있는 필드는 8개 정도되고 더 추가될 수 있다.
+2. **WINDOW_UPDATE 프레임**
+   - 수신자를 압도하지 않도록 전송하는 데이터의 양을 제한하는 등 흐름 제어에 사용된다.
+   - **HTTP/2에서 동일한 연결에 여러 스트림이 있으므로 TCP 흐름 제어에 의존할 수 없으며, 스트림별로 속도를 늦출 방식을 구현해야 한다.**
+   - 초기 데이터 창 크기는 SETTINGS 프레임에 설정돼 전송이 될 수 있으며, WINDOW_UPDATE 프레임을 사용해 이 크기를 늘릴 수 있다.
+   - 어떤 플래그도 없고 값이 하나 있는 간단한 프레임이며 그 값은 다음 WINDOW_UPDATE 프레임이 반드시 수신돼야 하기 전까지 전송될 수 있는 옥텟의 수를 표현하며 31비트 길이를 가지는 `Window Size Increment` 필드만 보유한다.
+   - **HTTP/2 흐름제어는 DATA 프레임에만 적용된다.** 🚩 그렇기 때문에 중요한 제어 메세지 (WINDOW_UPDATE 메시지 같은)가 큰 DATA 프레임 때문에 블록되는 현상을 막는다. 자세한 것은 7장에서 알아본다.
+3. **PRIORITY 프레임**
+   - 고정 길이이며, 어떤 플래그도 정의하지 않는다.
+   - `dep_stream_id`를 사용해 처음 설정한 스트림에서 다른 스트림을 끊는다.
+   - 지금은 일부 요청(첫 HTML, 중요 CSS 또는 자바스크립트 등)이 덜 중요한 요청(이미지, 덜 중요한 비동기 자바스크립트 등)보다 우선순위가 높아질 수 있다는데 유의하라. 7장에서 자세히 설명한다.
+   - `E`(Exclusive) 필드는 1비트, 스트림이 배타적인지를 나타낸다.
+   - `Stream Dependency` 필드는 31비트, 이 헤더가 어떤 스트림에 의존하는지 나타내는 지표다.
+   - `Weight` 필드는 8비트, 이 스트림의 가중치다.
+4. **HEADERS 프레임**
+   - 최종적으로 모든 설정 이후 HTTP/2 요청을 만들어 이 요청 하나를 HEADERS 프레임으로 전송한다.
+   - 콜론(:)으로 시작하는 가상 헤더는 HTTP 요청 줄의 다양한 부분을 정의하고자 만들어졌다. `:authority` 가상 헤더가 HTTP/1.1 Host 헤더를 대체했다는데 유의하라.
+   - 가상 헤더는 엄격하게 [정의](https://datatracker.ietf.org/doc/html/rfc7540#section-8.1.2.3) 됐으며 표준 HTTP 헤더와 달리 가상 헤더는 HTTP/2를 변경하지 않고 추가될 수 없다.
+   - 또한 HTTP/2 헤더는 소문자로 강제한다.
+   - 특정한 헤더에 대해서는 콜론으로 시작하지 않는 일반 HTTP 헤더를 계속 사용해야 한다.
+   - PRIORITY 프레임이 가지는 3개의 필드를 HEADERS 프레임도 가지며 중요한 **Header Block Fragment** 필드도 가진다. 이 필드는 모든 헤더(가상 헤더 포함)가 전송되는 곳이다. 이 필드는 텍스트가 아니며 HPACK 헤더 압축 형식을 살펴보자.
+   - Pad Length, Padding 필드는 보안상의 이유로 (선택적으로) 메시지의 실제 길이를 숨길 수 있게 하고자 추가됐다.
+   - **공통 프레임 헤더에 설정될 수 있는 네 개의 플래그를 정의한다.**
+       1. **END_STREAM** : HEADERS 프레임 다음에 어떤 프레임도 오지 않는 경우에 설정된다. CONTINUATION 프레임은 이 제약을 받지 않는다.
+       2. **END_HEADRES** : 모든 HTTP 헤더가 이 프레임에 포함됐으며 추가 헤더가 있는 CONTINUATION 프레임이 따라오지 않음을 나타낸다.
+       3. **PADDED** : 패딩이 사용되는 경우에 설정되며 HEADERS 프레임의 첫 8비트가 HEADERS 프레임의 마지막에 패딩이 얼마나 추가됐는지를 나타낸다.
+       4. **PRIORITY** : E, Stream Dependency, Weight 필드가 이 프레임에 설정됨을 나타낸다.
+   - **HTTP 헤더가 단일 프레임보다 큰 경우 추가 HEADERS 프레임보다는 CONTINUATION 프레임이 사용된다. (계속되는 HEADERS 프레임 직후에)**
+   - 실제로는 CONTINUATION 프레임이 거의 사용되지 않으며, 대부분의 요청은 단일 HEADERS 프레임에 들어간다.
+5. **DATA 프레임**
+   - HTTP/1에서 메시지의 본문은 HTTP 헤더 다음에 이어지는 두 개의 줄바꿈(HTTP 헤더의 끝을 나타냄) 다음에 오는 응답으로 전송됐다.
+   - HTTP/2에서 데이터는 메시지 본문을 보내는 데 사용되며 별도의 메시지 유형이다.
+   - **HTTP/2 응답을 한 개 이상의 프레임으로 나눔으로써 동일한 연결에 대해 다중화된 스트림을 둘 수 있다.**
+   - HEADERS 프레임과 같이 DATA 프레임은 보안상의 이유로 메시지의 크기를 불분명하게 하는 패딩의 사용을 허용하므로 처음에 길이를 명시하고자 Pad Length 필드를 둘 수 있다.
+   - `Pad Length` 필드는 8비트(선택적), Padding 필드의 길이를 나타내는 선택적 필드다.
+   - `Data` 필드는 프레임의 길이 - 패딩 필드, 데이터이다.
+   - `Padding` 필드는 Pad Length 필드로 길이를 나타내며, 패딩 바이트에 대해 0으로 설정된다.
+   - **DATA 프레임은 공통 프레임 헤더 에 설정될 수 있는 두 개의 플래그를 정의한다.**
+       1. **END_STREAM** : 이 프레임이 스트림의 마지막 프레임일 때 설정된다.
+       2. **PADDED** : 패딩이 사용되는 경우에 설정되며 DATA 프레임의 첫 8비트가 프레임의 마지막에 패딩이 얼마나 추가됐는지 나타내는 데 사용됐는지를 의미한다.
+   - 클라이언트가 프레임을 처리함에 따라 WINDOW_UPDATE 프레임을 서버로 돌려보내 서버가 더 많은 데이터를 계속 보내게 한다.
+   - 기본적으로 DATA 프레임은 여러 부분으로 나뉠 수 있기 때문에 청크 인코딩이 필요하지 않다. (사용해서는 안된다고도 말한다.)
+6. **GOAWAY 프레임**
+   - 더 이상 보낼 메시지가 없거나 심각한 오류가 발생한 경우 연결을 종료하는 데 사용된다.
+   - `Last-Stream-ID` 31비트, 마지막으로 처리된 들어온 스트림 ID로, 클라이언트가 최근에 시작된 스트림을 놓쳤는지 알 수 있게 하기 위한 값이다.
+   - `Error-Code` 32비트, GOAWAY 프레임이 오류 때문에 전송된 경우 상태를 설명하는 [오류 코드](https://datatracker.ietf.org/doc/html/rfc7540#section-7)다.
+   - 위의 HTTP/2 프레임 예제에서 nghttp 클라이언트는 서버에서 GOAWAY 프레임을 받기보다는 서버로 보냈다. 홈페이지 HTML을 받고 나서 일반 브라우저가 요청했을 만한 모든 의존 리소스를 요청하지 않았다.
+   - 응답이 처리되고 클라이언트가 더 이상의 데이터를 기다리지 않으면 클라이언트는 이 프레임을 보내 HTTP/2 연결을 종료한다.
+   - 브라우저가 닫힐 때도 열린 연결에 대해 이와 동일한 작업을 할 것이다.
+7. **CONTINUATION 프레임**
+   - 크기가 큰 HTTP 헤더를 위해 사용되며, HEADERS 프레임이나 PUSH_PROMISE 프레임 바로 다음에 온다.
+   - 요청을 처리하려면 온전한 HTTP 헤더가 필요하며, HPACK 딕셔너리를 계속 제어해야 하기 때문에 CONTINUATION 프레임은 반드시 자식이 계속 이어받을 HEADERS 프레임 다음에 바로 따라와야 한다.
+   - **공통 프레임 헤더에 단 하나의 플래그만 정의한다.**
+       1. **END_HEADERS** : 모든 HTTP 헤더가 이 프레임에서 종료되며 추가 헤더가 있는 또 다른 CONTINUATION 프레임이 따라오지 않음을 나타낸다.
+8. **PUSH_PROMISE 프레임**
+   - 서버가 클라이언트에게 명시적으로 요청하지 않은 자산을 푸시하려고 한다고 알려주는 경우 서버에 의해 사용된다.
+   - 클라이언트에게 푸시될 자산의 정보를 제공해야 하므로, 일반적으로 HEADERS 프레임 요청에 포함될 모든 HTTP 헤더를 포함한다.
+   - `Promise Stream ID` 31비트, 푸시 약속이 전송될 스트림을 나타낸다.
+   - `Header Block Fragment` 프레임 길이 - 테이블의 기타 필드 길이, 푸시되는 리소스의 HTTP 헤더다.
+   - **공통 프레임 헤더에 두 개의 플래그를 정의할 수 있다.**
+       1. **END_HEADERS** : 모든 HTTP 헤더가 이 프레임에 포함됐으며, 추가 헤더가 있는 CONTINUATION 프레임이 따라오지 않음을 나타낸다.
+       2. **PADDED** : DATA 프레임과 동일하다.
+9. **RST_STREAM 프레임**
+   - 스트림을 즉시 취소하는 데 사용한다. 오류 또는 더 이상 요청이 필요하지 않거나 클라이언트가 다른 곳으로 이동했거나, 로딩을 취소했거나, 서버가 푸시한 리소스를 필요로 하지 않았을 수 있다.
+   - HTTP/1.1은 이 기능을 제공하지 않아 페이지에서 큰 리소스를 다운로드하기 시작했다면 연결을 종료하지 않는 한 페이지를 이동했더라도 리소스 다운로드를 벗어날 수 없다.
+   - GOAWAY와 똑같은 `Error-Code`를 가지며 공통 프레임 헤더에 어떤 플래그도 정의하지 않는다.
+10. **PING, ALTSVC, ORIGIN, CACHE_DIGEST 프레임들도 존재한다.**
+
+> HTTP/2 GET 요청은 보통 HEADERS 프레임으로 전송되며, 응답은 보통 HEADERS 프레임과 그 다음에 따라오는 DATA 프레임으로 수신된다.
 
 # 5장 HTTP/2 푸시의 구현
 
