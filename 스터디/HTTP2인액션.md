@@ -860,9 +860,55 @@ HTTP/1.1에서는 단일 연결에 단일 요청이였으므로 TCP 흐름 제�
 **HTTP/2는 연결에 독립적인 스트림이 여럿 존재하며 다중화됐으므로 더 이상 연결 수준의 흐름 제어로는 충분하지 않다.**  
 연결 수준과 스트림 수준의 제어가 필요하다.  
 
+## **HTTP/2 흐름 제어가 어떻게 동작하는지 설명해 주세요.**
 
-1. HTTP/2 흐름 제어가 어떻게 동작하는지 설명해 주세요.
-2. 스트림 흐름 제어 window는 HTTP/2 연결마다 하나씩 있다 vs 각 스트림 마다 흐름 제어 window가 존재한다.
+HTTP/2 연결의 한 스트림에서는 데이터를 더 수신하면 좋지만 다른 스트림에서는 그렇지 않을 수 있다.  
+흐름 제어는 **HTTP/2에서 TCP와 유사한 방식으로 처리된다.**  
+**연결 초기에 SETTINGS 프레임을 통해 흐름 제어 창 크기가 결정된다. 명시되지 않은 경우 기본값인 65535 옥텟이 사용된다.**  
+  
+**TCP 흐름 제어 창에 대한 일종의 mirror인 연결 수준 흐름 제어 창이 있으며, 스트림마다 흐름 제어 창이 하나씩 있다.**  
+전송자는 가장 작은 흐름 제어 창의 최대 크기까지만 전송할 수 있으며 흐름 제어는 DATA 프레임에 사용된다.  
+
+```
+nghttp -anv https://www.facebook.com | grep -E "frame <|SETTINGS|window_size_increment"
+[  0.313] send SETTINGS frame <length=12, flags=0x00, stream_id=0>
+          [SETTINGS_MAX_CONCURRENT_STREAMS(0x03):100]
+          [SETTINGS_INITIAL_WINDOW_SIZE(0x04):65535]
+[  0.313] send PRIORITY frame <length=5, flags=0x00, stream_id=3>
+[  0.313] send PRIORITY frame <length=5, flags=0x00, stream_id=5>
+[  0.313] send PRIORITY frame <length=5, flags=0x00, stream_id=7>
+[  0.313] send PRIORITY frame <length=5, flags=0x00, stream_id=9>
+[  0.313] send PRIORITY frame <length=5, flags=0x00, stream_id=11>
+[  0.313] send HEADERS frame <length=40, flags=0x25, stream_id=13>
+[  0.449] recv SETTINGS frame <length=30, flags=0x00, stream_id=0>
+          [SETTINGS_HEADER_TABLE_SIZE(0x01):4096]
+          [SETTINGS_MAX_FRAME_SIZE(0x05):16384]
+          [SETTINGS_MAX_HEADER_LIST_SIZE(0x06):81920]
+          [SETTINGS_MAX_CONCURRENT_STREAMS(0x03):100]
+          [SETTINGS_INITIAL_WINDOW_SIZE(0x04):65536]
+[  0.449] recv WINDOW_UPDATE frame <length=4, flags=0x00, stream_id=0>
+          (window_size_increment=20905985)
+[  0.449] recv SETTINGS frame <length=0, flags=0x01, stream_id=0>
+[  0.449] recv WINDOW_UPDATE frame <length=4, flags=0x00, stream_id=13>
+          (window_size_increment=10420224)
+[  0.449] send SETTINGS frame <length=0, flags=0x01, stream_id=0>
+[  0.722] recv HEADERS frame <length=2400, flags=0x04, stream_id=13>
+[  0.863] recv DATA frame <length=16384, flags=0x00, stream_id=13>
+[  0.883] recv DATA frame <length=3652, flags=0x00, stream_id=13>
+[  0.892] recv DATA frame <length=3324, flags=0x00, stream_id=13>
+[  0.892] recv DATA frame <length=10, flags=0x01, stream_id=13>
+[  0.893] send GOAWAY frame <length=8, flags=0x00, stream_id=0>
+```
+
+1. nghttp가 65535 옥텟을 사용하기로 했지만 페이스북 서버가 65536 옥텟을 사용한다고 응답한 것을 확인할 수 있다. (65535가 기본값이므로 값을 보낼 필요가 없긴하다.)
+2. 스트림 0으로 응답된 20905985 옥텟은 모든 스트림에 대해 스트림 수준 제한에 더해져 사용될 연결 수준 제한이라는 것을 명시한다.
+   - 스트림 0은 DATA 프레임에 사용해서는 안되며 자체의 흐름 제어가 필요하지 않으므로 연결 수준의 흐름 제어 용도로 사용할 수 있다.
+2. 스트림 13에 HEADERS 프레임을 사용해 첫 요청이 전송됐다.
+3. 스트림 13에 대한 창 크기를 10420224으로 줄였다.
+4. 이제 nghttp가 리소스의 HEADERS와 DATA 프레임을 받기 시작한다.
+5. 클라이언트가 GOAWAY 프레임을 전송하는 것으로 연결이 종료된다.
+
+
 3. HTTP/2 우선순위는 두 가지 방식으로 정의됩니다. 이 방식은 무엇인가요?
 4.  만약 second.js가 main.js에 의존하고 있다고 가정해 보겠습니다. 만약 main.js를 처리하느라 보낼 수 없는 경우 second.js는 main.js가 준비될때까지 기다릴까요?
 
