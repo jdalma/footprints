@@ -525,3 +525,13 @@ OAuth 스펙에는 모호하게 정의되어 있다.
 > HTTP -> HTTP, HTTPS -> HTTPS, HTTP -> HTTPS 모두 가능하지만 HTTPS -> HTTP 는 불가능하다.  
 > [RFC2616의 15.1.3절](https://datatracker.ietf.org/doc/html/rfc2616#section-15.1.3)
 
+# 8장 일반적인 보호된 리소스 보안 취약점
+
+1. (리소스 서버가 액세스 토큰을 URI 파라미터로 사용할 수 있도록 지원한다면) 보호된 리소스와 관련된 이슈로는 엔드 포인트가 XSS에 취약할 수 있다는 것
+2. XSS 공격이 수행되는 시나리오
+   1. 어떤 엔드 포인트는 허용하지 않는 파라미터가 들어온다면 해당 파라미터를 그대로 반환하다는 가정이다.
+   2. `localhost:8080/country=test` 국가 파라미터에 test라는 잘못된 정보를 보냈을 때 서버는 친절하게 `Error, Invalid Country : test` 라고 반환한다.  
+   3. 전달된 페이로드가 그대로 다시 전달되기 때문에 `localhost:8080/country=<script>alert('XSS')</script>` 이런식으로 악의적인 스크립트를 실행하는 URI를 만들 수 있다.
+   4. 그렇기 때문에 URL 인코딩을 사용하거나 Content-Type을 정확하게 명시해야 한다.
+   5. 그리고 헤더 `X-Content-Type-Options: nosniff`, `X-XSS-Protection: 1; mode=block` 를 추가하여 보안을 적용할 수 있다.
+   6. 또 `CSP (Content Security Policy)` 적용할 수도 있고, **액세스 토큰을 요청 파라미터로 전달하는 것을 지원하지 않는 것이 좋다.**  
