@@ -159,6 +159,8 @@ sequenceDiagram
   - 클라이언트 ID와 클라이언트 시크릿을 HTTP Basic 인증으로 전달하는 방법
   - 폼의 파라미터로 전달하는 방법
   - 인가 서버는 HTTP의 Authrization을 먼저 확인하고 폼 파라미터를 확인한다. 클라이언트가 동시에 두 가지 방법 모두를 사용하면 에러를 반환한다.
+- `2번`에서 클라이언트는 사용자에게 redirect_uri, scope, client_id, (CSRF를 막기 위한)state를 준다.
+- `6번`에서 client_id, client_secret, code 를 전달한다. (code가 client_id)
 
 ## OAuth의 구성 요소 중 액세스 토큰에 대해서 설명해 주세요.
 
@@ -585,7 +587,8 @@ OAuth 핵심 스펙 내용 그대로 인가 서버를 구현했을 때 인가 �
   
 
 `redirect_uri`가 **완전히 일치하는지 검증하는 것은 굉장히 중요하다.** 이 간단한 확인 작업을 통해 인가 코드 그랜트 타입에 대해 많은 공격을 무력화 시킬 수 있다.  
-[How I hacked Github again.](https://homakov.blogspot.com/2014/02/how-i-hacked-github-again.html)  
+[How I hacked Github again.](https://homakov.blogspot.com/2014/02/how-i-hacked-github-again.html)    
+[오픈 리다이렉트 문제](https://www.bugbountyclub.com/pentestgym/view/49)  
 
 # 10장 일반적인  OAuth 토큰 보안 취약점
 
