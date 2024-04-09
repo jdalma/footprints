@@ -20,7 +20,7 @@ tags:
 1. Proxy SQL에 문제가 생긴다면 모든 DB를 사용할 수 없게 되는 **단일 장애 지점** 이 생긴다.
 2. 애플리케이션 외부에서 사용될 DB가 결정되기 때문에 작업 단위(트랜잭션)에 대한 문제가 생긴다.
 
-위의 두 문제가 있어 AWS Aurora 클러스터를 분석하기로 하였다.  
+위의 두 문제가 있어 AWS Aurora 클러스터를 분석하여 사용해보기로 하였다.  
 혹시 이 구성에 대해 더 자세히 알고 싶다면 [`인프런` 따라하며 배우는 MySQL on Docker](https://www.inflearn.com/course/mysql-docker/dashboard) 강의를 참고하길 바란다.
 
 # AWS Aurora 클러스터 분석
@@ -49,32 +49,34 @@ Aurora 복제본을 기본 인스턴스로 승격시키는 것이 기본 인스�
 
 <h3>Secondary의 동기화 지연율은 어느정도인가?</h3>
 
-Aurora는 단일 AWS 리전에서 다중 가용 영역에 걸쳐 DB 클러스터에 데이터 복사본을 저장하며, DB 클러스터의 인스턴스가 여러 가용성 영역에 걸쳐 있는지 여부에 관계없이 이러한 복사본을 저장한다.  
+Aurora는 단일 AWS 리전에서 다중 가용 영역에 걸쳐 DB 클러스터에 데이터 복사본을 저장하며, DB 클러스터의 인스턴스가 여러 가용성 영역에 걸쳐 있는지 여부에 관계없이 복사본을 저장한다.  
+
+![](./clusterRW.png)
+
+기존 MySQL에서는 binlog를 이용해 SQL문을 복제본으로 전달하며, Primary에서는 멀티 스레드로 수행하던 쿼리를 Replica에서는 싱글 스레드로 처리하기 때문에 동기화 지연율이 존재한다.  
+  
+Amazon Aurora에서는 3개의 가용 영역(AZ)에 걸쳐 4개의 쓰기 세트와 3개의 읽기 세트가 있는 6개 복사본 쿼럼을 사용하며, 6개의 복사본에 REDO 로그 레코드를 전송하여 네 개의 복사본에서 쓰기 완료 응답(ACK)을 받으면 해당 쓰기가 완료된 것으로 확인한다.  
+만약 느린 노드가 존재하더라도 다른 노드가 신속하게 응답하기 때문에 가용성이 떨어지지 않는다.  
 
 ![](./clusterTopology.png)
 
-기본 DB 인스턴스에 데이터가 기록되면 Aurora에서 가용 영역의 데이터를 클러스터 볼륨과 연결된 6개의 스토리지 노드에 동기적으로 복제합니다. 이 방법은 데이터 중복을 제공하고, I/O 중지를 없애고, 시스템 백업 중에 지연 시간 스파이크를 최소화합니다. DB 인스턴스를 고가용성으로 실행하면 계획된 시스템 유지 관리 중 가용성을 향상시킬 수 있으며, 데이터베이스에서 오류 및 가용 영역 중단이 일어나는 것을 방지할 수 있습니다. 가용 영역에 대한 자세한 정보는 리전 및 가용 영역 단원을 참조하십시오.
+Aurora 복제본은 Aurora DB 클러스터의 독립 엔드포인트로서, 읽기 작업을 조정하고 가용성을 높이기 위해 사용하기에 가장 적합합니다. 최대 15개의 Aurora 복제본을 AWS 리전 내 DB 클러스터에 포함된 가용 영역에 배포할 수 있습니다. DB 클러스터 볼륨은 DB 클러스터의 여러 데이터 사본으로 구성되어 있지만, DB 클러스터의 기본 인스턴스 및 Aurora 복제본에는 클러스터 볼륨 데이터가 단 하나의 논리 볼륨으로 표시됩니다. Aurora 복제본에 대한 자세한 내용은 Aurora 복제본 단원을 참조하십시오.
 
-[출처 : [Amazon Aurora MySQL을 사용한 복제](https://docs.aws.amazon.com/ko_kr/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Replication.html), [AWS Aurora 아키텍처](https://medium.com/garimoo/aws-aurora-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-6ff87b0d48c5)]
+Aurora 복제본은 클러스터 볼륨의 읽기 연산에 전적으로 사용되므로 읽기 조정에 유용합니다. 쓰기 연산은 기본 인스턴스에서 관리합니다. 클러스터 볼륨은 Aurora MySQL DB 클러스터의 모든 인스턴스가 공유하기 때문에 각 Aurora 복제본의 데이터 사본을 추가로 복제할 필요는 없습니다. 이와는 대조적으로 MySQL 읽기 전용 복제본은 소스 DB 인스턴스부터 로컬 데이터 스토어에 이르는 모든 쓰기 작업을 단일 스레드에서 재실행해야 합니다. 이러한 제한은 대용량 읽기 트래픽을 지원하는 MySQL 읽기 전용 복제본의 기능에 영향을 끼칠 수 있습니다.
+
+Aurora MySQL을 사용하여 Aurora 복제본이 삭제될 때 인스턴스 엔드포인트가 즉시 제거되고, Aurora 복제본은 리더(Reader) 엔드포인트에서 제거됩니다. 삭제되는 Aurora 복제본을 실행하는 문이 있는 경우 3분의 유예 기간이 있습니다. 기존 문은 유예 기간 동안 정상적으로 완료할 수 있습니다. 유예 기간이 종료되면 Aurora 복제본이 종료 및 삭제됩니다.
+
+[출처 : [Amazon Aurora MySQL을 사용한 복제](https://docs.aws.amazon.com/ko_kr/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Replication.html), [Amazon Aurora 내부 들여다보기 (1) – 쿼럼 및 상관 오류 해결 방법](https://aws.amazon.com/ko/blogs/korea/amazon-aurora-under-the-hood-quorum-and-correlated-failure/), [AWS Aurora 아키텍처](https://medium.com/garimoo/aws-aurora-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-6ff87b0d48c5)]
 
 <h3>Aurora 클러스터 스토리지는 어느것을 사용하나?</h3>
+
+1. Aurora 클러스터 스토리지 조사
+   1. [Aurora 클러스터 스토리지 구성](https://docs.aws.amazon.com/ko_kr/AmazonRDS/latest/AuroraUserGuide/Aurora.Overview.StorageReliability.html)
+   2. [Aurora 클러스터 스토리지 요금](https://aws.amazon.com/ko/rds/aurora/pricing/)
 
 <h3>읽기 전용 인스턴스의 스펙을 지정할 수 있는가?</h3>
 
 
-
-***
-
-1. Aurora 클러스터 페일오버, 페일백
-   1. AWS 인스턴스 장애 발생 시 진행되는 페일오버, 페일백이 진행되면 대략 30초 정도 read only connection 예외가 발생, 30초 정도의 시간은 감내 가능하다고 판단 [참고](https://docs.aws.amazon.com/ko_kr/AmazonRDS/latest/AuroraUserGuide/Concepts.AuroraHighAvailability.html#Aurora.Managing.FaultTolerance)
-2. Aurora 클러스터 가용성 [참고](https://docs.aws.amazon.com/ko_kr/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Replication.html)
-   1. Aurora 복제본은 클러스터 볼륨의 읽기 작업 전용이므로 읽기 확장에 적합합니다. 쓰기 작업은 기본 인스턴스에서 관리합니다.
-   2. 클러스터 볼륨은 Aurora MySQL DB 클러스터의 모든 인스턴스 간에 공유되므로 각 Aurora 복제본에 대한 데이터 사본을 복제하는 데 추가 작업이 필요하지 않습니다.
-   3. 반면, MySQL 읽기 복제본은 소스 DB 인스턴스에서 로컬 데이터 저장소에 대한 모든 쓰기 작업을 단일 스레드에서 재생해야 합니다. 이러한 제한은 MySQL 읽기 복제본이 대량의 읽기 트래픽을 지원하는 기능에 영향을 미칠 수 있습니다.
-   4. MySQL read replicas must replay, on a single thread, all write operations from the source DB instance to their local data store.
-3. Aurora 클러스터 스토리지 조사
-   1. [Aurora 클러스터 스토리지 구성](https://docs.aws.amazon.com/ko_kr/AmazonRDS/latest/AuroraUserGuide/Aurora.Overview.StorageReliability.html)
-   2. [Aurora 클러스터 스토리지 요금](https://aws.amazon.com/ko/rds/aurora/pricing/)
 
 ## Aurora 인스턴스 스펙 선정을 위한 부하 테스트
 
