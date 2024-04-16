@@ -49,24 +49,34 @@ Aurora 복제본을 기본 인스턴스로 승격시키는 것이 기본 인스�
 
 <h3>Secondary의 동기화 지연율은 어느정도인가?</h3>
 
-Aurora는 단일 AWS 리전에서 다중 가용 영역에 걸쳐 DB 클러스터에 데이터 복사본을 저장하며, DB 클러스터의 인스턴스가 여러 가용성 영역에 걸쳐 있는지 여부에 관계없이 복사본을 저장한다.  
+먼저 쓰기 연산은 Primary에서 관리하며 Aurora 복제본(Secondary)은 클러스터 볼륨의 읽기 연산에 사용되므로 읽기 조정에 유용하다.  
+데이터들은 단일 AWS 리전에서 다중 가용 영역에 걸쳐 DB 클러스터에 데이터 복사본을 저장하며, DB 클러스터의 인스턴스가 여러 가용성 영역에 걸쳐 있는지 여부에 관계없이 복사본을 저장한다.  
 
+![](./writeAndAsyncRead.png)
+
+![](./replicas.png)
+
+DB 클러스터 볼륨은 DB 클러스터의 여러 데이터 사본으로 구성되어 있지만, DB 클러스터의 Primary 및 Aurora 복제본(Secondary)에는 클러스터 볼륨 데이터가 단 하나의 볼륨으로 표시된다.  
+신규 인스턴스가 추가되어도 기존 데이터를 새로 복사하지 않고 DB 클러스터 볼륨에 연결만하기 때문에 인스턴스를 추가하기 용이하다.  
+전통적인(기존 MySQL) 방식으로 읽기 인스턴스를 스케일링 하기 위해서는 인스턴스들은 볼륨을 각각 소유하며 binlog를 이용해 SQL문을 복제본으로 전달하여 Primary에서는 멀티 스레드로 수행하던 쿼리를 Secondary에서는 싱글 스레드로 처리하기 때문에 동기화 지연율이 존재할 수 밖에 없다.  
+  
 ![](./clusterRW.png)
 
-기존 MySQL에서는 binlog를 이용해 SQL문을 복제본으로 전달하며, Primary에서는 멀티 스레드로 수행하던 쿼리를 Replica에서는 싱글 스레드로 처리하기 때문에 동기화 지연율이 존재한다.  
+> 동기식 복제에서는 하나의 쓰기가 내구성을 갖추려면, 모든 복사본을 확인해야 합니다. 이 방법에서 속도는 디스크, 노드 또는 네트워크 경로에 중 가장 느린 요소에서 얼마나 느린가에 의해 결정됩니다.  
+> 반면, 비동기식 복제는 지연 시간을 낮출 수 있지만 데이터를 복제하고 데이터 내구성을 확인하기 전에 장애가 발생하면 데이터가 손실될 수 있습니다.  
+> 사실 두 방식 모두 완벽하지 않습니다. 또한, 장애가 발생하면 복제 구성원 집합에 변경이 발생하게 되므로 쉽지 않습니다.  
   
-Amazon Aurora에서는 3개의 가용 영역(AZ)에 걸쳐 4개의 쓰기 세트와 3개의 읽기 세트가 있는 6개 복사본 쿼럼을 사용하며, 6개의 복사본에 REDO 로그 레코드를 전송하여 네 개의 복사본에서 쓰기 완료 응답(ACK)을 받으면 해당 쓰기가 완료된 것으로 확인한다.  
-만약 느린 노드가 존재하더라도 다른 노드가 신속하게 응답하기 때문에 가용성이 떨어지지 않는다.  
+대신 Amazon Aurora는 **쿼럼 모델**을 사용하여 3개의 가용 영역(AZ)에 걸쳐 4개의 쓰기 세트와 3개의 읽기 세트가 있는 6개 복사본 쿼럼을 사용하며, Pirmary에서 쓰기가 발생하면 6개의 스토리지 노드에 REDO 로그 레코드가 작성되며 **이중 4개의 노드가 쓰기 완료 응답(ACK)을 전송해야 해당 쓰기가 완료된 것으로 확인한다.**  
+3개의 AZ에 걸쳐 노드를 분산하기 때문에, 하나의 AZ가 다운되었다고 하더라도 내결함성을 유지할 수 있으며, 만약 느린 노드가 존재하더라도 다른 노드가 신속하게 응답하기 때문에 가용성이 떨어지지 않는다.  
+  
+하지만 이런 쿼럼 시스템에서는 읽기 속도가 지연하는데 
+  
+**출처**  
 
-![](./clusterTopology.png)
-
-Aurora 복제본은 Aurora DB 클러스터의 독립 엔드포인트로서, 읽기 작업을 조정하고 가용성을 높이기 위해 사용하기에 가장 적합합니다. 최대 15개의 Aurora 복제본을 AWS 리전 내 DB 클러스터에 포함된 가용 영역에 배포할 수 있습니다. DB 클러스터 볼륨은 DB 클러스터의 여러 데이터 사본으로 구성되어 있지만, DB 클러스터의 기본 인스턴스 및 Aurora 복제본에는 클러스터 볼륨 데이터가 단 하나의 논리 볼륨으로 표시됩니다. Aurora 복제본에 대한 자세한 내용은 Aurora 복제본 단원을 참조하십시오.
-
-Aurora 복제본은 클러스터 볼륨의 읽기 연산에 전적으로 사용되므로 읽기 조정에 유용합니다. 쓰기 연산은 기본 인스턴스에서 관리합니다. 클러스터 볼륨은 Aurora MySQL DB 클러스터의 모든 인스턴스가 공유하기 때문에 각 Aurora 복제본의 데이터 사본을 추가로 복제할 필요는 없습니다. 이와는 대조적으로 MySQL 읽기 전용 복제본은 소스 DB 인스턴스부터 로컬 데이터 스토어에 이르는 모든 쓰기 작업을 단일 스레드에서 재실행해야 합니다. 이러한 제한은 대용량 읽기 트래픽을 지원하는 MySQL 읽기 전용 복제본의 기능에 영향을 끼칠 수 있습니다.
-
-Aurora MySQL을 사용하여 Aurora 복제본이 삭제될 때 인스턴스 엔드포인트가 즉시 제거되고, Aurora 복제본은 리더(Reader) 엔드포인트에서 제거됩니다. 삭제되는 Aurora 복제본을 실행하는 문이 있는 경우 3분의 유예 기간이 있습니다. 기존 문은 유예 기간 동안 정상적으로 완료할 수 있습니다. 유예 기간이 종료되면 Aurora 복제본이 종료 및 삭제됩니다.
-
-[출처 : [Amazon Aurora MySQL을 사용한 복제](https://docs.aws.amazon.com/ko_kr/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Replication.html), [Amazon Aurora 내부 들여다보기 (1) – 쿼럼 및 상관 오류 해결 방법](https://aws.amazon.com/ko/blogs/korea/amazon-aurora-under-the-hood-quorum-and-correlated-failure/), [AWS Aurora 아키텍처](https://medium.com/garimoo/aws-aurora-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-6ff87b0d48c5)]
+1. [Amazon Aurora MySQL을 사용한 복제](https://docs.aws.amazon.com/ko_kr/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Replication.html)
+2. [Amazon Aurora 내부 들여다보기 (1) – 쿼럼 및 상관 오류 해결 방법](https://aws.amazon.com/ko/blogs/korea/amazon-aurora-under-the-hood-quorum-and-correlated-failure/)
+3. [Amazon Aurora 내부 들여다보기(2) – 쿼럼 읽기 및 상태 변경](https://aws.amazon.com/ko/blogs/korea/amazon-aurora-under-the-hood-quorum-reads-and-mutating-state/)
+4. [AWS Aurora 아키텍처](https://medium.com/garimoo/aws-aurora-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-6ff87b0d48c5)]
 
 <h3>Aurora 클러스터 스토리지는 어느것을 사용하나?</h3>
 
