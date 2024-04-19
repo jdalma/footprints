@@ -43,7 +43,7 @@ DB 클러스터에 Aurora 복제본이 하나 이상인 경우에는 장애가 �
 DB 클러스터에 Aurora 복제본이 포함되어 있지 않으면 기본 인스턴스가 동일한 AZ에 다시 생성되기 때문에 보통 10분 미만의 시간이 걸리며 그 동안 예외적으로 실패하는 읽기 및 쓰기 작업 동안 중단이 발생한다.  
 Aurora 복제본을 기본 인스턴스로 승격시키는 것이 기본 인스턴스를 새로 생성하는 것보다 훨씬 빠르다.  
 
-[출처 : [Amazon Aurora의 고가용성](https://docs.aws.amazon.com/ko_kr/AmazonRDS/latest/AuroraUserGuide/Concepts.AuroraHighAvailability.html)]  
+**출처** : [Amazon Aurora의 고가용성](https://docs.aws.amazon.com/ko_kr/AmazonRDS/latest/AuroraUserGuide/Concepts.AuroraHighAvailability.html)  
   
 운영 중에 DB 스케일 업에 대한 트러블 슈팅 글도 읽어보면 도움이 될 것이다. [29CM 의 이굿위크 장애대응 기록](https://medium.com/29cm/29cm-%EC%9D%98-%EC%9D%B4%EA%B5%BF%EC%9C%84%ED%81%AC-%EC%9E%A5%EC%95%A0%EB%8C%80%EC%9D%91-%EA%B8%B0%EB%A1%9D-177b6b2f07a0)
 
@@ -88,7 +88,7 @@ DB 클러스터 볼륨은 DB 클러스터의 여러 데이터 사본으로 구�
 1. [Amazon Aurora MySQL을 사용한 복제](https://docs.aws.amazon.com/ko_kr/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Replication.html)
 2. [Amazon Aurora 내부 들여다보기 (1) – 쿼럼 및 상관 오류 해결 방법](https://aws.amazon.com/ko/blogs/korea/amazon-aurora-under-the-hood-quorum-and-correlated-failure/)
 3. [Amazon Aurora 내부 들여다보기(2) – 쿼럼 읽기 및 상태 변경](https://aws.amazon.com/ko/blogs/korea/amazon-aurora-under-the-hood-quorum-reads-and-mutating-state/)
-4. [AWS Aurora 아키텍처](https://medium.com/garimoo/aws-aurora-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-6ff87b0d48c5)]
+4. [AWS Aurora 아키텍처](https://medium.com/garimoo/aws-aurora-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-6ff87b0d48c5)
 
 <h3>Aurora 클러스터 스토리지는 어느것을 사용하나?</h3>
 
@@ -97,7 +97,6 @@ Aurora 클러스터 스토리지에는 **Aurora Standard** 와 **Aurora I/O-Opti
 **Aurora Standard**는 I/O 사용량이 낮거나 보편적인 대부분의 환경에서 효율적인 요금으로 사용할 수 있는 구성이기에 많이 선택되는 것 같다.    
 **Aurora I/O-Optimized**는 I/O를 많이 사용하는 애플리케이션(결제 처리 시스템, 전자상거래 시스템, 금융 애플리케이션 등)에 우수한 가격 대비 성능을 제공하는 데이터베이스 클러스터 구성이다.  
 또한 I/O 지출이 총 Aurora 데이터베이스 지출의 25%를 초과하는 경우 Aurora I/O-Optimized를 이용하면 I/O 집약적 워크로드의 비용을 최대 40% 절감할 수 있다.  
-따라서 I/O 변동성이 큰 워크로드에 적합한 구성이다.  
   
 클러스터 구성에서 스토리지 구성 수정이 가능하기 때문에 현재는 Standard로 설정했으며, 운영 반영 후에 CloudWatch를 사용하여 비용을 추정해보려 한다.  
 [Amazon CloudWatch를 이용한 Amazon Aurora I/O Optimized 기능에 대한 비용 절감 예상하기](https://aws.amazon.com/ko/blogs/tech/estimate-cost-savings-for-the-amazon-aurora-i-o-optimized-feature-using-amazon-cloudwatch/)
@@ -109,12 +108,45 @@ Aurora 클러스터 스토리지에는 **Aurora Standard** 와 **Aurora I/O-Opti
 
 <h3>정리</h3>
 
+AWS Aurora 클러스터의 장점들을 확인할 수 있었다.
 
+1. **동기화 지연율**
+2. **안정적인 백업**
+3. **고가용성(페일오버)**
+
+위의 장점들만 보아도 클러스터를 직접 구성하여 관리 포인트가 늘어나는 것 보다 AWS Aurora를 사용하는 것이 타당한 선택이란 것을 확인할 수 있다.  
 
 ## Aurora 인스턴스 스펙 선정을 위한 부하 테스트
 
-1. mysqlslap
-2. sysbench
+Aurora 클러스터를 사용하기로 결정했다면 이제 쓰기 인스턴스의 기본 스펙을 어느정도로 사용할지 추산해야 한다.  
+부하 테스트 결과를 통해 운영 환경과 비슷한 스펙의 DB와 AWS 인스턴스를 비교하기에는 **mysqlslap** 의 테스트 결과 내용은 **sysbench**에 비해 테스트 결과 내용이 빈약하다고 느꼈다.  
+
+```
+sudo mysqlslap --user={user} --password={password} \
+    --host={host} \
+    --concurrency=1 \
+    --iterations=1 \
+    --port={port} \
+    --query=stress_test.sql \
+    --verbose
+
+Benchmark
+        Average number of seconds to run all queries: 217.151 seconds
+        Minimum number of seconds to run all queries: 213.368 seconds
+        Maximum number of seconds to run all queries: 220.934 seconds
+        Number of clients running queries: 20
+        Average number of queries per client: 50
+
+
+User time 58.16, System time 18.31
+Maximum resident set size 909008, Integral resident set size 0
+Non-physical pagefaults 2353672, Physical pagefaults 0, Swaps 0
+Blocks in 0 out 0, Messages in 0 out 0, Signals 0
+Voluntary context switches 102785, Involuntary context switches 43
+```
+mysqlslap에 더 자세한 내용은 [mysqlslap으로 MySQL 쿼리 성능을 측정하는 방법](https://www.digitalocean.com/community/tutorials/how-to-measure-mysql-query-performance-with-mysqlslap)을 참고하길 바란다.  
+  
+
 
 # 스프링에서 읽기/쓰기 작업 분리
 
