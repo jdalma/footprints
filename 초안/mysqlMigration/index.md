@@ -86,7 +86,7 @@ DB 클러스터 볼륨은 DB 클러스터의 여러 데이터 사본으로 구�
 **출처**  
 
 1. [Amazon Aurora MySQL을 사용한 복제](https://docs.aws.amazon.com/ko_kr/AmazonRDS/latest/AuroraUserGuide/AuroraMySQL.Replication.html)
-2. [Amazon Aurora 내부 들여다보기 (1) – 쿼럼 및 상관 오류 해결 방법](https://aws.amazon.com/ko/blogs/korea/amazon-aurora-under-the-hood-quorum-and-correlated-failure/)
+2. [Amazon Aurora 내부 들여다보기(1) – 쿼럼 및 상관 오류 해결 방법](https://aws.amazon.com/ko/blogs/korea/amazon-aurora-under-the-hood-quorum-and-correlated-failure/)
 3. [Amazon Aurora 내부 들여다보기(2) – 쿼럼 읽기 및 상태 변경](https://aws.amazon.com/ko/blogs/korea/amazon-aurora-under-the-hood-quorum-reads-and-mutating-state/)
 4. [AWS Aurora 아키텍처](https://medium.com/garimoo/aws-aurora-%EC%95%84%ED%82%A4%ED%85%8D%EC%B2%98-6ff87b0d48c5)
 
@@ -122,7 +122,8 @@ Aurora 클러스터를 사용하기로 결정했다면 이제 쓰기 인스턴�
 부하 테스트 결과를 통해 운영 환경과 비슷한 스펙의 DB와 AWS 인스턴스를 비교하기에는 **mysqlslap** 의 테스트 결과 내용은 **sysbench**에 비해 테스트 결과 내용이 빈약하다고 느꼈다.  
 
 ```
-sudo mysqlslap --user={user} --password={password} \
+# mysqlslap
+mysqlslap --user={user} --password={password} \
     --host={host} \
     --concurrency=1 \
     --iterations=1 \
@@ -146,7 +147,133 @@ Voluntary context switches 102785, Involuntary context switches 43
 ```
 mysqlslap에 더 자세한 내용은 [mysqlslap으로 MySQL 쿼리 성능을 측정하는 방법](https://www.digitalocean.com/community/tutorials/how-to-measure-mysql-query-performance-with-mysqlslap)을 참고하길 바란다.  
   
+```
+# sysbench
+Running the test with following options:				
+Number of threads: 1				
+Initializing random number generator from current time				
+            
+            
+Initializing worker threads...				
+            
+Threads started!				
+            
+SQL statistics:				
+    queries performed:				
+        read:                            23282				
+        write:                           0				
+        other:                           3326				
+        total:                           26608				
+    transactions:                        1663   (166.17 per sec.)				
+    queries:                             26608  (2658.80 per sec.)				
+    ignored errors:                      0      (0.00 per sec.)				
+    reconnects:                          0      (0.00 per sec.)				
+            
+General statistics:				
+    total time:                          10.0022s				
+    total number of events:              1663				
+            
+Latency (ms):				
+         min:                                    4.93				
+         avg:                                    6.01				
+         max:                                   12.26				
+         95th percentile:                        6.79				
+         sum:                                 9992.34				
+            
+Threads fairness:				
+    events (avg/stddev):           1663.0000/0.00				
+    execution time (avg/stddev):   9.9923/0.00				
+```
 
+sysbench는 테스트에 실행된 총 쿼리수(초당 쿼리수), 총 소요시간, 지연율, [95 백분위수](https://www.percona.com/blog/computing-95-percentile-in-mysql/)까지 자동으로 계산해주기에 성능 비교에는 sysbench가 유용할 것이라고 판단했다.  
+
+```sh
+#!/bin/bash
+host=$1
+port=$2
+user=$3
+password=$4
+task=$5
+filename=$6
+
+sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --table-size=444444 /usr/share/sysbench/$task cleanup
+sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --table-size=444444 /usr/share/sysbench/$task prepare
+
+echo "----------------------------------------------------------------------------------------------" >> /stress_test_nohistogram/$filename.txt
+echo "스레드 1개" >> /stress_test_nohistogram/$filename.txt
+sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --threads=1 --table-size=444444 /usr/share/sysbench/$task run >> /stress_test_nohistogram/$filename.txt
+
+# 스레드 50개, 100개, 300개, 500개, 1000개, 1300개, 1500개, 1700개
+
+echo "----------------------------------------------------------------------------------------------" >> /stress_test_nohistogram/$filename.txt
+echo "스레드 1000개" >> /stress_test_nohistogram/$filename.txt
+sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --threads=1000 --table-size=444444 /usr/share/sysbench/$task run >> /stress_test_nohistogram/$filename.txt
+```
+
+테스트에 사용한 쉘 스크립트이며, **한 개의 task에 스레드를 1개부터 2000개까지 점진적으로 증가시켜서 테스트를 진행하였다.**  
+**sysbench에는 테스트에 사용할 task의 종류를 지정할 수 있다.**  
+
+- bulk_insert.lua
+- oltp_common.lua
+- oltp_delete.lua
+- oltp_insert.lua
+- oltp_point_select.lua
+- oltp_read_only.lua
+- oltp_read_only_custom.lua
+- oltp_read_write.lua
+- oltp_update_index.lua
+- oltp_update_non_index.lua
+- oltp_write_only.lua
+- select_random_points.lua
+- select_random_ranges.lua
+
+
+```sql
+-- prepare 단계
+create table sbtest1
+(
+   id int auto_increment
+   primary key,
+   k int default 0 not null,
+   c char(120) default '' not null,
+   pad char(60) default '' not null
+);
+create index k_1 on sbtest1 (k);
+
+-- readonly 태스크
+SELECT c FROM sbtest1 WHERE id=44
+SELECT c FROM sbtest1 WHERE id=55
+SELECT c FROM sbtest1 WHERE id BETWEEN 51 AND 150
+SELECT SUM(k) FROM sbtest1 WHERE id BETWEEN 51 AND 150
+SELECT c FROM sbtest1 WHERE id BETWEEN 51 AND 150 ORDER BY c
+SELECT DISTINCT c FROM sbtest1 WHERE id BETWEEN 50 AND 149 ORDER BY c
+
+-- writeonly 태스크
+UPDATE sbtest1 SET k=k+1 WHERE id=2
+UPDATE sbtest1 SET c='31667119632-22964725684-53396140619-98040038010-04403395459-44235823093-96352774300-50973853742-33415140656-03600646353' WHERE id=2
+DELETE FROM sbtest1 WHERE id=2
+INSERT INTO sbtest1 (id, k, c, pad) VALUES (2, 2, '65661424464-00699191384-31183691105-04015400523-22078562751-54533253502-30538263511-14866890704-89486643064-38823248060', '90326750466-60582217538-36644674212-90655605596-42610989539')
+
+-- select_random_points 태스크
+SELECT id, k, c, pad FROM sbtest1 WHERE k IN (1, 2, 1, 2, 1, 1, 2, 1, 2, 2)
+
+-- select_random_range 태스크
+SELECT count(k)
+FROM sbtest1
+WHERE k BETWEEN 50 AND 55 OR k BETWEEN 50 AND 55 OR k BETWEEN 54 AND 59 OR k BETWEEN 51 AND 56 OR k BETWEEN 60 AND 65 OR k BETWEEN 50 AND 55 OR k BETWEEN 50 AND 55 OR k BETWEEN 51 AND 56 OR k BETWEEN 57 AND 62 OR k BETWEEN 50 AND 55
+```
+
+prepare 단계에서 `sbtest1`과 같은 테이블을 생성하고 각 `task`에 맞는 쿼리들을 부하 테스트에 사용한다.  
+
+![](./stressTest.png)
+
+총 5개의 `task`를 사용하여 스레드를 `1 ~ 2000개`까지 늘리면서 테스트를 진행하고 **평균 실행 쿼리 개수**와 **평균 지연율**, **95 백분위수**를 기준으로 비교하였다.  
+
+> 즉, **3개의 스펙 서버(AWS 인스턴스 2개, 운영 DB와 비슷한 스펙 서버) * 5개의 task * 10번의 스레드별 테스트** 를 진행하였다.  
+> 각 서버들의 버퍼풀 크기가 상이하여 동일한 식별자를 가진 쿼리를 기준으로 테스트하지 않았으며 버퍼풀 워밍업은 고려하지 않았다.  
+
+부하 테스트를 통해 인스턴스 스펙간 차이는 어느정도 확인되었지만 현재 운영 중인 DB에 얼마정도의 요청이 들어오는지 확인이 필요했다.  
+현재 모니터링 툴로 와탭을 사용중인데, 
 
 # 스프링에서 읽기/쓰기 작업 분리
 
