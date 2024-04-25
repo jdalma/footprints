@@ -250,9 +250,9 @@ SELECT DISTINCT c FROM sbtest1 WHERE id BETWEEN 50 AND 149 ORDER BY c
 
 -- writeonly 태스크
 UPDATE sbtest1 SET k=k+1 WHERE id=2
-UPDATE sbtest1 SET c='31667119632-22964725684-53396140619-98040038010-04403395459-44235823093-96352774300-50973853742-33415140656-03600646353' WHERE id=2
+UPDATE sbtest1 SET c='03600646353' WHERE id=2
 DELETE FROM sbtest1 WHERE id=2
-INSERT INTO sbtest1 (id, k, c, pad) VALUES (2, 2, '65661424464-00699191384-31183691105-04015400523-22078562751-54533253502-30538263511-14866890704-89486643064-38823248060', '90326750466-60582217538-36644674212-90655605596-42610989539')
+INSERT INTO sbtest1 (id, k, c, pad) VALUES (2, 2, '38823248060', '42610989539')
 
 -- select_random_points 태스크
 SELECT id, k, c, pad FROM sbtest1 WHERE k IN (1, 2, 1, 2, 1, 1, 2, 1, 2, 2)
@@ -273,22 +273,85 @@ prepare 단계에서 `sbtest1`과 같은 테이블을 생성하고 각 `task`에
 > 각 서버들의 버퍼풀 크기가 상이하여 동일한 식별자를 가진 쿼리를 기준으로 테스트하지 않았으며 버퍼풀 워밍업은 고려하지 않았다.  
 
 부하 테스트를 통해 인스턴스 스펙간 차이는 어느정도 확인되었지만 현재 운영 중인 DB에 얼마정도의 요청이 들어오는지 확인이 필요했다.  
-현재 모니터링 툴로 와탭을 사용중인데, 
+현재 모니터링 툴로 와탭을 사용중인데, 와탭은 짧은 시간에 다량으로 처리되는 쿼리는 확인하기 힘들다.  
+
+> 5초마다 조회된 시점의 액티브 세션 기준으로 조회되기 때문에 조회 시점에 액티브 세션이 존재하지 않는 건이라면 MySQL 통계에는 보이지 않을 수 있다.  
+> 와탭을 이용해서 단시간에 빠르게 처리된 쿼리들을 모두 확인은 할 수 없다.
+
+위와 같은 이유로 운영 DB에 유입되는 질의문의 양을 측정할 수 있는 것은 MySQL의 [`Com_xxx` 서버 상태 변수](https://dev.mysql.com/doc/refman/8.0/en/server-status-variables.html)가 가장 믿을만하다고 판단하여 한 달 동안의 명령 횟수와 위에서 산출된 부하 테스트의 처리량을 비교하여 추산하였다.  
+  
+> 전역 `Com_xxx` 변수는 서버가 실행되는 동안 특정 질의문이 실행된 횟수를 나타낸다.  
 
 # 스프링에서 읽기/쓰기 작업 분리
+
+```kotlin
+@Bean
+@ConfigurationProperties(prefix = "spring.datasource.primary")
+open fun primaryDataSource(): DataSource {
+   return DataSourceBuilder.create().build()
+}
+
+@Bean
+@ConfigurationProperties(prefix = "spring.datasource.secondary")
+open fun secondaryDataSource(): DataSource {
+   return DataSourceBuilder.create().build()
+}
+
+@Primary
+@Bean
+@DependsOn("primaryDataSource", "secondaryDataSource")
+open fun routingDataSource(): DataSource {
+   return TransactionRoutingDataSource(primaryDataSource(), secondaryDataSource())
+}
+
+@Bean
+open fun dataSourceTransactionManager(routingDataSource: DataSource): PlatformTransactionManager {
+   return DataSourceTransactionManager(LazyConnectionDataSourceProxy(routingDataSource))
+}
+```
 
 1. 스프링에서 RW 커넥션을 분리
 
 # AWS DMS를 이용한 데이터 이관
 
-4. AWS DMS를 사용하면서 주의해야 할점
+![](./dms.png)
+
+DMS는 데이터 마이그레이션 서비스로, 다양한 소스 데이터베이스에서 AWS 클라우드로 데이터를 안전하고 쉽게 마이그레이션할 수 있도록 제공되는 서비스다.  
+이관을 진행하기 위해서는 아래의 오브젝트를 미리 생성해놓아야 한다.
+
+1. 소스 DB와 타겟 DB의 **엔드포인트**
+2. 이관을 진행할 때 사용될 **복제 인스턴스**
+3. 두 개의 엔드포인트와 복제 인스턴스를 사용하여 실제 이관할 이관 전략을 지정하는 **데이터베이스 마이그레이션 태스크**
+
+제일 중요한 것은 **데이터베이스 마이그레이션 태스크** 지정인데, 이와 관련해서 유의해야 할 점들을 살펴보자.
+
+<h3>1. 적재 모드 선택과 데이터 검증</h3>
+
+**초기 적재** 와 **변경 사항 복제** 를 선택할 수 있으며 두 작업을 함께 진행하도록 할 수도 있다.  
+그리고 초기 적재가 끝나면 소스 DB와 타겟 DB의 **데이터 검증** 작업도 지정할 수 있다.  
+
+기존 데이터 마이그레이션(전체 로드만) - 소스 엔드포인트에서 대상 엔드포인트로 한 번만 마이그레이션을 수행합니다.
+
+기존 데이터 마이그레이션 및 진행 중인 변경 사항 복제(전체 로드 및 CDC) - 소스에서 대상으로 한 번 마이그레이션을 수행한 다음, 소스에서 대상으로 데이터 변경 사항을 계속 복제합니다.
+
+데이터 변경 사항만 복제(CDC만 해당) - 일회성 마이그레이션을 수행하지 않고 소스에서 타깃으로 데이터 변경 사항을 계속 복제합니다.
+
+<h3>2. 지속적인 복제 고려</h3>
+
+<h3>3. 파티셔닝 테이블 이관</h3>
+
+<h3>4. AUTO_INCREMENT 값 동기화</h3>
+
+<h3>5. LOB 컬럼</h3>
+
+1. AWS DMS를 사용하면서 주의해야 할점
    1. 엔드포인트, 복제 인스턴스, 마이그레이션 태스크
    2. 적재 모드 선택
    3. 지속적인 복제를 사용하려면 binary logging이 활성화되어 있어야함
    4. 마이그레이션 대상 DB에 파티션된 테이블이 있다면 해당 테이블은 대상 DB에 미리 생성 해놓아야하며, 대상 테이블 준비 모드는 "아무 작업 안함" 또는 "자르기"를 선택해야 한다.
    5. 동기화가 끝나면 대상 테이블의 AUTO_INCREMENT 값을 수동으로 동기화 시켜줘야 한다.
    6. 테이블에 LOB 형식의 컬럼이 Not null 제약 조건이 있다면 해당 제약 조건을 제거하고 마이그레이션이 끝난 후 제약 조건을 추가해야 한다.
-5. AWS DMS
+2. AWS DMS
    1. 동시에 8개의 테이블을 10000 레코드를 복제함. 변경 감지 트랜잭션 활성화 시간은 기본값인 10분이지만 변경도 가능하긴 함
 
 # MySQL 버전업을 진행하면서 고려해야할 점
