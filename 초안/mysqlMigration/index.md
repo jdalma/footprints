@@ -199,15 +199,19 @@ filename=$6
 sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --table-size=444444 /usr/share/sysbench/$task cleanup
 sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --table-size=444444 /usr/share/sysbench/$task prepare
 
-echo "----------------------------------------------------------------------------------------------" >> /stress_test_nohistogram/$filename.txt
-echo "스레드 1개" >> /stress_test_nohistogram/$filename.txt
-sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --threads=1 --table-size=444444 /usr/share/sysbench/$task run >> /stress_test_nohistogram/$filename.txt
+sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --threads=1 --table-size=444444 /usr/share/sysbench/$task run >> /stress_test/$filename.txt
+sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --threads=50 --table-size=444444 /usr/share/sysbench/$task run >> /stress_test/$filename.txt
+sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --threads=100 --table-size=444444 /usr/share/sysbench/$task run >> /stress_test/$filename.txt
+sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --threads=300 --table-size=444444 /usr/share/sysbench/$task run >> /stress_test/$filename.txt
+sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --threads=500 --table-size=444444 /usr/share/sysbench/$task run >> /stress_test/$filename.txt
+sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --threads=1000 --table-size=444444 /usr/share/sysbench/$task run >> /stress_test/$filename.txt
+sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --threads=1300 --table-size=444444 /usr/share/sysbench/$task run >> /stress_test/$filename.txt
+sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --threads=1500 --table-size=444444 /usr/share/sysbench/$task run >> /stress_test/$filename.txt
+sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --threads=1700 --table-size=444444 /usr/share/sysbench/$task run >> /stress_test/$filename.txt
+sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --threads=2000 --table-size=444444 /usr/share/sysbench/$task run >> /stress_test/$filename.txt
 
-# 스레드 50개, 100개, 300개, 500개, 1000개, 1300개, 1500개, 1700개
+sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --table-size=444444 /usr/share/sysbench/$task cleanup
 
-echo "----------------------------------------------------------------------------------------------" >> /stress_test_nohistogram/$filename.txt
-echo "스레드 1000개" >> /stress_test_nohistogram/$filename.txt
-sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-password=$password --mysql-db=test --threads=1000 --table-size=444444 /usr/share/sysbench/$task run >> /stress_test_nohistogram/$filename.txt
 ```
 
 테스트에 사용한 쉘 스크립트이며, **한 개의 task에 스레드를 1개부터 2000개까지 점진적으로 증가시켜서 테스트를 진행하였다.**  
@@ -218,14 +222,14 @@ sysbench --mysql-host=$host --mysql-port=$port --mysql-user=$user --mysql-passwo
 - oltp_delete.lua
 - oltp_insert.lua
 - oltp_point_select.lua
-- oltp_read_only.lua
+- **oltp_read_only.lua**
 - oltp_read_only_custom.lua
-- oltp_read_write.lua
+- **oltp_read_write.lua**
 - oltp_update_index.lua
 - oltp_update_non_index.lua
-- oltp_write_only.lua
-- select_random_points.lua
-- select_random_ranges.lua
+- **oltp_write_only.lua**
+- **select_random_points.lua**
+- **select_random_ranges.lua**
 
 
 ```sql
@@ -267,7 +271,7 @@ prepare 단계에서 `sbtest1`과 같은 테이블을 생성하고 각 `task`에
 
 ![](./stressTest.png)
 
-총 5개의 `task`를 사용하여 스레드를 `1 ~ 2000개`까지 늘리면서 테스트를 진행하고 **평균 실행 쿼리 개수**와 **평균 지연율**, **95 백분위수**를 기준으로 비교하였다.  
+**총 5개의 task** 를 사용하여 스레드를 `1 ~ 2000개`까지 늘리면서 테스트를 진행하고 **평균 실행 쿼리 개수**와 **평균 지연율**, **95 백분위수**를 기준으로 비교하였다.  
 
 > 즉, **3개의 스펙 서버(AWS 인스턴스 2개, 운영 DB와 비슷한 스펙 서버) * 5개의 task * 10번의 스레드별 테스트** 를 진행하였다.  
 > 각 서버들의 버퍼풀 크기가 상이하여 동일한 식별자를 가진 쿼리를 기준으로 테스트하지 않았으며 버퍼풀 워밍업은 고려하지 않았다.  
@@ -283,6 +287,56 @@ prepare 단계에서 `sbtest1`과 같은 테이블을 생성하고 각 `task`에
 > 전역 `Com_xxx` 변수는 서버가 실행되는 동안 특정 질의문이 실행된 횟수를 나타낸다.  
 
 # 스프링에서 읽기/쓰기 작업 분리
+
+읽기/쓰기 커넥션을 분리하기 위해 [권남님의 replication-datasource](https://github.com/kwon37xi/replication-datasource)를 참고하였다.  
+Primary와 Secondary의 DataSource 정보를 주입받아 읽기/쓰기 라우팅을 시켜줄 `AbstractRoutingDataSource`를 상속받았다.  
+
+> **AbstractRoutingDataSource?**  
+> 조회 키를 기반으로 getConnection() 호출을 다양한 대상 DataSource 중 하나로 라우팅하는 추상 DataSource 구현입니다.  
+> 후자는 일반적으로 일부 스레드 바인딩 트랜잭션 컨텍스트를 통해 결정됩니다.  
+
+즉, 현재 컨텍스트에 따라 데이터 소스를 동적으로 결정할 수 있는 방법을 제공하는 추상 클래스이다.  
+
+```kotlin
+class TransactionRoutingDataSource(
+    primary: DataSource,
+    secondary: DataSource
+) : AbstractRoutingDataSource() {
+
+    init {
+        super.setTargetDataSources(mapOf(
+            READ_WRITE to primary,
+            READ_ONLY to secondary
+        ))
+        super.setDefaultTargetDataSource(primary)
+    }
+
+    override fun determineCurrentLookupKey(): Any {
+        return DataSourceType.from(TransactionSynchronizationManager.isCurrentTransactionReadOnly())
+    }
+
+    private enum class DataSourceType {
+        READ_WRITE,
+        READ_ONLY;
+
+        companion object {
+            fun from(isReadOnly: Boolean) = if (isReadOnly) READ_ONLY else READ_WRITE
+        }
+    }
+}
+```
+
+상속받아 구현한 라우팅의 책임을 가진 TransactionRoutingDataSource를 스프링에서 사용할 DataSource로 등록할 때 `LazyConnectionDataSourceProxy`로 랩핑하여 등록한다.  
+
+> **LazyConnectionDataSourceProxy?**  
+> 실제 JDBC 연결을 느리게 가져오는 대상 데이터 소스에 대한 프록시입니다.  
+> 즉, 처음으로 명령문을 생성할 때까지는 가져오지 않습니다. 자동 커밋 모드, 트랜잭션 격리 및 읽기 전용 모드와 같은 연결 초기화 속성은 실제 연결을 가져오는 즉시(있는 경우) 실제 JDBC 연결에 유지되고 적용됩니다.  
+> ...  
+> 이 DataSource 프록시를 사용하면 실제로 필요한 경우가 아니면 풀에서 JDBC 연결을 가져오는 것을 방지할 수 있습니다. JDBC 트랜잭션 제어는 풀에서 연결을 가져오거나 데이터베이스와 통신하지 않고도 발생할 수 있습니다.  
+> 이는 JDBC 문을 처음 생성할 때 느리게 수행됩니다.
+
+즉, 실제로 커넥션이 필요한 경우가 아니라면 풀에서 커넥션을 점유하지 않고 실제로 필요한 시점에 커넥션을 점유하도록 할 수 있다.  
+트랜잭션 진입 시점에 커넥션을 결정하지 않고 실제로 필요할 때 (`readonly` 속성에 따라) `TransactionSynchronizationManager.isCurrentTransactionReadOnly()` 결과를 기반으로 데이터 소스를 선택할 수 있게 된 것이다.  
 
 ```kotlin
 @Bean
@@ -310,14 +364,14 @@ open fun dataSourceTransactionManager(routingDataSource: DataSource): PlatformTr
 }
 ```
 
-1. 스프링에서 RW 커넥션을 분리
+더 자세한 이해와 원리는 다른 글로 정리하겠다.  
 
 # AWS DMS를 이용한 데이터 이관
 
 ![](./dms.png)
 
 DMS는 데이터 마이그레이션 서비스로, 다양한 소스 데이터베이스에서 AWS 클라우드로 데이터를 안전하고 쉽게 마이그레이션할 수 있도록 제공되는 서비스다.  
-이관을 진행하기 위해서는 아래의 오브젝트를 미리 생성해놓아야 한다.
+이관을 진행하기 위해서는 아래의 오브젝트를 준비해야 한다.  
 
 1. 소스 DB와 타겟 DB의 **엔드포인트**
 2. 이관을 진행할 때 사용될 **복제 인스턴스**
@@ -328,31 +382,54 @@ DMS는 데이터 마이그레이션 서비스로, 다양한 소스 데이터베�
 <h3>1. 적재 모드 선택과 데이터 검증</h3>
 
 **초기 적재** 와 **변경 사항 복제** 를 선택할 수 있으며 두 작업을 함께 진행하도록 할 수도 있다.  
+
+1. 기존 데이터 마이그레이션(전체 로드만) - 소스 엔드포인트에서 대상 엔드포인트로 한 번만 마이그레이션을 수행
+2. 기존 데이터 마이그레이션 및 진행 중인 변경 사항 복제(전체 로드 및 CDC) - 소스에서 대상으로 한 번 마이그레이션을 수행한 다음, 소스에서 대상으로 데이터 변경 사항을 계속 복제
+3. 데이터 변경 사항만 복제(CDC만 해당) - 일회성 마이그레이션을 수행하지 않고 소스에서 타깃으로 데이터 변경 사항을 계속 복제
+  
+변경 사항 복제는 초기 적재가 끝나면 소스 DB의 binlog를 기반으로 타겟 DB에 동기화 시키는 작업을 의미한다.  
+해당 기능을 실행하기 위해서는 소스 DB의 binlog가 활성화되어 있어야 하며, [binlog 보존 시간](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/mysql-stored-proc-configuring.html#mysql_rds_set_configuration-usage-notes.binlog-retention-hours)을 확인해야 한다.  
+  
 그리고 초기 적재가 끝나면 소스 DB와 타겟 DB의 **데이터 검증** 작업도 지정할 수 있다.  
+데이터 검증에 문제가 발생하면 어떤 문제가 발생했는지 `awsdms_control.awsdms_validation_failures_v1` 테이블에서 확인할 수 있다.  
 
-기존 데이터 마이그레이션(전체 로드만) - 소스 엔드포인트에서 대상 엔드포인트로 한 번만 마이그레이션을 수행합니다.
+```
++---------+-----------+----------+-----------------------+--------+-----------------------------------+--------------+
+|TASK_NAME|TABLE_OWNER|TABLE_NAME|FAILURE_TIME           |KEY_TYPE|KEY                                |FAILURE_TYPE  |
++---------+-----------+----------+-----------------------+--------+-----------------------------------+--------------+
+|...      |...        |...       |2024-03-29 04:28:55.367|Row     |{ "key":	["key1", "key2", ...] } |MISSING_TARGET|
+|...      |...        |...       |2024-03-29 04:28:55.409|Row     |{ "key":	["key1", "key2", ...] } |MISSING_SOURCE|
++---------+-----------+----------+-----------------------+--------+-----------------------------------+--------------+
+```
 
-기존 데이터 마이그레이션 및 진행 중인 변경 사항 복제(전체 로드 및 CDC) - 소스에서 대상으로 한 번 마이그레이션을 수행한 다음, 소스에서 대상으로 데이터 변경 사항을 계속 복제합니다.
+어떤 DB에서 실패하였는지, 어떤 레코드인지 식별하기 위한 정보들이 모두 들어있다.  
+실제로 이관이 끝나고 해당 로그를 기반으로 데이터에 문제가 있는지 확인하기 편하다.  
+  
+<h3>2. 파티셔닝 테이블 이관</h3>
 
-데이터 변경 사항만 복제(CDC만 해당) - 일회성 마이그레이션을 수행하지 않고 소스에서 타깃으로 데이터 변경 사항을 계속 복제합니다.
+DMS는 분할된 테이블에 대한 DDL을 지원하지 않기 때문에 이관 대상 테이블에 파티셔닝된 테이블이 있다면, 대상 DB에 미리 생성해놓아야 한다.  
+그리고 꼭 대상 테이블 준비 모드는 `"아무 작업 안함"` 또는 `"자르기"`를 선택하여 이관 시작시 대상 DB의 메타데이터를 삭제하지 않도록 해야 한다.  
 
-<h3>2. 지속적인 복제 고려</h3>
+<h3>3. LOB 컬럼</h3>
 
-<h3>3. 파티셔닝 테이블 이관</h3>
+이관 테이블 중 LOB 컬럼이 존재한다면 아래의 설정에 신경써야 한다.  
 
-<h3>4. AUTO_INCREMENT 값 동기화</h3>
+![](./lobColumn.png)
 
-<h3>5. LOB 컬럼</h3>
+해당 컬럼의 최대 사이즈가 13kb인 것을 확인하여서 기본 값인 64kb를 넘지 않아 전체 LOB 모드로 실행하였다.  
 
-1. AWS DMS를 사용하면서 주의해야 할점
-   1. 엔드포인트, 복제 인스턴스, 마이그레이션 태스크
-   2. 적재 모드 선택
-   3. 지속적인 복제를 사용하려면 binary logging이 활성화되어 있어야함
-   4. 마이그레이션 대상 DB에 파티션된 테이블이 있다면 해당 테이블은 대상 DB에 미리 생성 해놓아야하며, 대상 테이블 준비 모드는 "아무 작업 안함" 또는 "자르기"를 선택해야 한다.
-   5. 동기화가 끝나면 대상 테이블의 AUTO_INCREMENT 값을 수동으로 동기화 시켜줘야 한다.
-   6. 테이블에 LOB 형식의 컬럼이 Not null 제약 조건이 있다면 해당 제약 조건을 제거하고 마이그레이션이 끝난 후 제약 조건을 추가해야 한다.
-2. AWS DMS
-   1. 동시에 8개의 테이블을 10000 레코드를 복제함. 변경 감지 트랜잭션 활성화 시간은 기본값인 10분이지만 변경도 가능하긴 함
+```sql
+SELECT MAX(OCTET_LENGTH({lob_column})) / 1024 AS max_size_kb
+FROM {table};
+```
+
+그리고 LOB 컬럼은 테이블에 데이터 INSERT 시점에 이관되지 않고 **삽입된 레코드에 UPDATE로 이관**되기 때문에 만약 LOB 컬럼이 NOT NULL이라면 **이관할 때에는 NULL을 허용하고 이관 끝난 후에 UPDATE** 해줘야 한다.  
+
+<h3>4. 이관 시 소스 엔드포인트 ServerTimeZone 설정</h3>
+
+소스 DB의 timezone이 UTC가 아닌 경우에는 소스 엔드포인트의 ServerTimeZone을 꼭 설정해줘야 한다.  
+[How do I migrate a MySQL database in a non-UTC time zone using AWS DMS tasks?](https://repost.aws/knowledge-center/dms-migrate-mysql-non-utc)  
+[MySQL time_zone 설정을 안했어요.](https://jdalma.github.io/2024y/troubleShooting/timezone/timezone/) 글에서 자세한 내용을 확인할 수 있다.  
 
 # MySQL 버전업을 진행하면서 고려해야할 점
 
