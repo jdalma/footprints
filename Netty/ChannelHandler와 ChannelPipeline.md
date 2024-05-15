@@ -339,3 +339,31 @@ ChannelFutureListener를 추가하려면 ChannelFuture 인스턴스의 `addListe
 간단하게 예외를 처리하고 싶다면 ChannelPromise에 추가하는 커스텀 ChannelOutboundHandler 구현이 좋다.  
   
 ChannelOutBoundHandler 자체에서 예외가 발생하면 해당 ChannelPromise에 등록된 모든 수신기에 알림을 전달한다.  
+
+# EmbeddedChannel
+
+ChannelHandler의 단위 테스트를 위해 제공되는 특수한 Channel 구현인 EmbeddedChannel을 통해 단위 테스트를 작성해보자.  
+**인바운드 또는 아웃바운드 데이터를 EmbeddedChannel로 기록하고 ChannelPipeline 끝에 도달하는 항목이 있는지 확인하면 된다.**  
+이렇게 하여 메시지가 인코딩 또는 디코딩됐는지 확인하거나, 트리거된 ChannelHandler 작업이 있는지 여부도 알 수 있다.  
+  
+![](./imgs/embeddedChannelFlow.png)
+
+<h3>인바운드 메시지 테스트</h3>
+
+고정된 3바이트 크기의 프레임을 생성하며, 충분히 준비되지 않으면 다음 데이터 청크를 대기하고 프레임을 생성할 수 있는지 확인하는 Decoder이다.  
+
+![](./imgs/inboundMessageTest.png)
+
+<h3>아웃바운드 메시지 테스트</h3>
+
+메시지를 다른 포맷으로 변환하는 컴포넌트인 인코더 역할을 하는 ChannelOutBoundHandler를 테스트해보자.  
+여기서는 음의 정수를 절댓값으로 변환하는 AbsIntegerEncoder를 테스트한다.  
+  
+4바이트 음의 정수 형식으로 데이터가 기록되면, 디코더는 들어오는 ByteBuf에서 각 음의 정수를 읽고 절댓값을 ChannelHandlerPipeline에 기록한다.  
+  
+![](./imgs/absIntegerEncoder.png)
+
+<h3>예외 처리 테스트</h3>
+
+읽은 바이트 수가 지정한 한계를 초과할 경우 `TooLongFrameException`을 발생시키고 해당 바이트를 폐기시키는 디코더를 테스트해보자.  
+
