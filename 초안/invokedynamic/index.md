@@ -313,6 +313,9 @@ abstract public class CallSite {
 - **[Java Virtual Machine Support for Non-Java Languages](https://docs.oracle.com/javase/8/docs/technotes/guides/vm/multiple-language-support.html)**
 - **[Dismantling invokedynamic](https://dzone.com/articles/dismantling-invokedynamic)**
 - **[Translation of Lambda Expressions](https://cr.openjdk.org/~briangoetz/lambda/lambda-translation.html)**
+- [Behind the scenes: How do lambda expressions really work in Java?](https://blogs.oracle.com/javamagazine/post/behind-the-scenes-how-do-lambda-expressions-really-work-in-java)
+- [Understanding Java method invocation with invokedynamic](https://blogs.oracle.com/javamagazine/post/understanding-java-method-invocation-with-invokedynamic)
+- [Mastering the mechanics of Java method invocation](https://blogs.oracle.com/javamagazine/post/mastering-the-mechanics-of-java-method-invocation)
 - [Inline Functions in Kotlin](https://www.baeldung.com/kotlin/inline-functions)
 - [JVM Internal](https://d2.naver.com/helloworld/1230)
 - [모던 자바 인 액션](https://m.yes24.com/Goods/Detail/77125987) : 부록 D
