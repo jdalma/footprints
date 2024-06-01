@@ -8,6 +8,8 @@
 - [OpenAPI로부터 포스트맨 정의하기](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/)
 - [포스트맨으로부터 OpenAPI 정의하기](https://blog.postman.com/creating-an-openapi-definition-from-a-collection-with-the-postman-api/)
 - OpenAPI 문서가 상세한 프로토콜을 기술한다고 해도 여전히 description 부분에서 사람이 충분히 읽을 수 있는 정보로 재기술 되어야 한다!!!
+- 결국 프로젝트에 관여도, 기여도가 높은 사람이 리딩하게 된다. 그러려면 당연하게도 자기가 재밌어하거나 잘하고 싶은 욕심이 있어야 한다.
+  - 하고 싶은 일을 하면 자연스럽게 잘해질 것이고, 일이 재미가 없다면 그 일을 못 해서 그렇다.
 
 # API 설계의 특수성
 
