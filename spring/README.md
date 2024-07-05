@@ -8,3 +8,4 @@
 8. [Spring upload](https://github.com/jdalma/spring-upload)
 9. [Spring Template](https://github.com/jdalma/advanced)
 10. [Spring Proxy](https://github.com/jdalma/spring-proxy)
+11. [Spring Jdbc](https://github.com/jdalma/spring-jdbc)

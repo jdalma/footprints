@@ -32,7 +32,7 @@ Spring이 Request를 처리하는 과정이 대충 `HTTP 요청 ➔ WAS ➔ 필�
 
 ```java
 /**
- * 특정 요청에 대한 필터 세트의 실행을 관리하는 데 사용되는 jakarta.servlet.FilterChain 구현. 정의된 필터 세트가 모두 실행되면 doFilter() 에 대한 다음 호출은 서블릿의 service() 메소드 자체를 실행합니다.
+ * 특정 요청에 대한 필터 세트의 실행을 관리하는 데 사용되는 jakarta.servlet.FilterChain 구현, 정의된 필터 세트가 모두 실행되면 doFilter() 에 대한 다음 호출은 서블릿의 service() 메소드 자체를 실행한다.
  */
 public final class ApplicationFilterChain implements FilterChain {
 
@@ -373,7 +373,9 @@ protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Ex
 ![](https://github.com/jdalma/footprints/blob/main/spring/imgs/spring-mvc2/springInterceptorException.png?raw=true)
 
 
+## 예외 흐름
 
-
-
-
+필터는 체이닝 방식으로 호출되기 때문에 인터셉터가 호출되더라도 콜 스택에 쌓여있다.  
+필터가 모두 호출되었다면 디스패처 서블릿이 호출되며, 서블릿이 인터셉터와 핸들러를 호출한다.  
+서블릿은 인터셉터의 preHandle -> HandlerAdapter.handle -> 인터셉터의 postHandle -> 인터셉터의 afterCompletion을 호출한다.  
+afterCompletion은 예외가 발생하던 하지않던 항상 호출되지만 서블릿을 실행한 Filter에서는 예외가 발생하면 호출된 Filter에 예외가 전파되게 되어 doFilter가 정상적으로 끝나지 않게 된다.  
