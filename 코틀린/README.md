@@ -39,6 +39,7 @@
    - 코틀린에서 가능한것은 오직 `!!a -> !(!a)` 와 같이 반전 연산자만 가능하다.
 
 # **코틀린은 왜 if와 when 식을 도입했을까?**    
+
 (값을 만들 때 사용하는 if를 **if 식**이라고 한다.)    
 if/when을 식으로 사용할 수 없으면 조건에 따라 값이 달라지는 경우 반드시 var변수를 사용하고 적당한 초깃값으로 그 변수를 초기화해야만 한다.    
 
@@ -68,6 +69,86 @@ else
 [예제](https://github.com/jdalma/kotlin-playground/blob/main/src/test/kotlin/_20_Operator/IterableTest.kt)를 참고하자.  
   
 > 코틀린 컴파일러는 객체의 타입을 검사하지 않고 객체가 제공하는 **iterator()** 함수와 해당 함수가 **hasNext()** 와 **next()** 를 지원하는지만 검사한다.
+
+# **제네릭 타입 실체화**
+
+인라인 함수는 복사되기 때문에 JVM의 중요한 제약 중 하나, 즉 **타입 소거** 라는 제약을 피해갈 수 있다.  
+어쨋든 인라인 함수 안에서는 어떤 타입을 사용하는지 정확히 알 수 있기 때문이다.  
+  
+```kotlin
+// 컴파일 에러 Cannot check for instance of erased type: T
+fun <T> isSameType(a: Number): Boolean = a is T
+```
+
+자바에서는 이럴 떄 보통 클래스를 인수로 넘기듯이 코틀린도 비슷한 방법을 사용할 수 있다.  
+
+```kotlin
+fun <T: Number> isSameType(clazz: KClass<T>, a: Number) = clazz.isInstance(a)
+
+isSameType(Int::class, 1) shouldBe true
+isSameType(Int::class, 2L) shouldBe false
+isSameType(Long::class, 2L) shouldBe true
+```
+
+하지만 두 가지 단점이 있다.  
+
+1. `is` 연산자는 사용하지 못하며 반드시 `isInstance()` 함수를 사용해야 한다.
+2. 반드시 올바른 클래스 `clazz:KClass<T>`를 전달해야 한다.
+
+**실체화된 (`reified`) 타입을 사용하면 더 좋은 코드를 작성할 수 있다.**  
+
+```kotlin
+inline fun <reified T: Number> isSameType(a: Number) = a is T
+
+isSameType<Int>(1) shouldBe true
+isSameType<Int>(1L) shouldBe false
+isSameType<Long>(1L) shouldBe true
+```
+
+> JVM의 타입 소거 때문에 실체화된 타입을 사용하는 함수는 반드시 `inline`으로 선언해야 한다.  
+> inline으로 인해 함수 전체가 복제되기에 함수가 너무 길면 안된다.
+
+1. 클래스를 인수로 전달할 필요없이 `is` 키워드를 사용할 수 있다.
+2. 컴파일러가 추론할 수 있다면 타입 매개변수를 완전히 생략할 수 있다.
+
+함수 오버로딩을 실체화된 타입을 사용하게끔 할 수 있다.  
+아래의 함수 두 개는 플랫폼 정의 충돌을 일으키기 때문에 컴파일되지 않는다.  
+즉, JVM이 볼 때 두 함수는 똑같이 `printList(list: List)`와 같은 시그니처를 가진다.  
+
+```kotlin
+fun printList(list: List<Int>) {
+    println("Int 리스트입니다.")
+    println(list)
+}
+
+fun printList(list: List<Long>) {
+    println("Int 리스트입니다.")
+    println(list)
+}
+fun main() {
+    // 오버로드 해결이 모호합니다. 이 모든 함수가 일치합니다.
+    // public fun printList(list: List<Int>): Unit defined in root package in file Main.kt
+    // public fun printList(list: List<Long>): Unit defined in root package in file Main.kt
+    printList(listOf(1,2,3,4,5))
+}
+```
+
+`reified` 키워드를 이용하면 간단하게 해결할 수 있다.
+
+```kotlin
+inline fun <reified T : Any> printList(list: List<T>) {
+    when {
+        1 is T -> println("Int 리스트입니다.")
+        1L is T -> println("Long 리스트입니다.")
+        else -> println("다른 타입의 리스트입니다.")
+    }
+    println(list)
+}
+
+fun main() {
+    printList(listOf(1,2,3,4,5))
+}
+```
 
 # **코틀린과 유니코드**
 - [BSIDESOFT 참고](https://www.bsidesoft.com/3435)
@@ -336,6 +417,8 @@ JVM에서는 이런 함수를 둘 곳이 없으므로 **코틀린 컴파일러�
 
 클래스 안에 있는 `companion object` 블록은 이름이 붙은 인스턴스가 단 하나뿐인 동시에 같은 이름의 class이기도 한 싱글턴 객체를 선언하고 게으르게 생성한다.  
 코틀린 싱글턴은 객체 본문에서 스레드 안전성을 보장하기 위해 **2중 검사 장금 (double checked locking)** 을 하지 않아도 되며, 자바보다 훨씬 안전하다.  
+동반 객체 내부 필드들은 가능하다면 `const` 키워드를 붙여 **상수 값을 인라인화** 하는 것이 좋다.  
+상수는 네임스페이스가 필요하다면 객체 안에 두지만 상수 값만 필요할 때는 클래스 밖에 선언해도 된다.  
   
 코틀린에는 자바의 `static` 키워드에 해당하는 것이 없어 자바에서 `static` 멤버로 정의할 법한 부분을 코틀린 동반 객체 안에 정의하는 경우가 종종 있다.  
 동반 객체를 선언하면 데이터 타입과 같은 이름의 객체가 생긱고 그 안에 해당 데이터 타입 값에 적용할 수 있는 여러 가지 편의 메서드를 추가할 수 있다.  
