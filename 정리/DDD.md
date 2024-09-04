@@ -250,6 +250,9 @@ JPA의 Entity는 영속성 메커니즘일 뿐이며 DDD의 Entity는 비즈니�
 애그리게이트안에는 조회를 다 빼야하고 수정에 대한 고려만 해야 한다. 조회가 포함된다면 복잡해진다.  
 그래서 조회와 명령을 분리한 **CQRS** 가 등장한다.  
   
+> 도메인 주도 설계에서 애그리게이트는 일관성을 가진 독립적인 존재이기 때문에, 설계 시 애그리게이트와 도메인 서비스의 특성을 잘 반영하면 병렬 처리를 적용할 수 있다.  
+> 대부분의 시스템에서 저장소와 관련된 행위를 단일 트랜잭션으로 처리하기 때문에 애그리게이트 생성, 변경, 삭제를 위한 유효성 검사와 같은 비즈니스 로직에 병렬 처리를 통한 개선을 노려볼 수 있다.
+  
 각 애그리게이트간에 참조가 필요하다면 참조하는 연관관계를 끊고 식별자(ID)값으로 결합도를 서로 낮추어야 한다.  
 루트 애그리게이트는 가능한 심플해야 하며, 애그리게이트는 개발 범위이기 때문에 JPA에서 레이지 로딩을 통하여 모든 엔티티들을 엮어서 개발하는 것이 아니라 애그리게이트 경계를 정하고 식별자 값으로 복잡도와 결합도를 낮춰야 한다.  
 다수의 엔티티로 애그리게이트를 구성할 때 애그리게이트 루트를 제외한 다른 엔티티는 애그리게이트 내에서 식별할 수 있는 식별자를 가진다.  
@@ -463,13 +466,13 @@ Controller 계층은 Application, Domain, infrastructure 계층에 의존한다.
 
 ## **Repository를 다루는 방식**
 
-1.  서비스 구현체가 JpaRepository에 의존하는 방식
+1.  **서비스 구현체가 JpaRepository에 의존하는 방식**
     1.  JpaRepository는 이미 인터페이스이기 때문에 엄청 잘못된 방식은 아니다.
     2.  하지만 Fake가 불필요한 인터페이스에 모두 알게되며, ServiceImpl에서 사용하는 Domain entity가 Persistence entity에 종속되며 ServiceImpl도 Jpa에 의존된다.
-2.  Repository 인터페이스는 JpaRepository와 격리하여 사용하고 RepositoryImpl을 interface로 생성하여 JpaRepository를 구현하는 방식
+2.  **Repository 인터페이스는 JpaRepository와 격리하여 사용하고 RepositoryImpl을 interface로 생성하여 JpaRepository를 구현하는 방식**
     1.  Repository가 필요한 인터페이스만 사용하도록 하므로, Service는 JpaRepository의 모든 기능을 알고 있을 필요가 없다.
     2.  하지만 이 방법 역시 JpaRepository의 entity 타입이 Service까지 전파되기 때문에 Domain entity와 Persistence entity를 분리할 수 없다. 
-3.  Repository 인터페이스는 JpaRepository와 격리하여 사용하고 RepositoryImpl을 콘크리트 클래스로 생성하여 JpaRepository를 구현하는 방식
+3.  **Repository 인터페이스는 JpaRepository와 격리하여 사용하고 RepositoryImpl을 콘크리트 클래스로 생성하여 JpaRepository를 구현하는 방식**
     1.  이 방법을 사용하면 콘크리트 클래스가 JpaRepository를 주입받아 엔티티를 도메인 모델로 변경하여 반환하기에 모두 해결할 수 있다.
 
 ## **Use Case(input port)는 추상화 되어야 하는가?**
