@@ -1,28 +1,4 @@
 
-<!-- TOC -->
-
-- [**컨테이너리스 웹 애플리케이션 아키텍처란?**](#컨테이너리스-웹-애플리케이션-아키텍처란)
-- [**Case 1. 스프링 컨테이너를 제외하고 서블릿 컨테이너만 실행하기**](#case-1-스프링-컨테이너를-제외하고-서블릿-컨테이너만-실행하기)
-- [**Case 2. 서블릿 컨테이너에 DispatcherServlet 등록해보기**](#case-2-서블릿-컨테이너에-dispatcherservlet-등록해보기)
-- [**Case 3. 서블릿 생성,초기화 작업을 스프링 컨테이너 초기화 중에 실행하기**](#case-3-서블릿-생성초기화-작업을-스프링-컨테이너-초기화-중에-실행하기)
-- [**Case 4. @Configuration 설정 정보를 이용하여 ApplicationContext 구성해보기**](#case-4-configuration-설정-정보를-이용하여-applicationcontext-구성해보기)
-	- [**DispatcherServlet에 ApplicationContext를 주입해주지 않으면?**](#dispatcherservlet에-applicationcontext를-주입해주지-않으면)
-- [**Case 5. SpringApplication.run(HellobootApplication.class, args)**](#case-5-springapplicationrunhellobootapplicationclass-args)
-- [**메타 어노테이션**](#메타-어노테이션)
-- [**애플리케이션 빈 vs 컨테이너 인프라스트럭처 빈**](#애플리케이션-빈-vs-컨테이너-인프라스트럭처-빈)
-- [`@Configuration(proxyBeanMethods = false)`는 뭘까](#configurationproxybeanmethods--false는-뭘까)
-- [**조건부 자동구성** `@Conditional`과 `Condition interface`](#조건부-자동구성-conditional과-condition-interface)
-	- [스프링 부트의 `@Conditional`](#스프링-부트의-conditional)
-- [**스프링의 `Environment` 추상화**](#스프링의-environment-추상화)
-	- [`Environment`를 활용하여 `Tomcat`의 ContextPath 설정](#environment를-활용하여-tomcat의-contextpath-설정)
-- [**Spring JDBC 자동 구성 개발** `DataSource`와 `JdbcTemplate`](#spring-jdbc-자동-구성-개발-datasource와-jdbctemplate)
-- [**스프링 부트의 자동 구성 정보**](#스프링-부트의-자동-구성-정보)
-	- [Core](#core)
-	- [Web](#web)
-	- [JDBC](#jdbc)
-
-<!-- /TOC -->
-
 [Containerless 웹 개발 아키텍처의 지원](https://github.com/spring-projects/spring-framework/issues/14521)요청에서 논의와 개발이 시작되었다.  
 
 # **컨테이너리스 웹 애플리케이션 아키텍처란?**
@@ -491,6 +467,7 @@ public class ConfigurationTest {
 ## 스프링 부트의 `@Conditional`
 
 스프링 프레임워크의 `@Profile`도 `@Conditional` 어노테이션이다.  
+(`@Conditional`은 `@Bean` 메소드에도 작성할 수 있긴 하지만, `@Configuration`에 작성된 `@Conditional`이 통과되어야 의미가 있다.)  
 
 ```java
 @Target({ElementType.TYPE, ElementType.METHOD})
@@ -519,7 +496,13 @@ public @interface Profile {
   
 빈의 존재 여부를 기준으로 포함여부를 결정  
 빈의 타입 또는 이름을 지정할 수 있으며, 지정된 빈 정보가 없으면 메소드의 리턴 타입을 기준으로 빈의 존재여부를 체크한다.  
-컨테이너에 등록된 빈 정보를 기준으로 체크하기 때문에 자동 구성 사이에 적용하려면 `@Configuration` 클래스의 적용 순서가 중요하다.  
+  
+Conditional을 확인하는 시점은 컨테이너에 등록된 빈 정보를 기준으로 체크하기 때문에 자동 구성 사이에 적용하려면 `@Configuration` 클래스의 적용 순서가 중요하다.  
+개발자가 직접 정의한 빈 구성 정보가 자동 구성 정보 보다 먼저 처리되는 것음 명심해야 한다.  
+  
+ImportSelector를 구현할 때는 `DeferredImportSelector` 인터페이스를 활용하여야 하는데, 모든 @Configuration 빈이 처리된 후에 실행되는 ImportSelector이기 때문이다.  
+그렇기 때문에 `@Conditional`을 판단하는 시점에는 이미 일반적인 `@Bean`들이 등록되어 있다.  
+그래서 `@ConditionalOnMissingBean`을 통해 개발자가 `@Bean`을 직접 구성하지 않았을 때만 자동 구성을 실행하도록 할 수 있다.  
   
 **Property Conditions**  
 1. `@ConditionalOnProperty`
@@ -549,7 +532,7 @@ public @interface Profile {
 
 ```java
 /**
- * ApplicationRunner 를 구현하여 빈으로 등록하면 모든 스프링 실행과 로딩이 끝나고 해당 구현체가 실행됨이 보장된다.
+ * ApplicationRunner를 구현하여 빈으로 등록하면 모든 스프링 실행과 로딩이 끝나고 해당 구현체가 실행됨이 보장된다.
  */
 @Bean
 ApplicationRunner applicationRunner(Environment env) {
@@ -563,12 +546,12 @@ ApplicationRunner applicationRunner(Environment env) {
 ## `Environment`를 활용하여 `Tomcat`의 ContextPath 설정
 
 > yml 등에 정의된 프로퍼티 값들이 결국 하나의 프로퍼티 클래스의 오브젝트로 변환되고, 이를 자동 구성 클래스가 받아서 사용한다는 것이 핵심이다.  
-> **@Enable..**로 시작하는 어노테이션들은 **@Import를 작성하여 기능을 가진 Configuration 클래스 또는 ImportSelector를 가져오게 하는것이 목적**이다.
+> **@Enable..**로 시작하는 어노테이션들은 **@Import를 작성하여 기능을 가진 Configuration 클래스 또는 ImportSelector를 가져오게 하는것이 목적**이다.  
 
-  
 1. **`Environment`에서 Property를 직접 조회하기** [예제](https://github.com/jdalma/helloboot/commit/c0d228ad784ee215a4a47ebbf578b73246a1b67b#diff-fc5baa8cac8f110ab739dca90ef9717f3a31e2b24b600781b42d5ef08c507178)
 2. **`@Value`를 통해 내부 필드로 Property를 할당해서 사용하기** [예제](https://github.com/jdalma/helloboot/commit/2b7a80cd4510a6e1478ac5d3a593815ae513ab30)
   - `PropertySourcesPlaceholderConfigurer`를 자동으로 등록하지 않으면 `@Value`의 기능을 사용할 수 없다.
+  - `@Value`는 빈 팩토리 후 처리기가 처리한다.
 3. **Property 클래스 분리** [예제](https://github.com/jdalma/helloboot/commit/52ed84ca625e45f52a09c6b2117793bc6138f543#diff-2af8a8a5dfec35fe353ec875a54ce8e92772ee6a04814738907e8f398de84876)
    - Property가 많아지면 `@Value`로 직접 할당하기 번거러우니, 클래스를 따로 정의하여 자동으로 Bind 하기
 4. **빈 후처리기를 등록하여 `@MyConfigurationProperties`이 작성된 빈들을 찾아 Property들 자동으로 Bind 시키기** [예제](https://github.com/jdalma/helloboot/commit/89f1ca54fc572832a86f982f2be07603de53a46a#diff-717b7d12ab0fce6132bec6eb6483b5deaa111bc99b66ae2f823d53e16262c511)
@@ -592,17 +575,17 @@ ApplicationRunner applicationRunner(Environment env) {
 ApplicationRunner run(ConditionEvaluationReport report) {
 	return args -> {
 		report.getConditionAndOutcomesBySource()
-				.entrySet()
-				.stream()
-				.filter(co -> co.getValue().isFullMatch())
-				.filter(co -> !co.getKey().contains("Jmx"))
-				.forEach(co -> {
-					System.out.println(co.getKey());
-					co.getValue().forEach(c -> {
-						System.out.println("\t" + c.getOutcome());
-					});
-					System.out.println();
+			.entrySet()
+			.stream()
+			.filter(co -> co.getValue().isFullMatch())
+			.filter(co -> !co.getKey().contains("Jmx"))
+			.forEach(co -> {
+				System.out.println(co.getKey());
+				co.getValue().forEach(c -> {
+					System.out.println("\t" + c.getOutcome());
 				});
+				System.out.println();
+			});
 	};
 }
 ```
